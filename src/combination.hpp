@@ -1,7 +1,7 @@
-template <class T = mint>  // Usually used over ModInt.
+template <class T = Mint>  // Usually used over ModInt.
 struct Factorials {
   // factorials and inverse factorials.
-  vector<T> fact, ifact;
+  std::vector<T> fact, ifact;
 
   // n: max cached value.
   Factorials(int n) : fact(n + 1), ifact(n + 1) {

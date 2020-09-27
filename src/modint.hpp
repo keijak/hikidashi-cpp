@@ -1,19 +1,4 @@
-
-// Extended Euclidean algorithm
-// Returns gcd(a,b).
-// x and y are set to satisfy `a*x + b*y == gcd(a,b)`
-long long ext_gcd(long long a, long long b, long long &x, long long &y) {
-  if (b == 0) {
-    x = 1;
-    y = 0;
-    return a;
-  }
-  long long d = ext_gcd(b, a % b, y, x);
-  y -= a / b * x;
-  return d;
-}
-
-template <unsigned int M>
+template <int M>
 struct ModInt {
   constexpr ModInt(long long val = 0) : _v(0) {
     if (val < 0) {
@@ -63,7 +48,6 @@ struct ModInt {
     return *this;
   }
   constexpr ModInt pow(unsigned long long t) const {
-    assert(t >= 0);
     ModInt base = *this;
     ModInt res = 1;
     while (t) {
@@ -111,9 +95,24 @@ struct ModInt {
   }
 
  private:
-  unsigned int _v;
+  // Extended Euclidean algorithm
+  // Returns gcd(a,b).
+  // x and y are set to satisfy `a*x + b*y == gcd(a,b)`
+  static long long ext_gcd(long long a, long long b, long long &x,
+                           long long &y) {
+    if (b == 0) {
+      x = 1;
+      y = 0;
+      return a;
+    }
+    long long d = ext_gcd(b, a % b, y, x);
+    y -= a / b * x;
+    return d;
+  }
+
+  unsigned int _v;  // raw value
 };
-const unsigned int MOD = 1'000'000'007;
+const int MOD = 1'000'000'007;
 using Mint = ModInt<MOD>;
 
 // Runtime MOD:
