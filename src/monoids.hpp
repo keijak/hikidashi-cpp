@@ -43,6 +43,38 @@ struct GCD {
   static constexpr T id() { return -1; }
 };
 
+// 2 smallest items in an interval.
+struct Min2 {
+  using value_type = long long;
+  using T = std::array<value_type, 2>;
+
+  static T op(const T &x, const T &y) {
+    std::array<value_type, 4> a = {x[0], x[1], y[0], y[1]};
+    std::sort(std::begin(a), std::end(a));
+    return {a[0], a[1]};
+  }
+  static constexpr T id() {
+    return {std::numeric_limits<value_type>::max(),
+            std::numeric_limits<value_type>::max()};
+  }
+};
+
+// 2 largest items in an interval.
+struct Max2 {
+  using value_type = long long;
+  using T = std::array<value_type, 2>;
+
+  static T op(const T &x, const T &y) {
+    std::array<value_type, 4> a = {x[0], x[1], y[0], y[1]};
+    std::sort(std::begin(a), std::end(a));
+    return {a[3], a[2]};
+  }
+  static constexpr T id() {
+    return {std::numeric_limits<value_type>::min(),
+            std::numeric_limits<value_type>::min()};
+  }
+};
+
 struct AddMin {
   using T = long long;
   using F = long long;
