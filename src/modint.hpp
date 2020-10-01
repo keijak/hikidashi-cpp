@@ -1,4 +1,4 @@
-template <int M>
+template <unsigned int M>
 struct ModInt {
   constexpr ModInt(long long val = 0) : _v(0) {
     if (val < 0) {
@@ -58,14 +58,19 @@ struct ModInt {
     return res;
   }
 
-  // Inverse by Extended Euclidean algorithm.
-  // M doesn't need to be prime, but x and M must be coprime.
   constexpr ModInt inv() const {
+    // Inverse by Extended Euclidean algorithm.
+    // M doesn't need to be prime, but x and M must be coprime.
     assert(_v != 0);
-    long long x, y;
-    long long g = ext_gcd(_v, M, x, y);
+    long long g, x, y;
+    g = ext_gcd(_v, M, x, y);
     assert(g == 1LL);  // gcd(_v, M) must be 1.
     return x;
+
+    // Inverse by Fermat's little theorem.
+    // M must be prime, but it's usually faster.
+    //
+    //     return pow(M - 2);
   }
   constexpr ModInt &operator/=(const ModInt &a) { return *this *= a.inv(); }
 
@@ -96,8 +101,7 @@ struct ModInt {
 
  private:
   // Extended Euclidean algorithm
-  // Returns gcd(a,b).
-  // x and y are set to satisfy `a*x + b*y == gcd(a,b)`
+  // Returns gcd(a,b). x and y are set to satisfy `a*x + b*y == gcd(a,b)`
   static long long ext_gcd(long long a, long long b, long long &x,
                            long long &y) {
     if (b == 0) {
@@ -105,14 +109,15 @@ struct ModInt {
       y = 0;
       return a;
     }
-    long long d = ext_gcd(b, a % b, y, x);
-    y -= a / b * x;
-    return d;
+    auto d = std::lldiv(a, b);
+    auto g = ext_gcd(b, d.rem, y, x);
+    y -= d.quot * x;
+    return g;
   }
 
   unsigned int _v;  // raw value
 };
-const int MOD = 1'000'000'007;
+const unsigned int MOD = 1'000'000'007;
 using Mint = ModInt<MOD>;
 
 // Runtime MOD:
