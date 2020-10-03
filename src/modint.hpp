@@ -106,15 +106,12 @@ struct ModInt {
     for (;;) {
       if (b == 0) break;
       auto d = std::div(a, b);
-      int u = d.rem;
-      int ux = ax - bx * d.quot;
-      int uy = ay - by * d.quot;
       a = b;
-      ax = bx;
-      ay = by;
-      b = u;
-      bx = ux;
-      by = uy;
+      b = d.rem;
+      ax -= bx * d.quot;
+      std::swap(ax, bx);
+      ay -= by * d.quot;
+      std::swap(ay, by);
     }
     return {a, ax, ay};
   }
