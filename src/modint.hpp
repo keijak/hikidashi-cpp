@@ -62,13 +62,12 @@ struct ModInt {
     // Inverse by Extended Euclidean algorithm.
     // M doesn't need to be prime, but x and M must be coprime.
     assert(_v != 0);
-    long long g, x, y;
-    g = ext_gcd(_v, M, x, y);
-    assert(g == 1LL);  // gcd(_v, M) must be 1.
+    auto [g, x, y] = ext_gcd(_v, M);
+    assert(g == 1LL);  // The GCD must be 1.
     return x;
 
     // Inverse by Fermat's little theorem.
-    // M must be prime, but it's usually faster.
+    // M must be prime. It's often faster.
     //
     //     return pow(M - 2);
   }
@@ -101,18 +100,23 @@ struct ModInt {
 
  private:
   // Extended Euclidean algorithm
-  // Returns gcd(a,b). x and y are set to satisfy `a*x + b*y == gcd(a,b)`
-  static long long ext_gcd(long long a, long long b, long long &x,
-                           long long &y) {
-    if (b == 0) {
-      x = 1;
-      y = 0;
-      return a;
+  // Returns (gcd(a,b), x, y) where `a*x + b*y == gcd(a,b)`.
+  static std::tuple<int, int, int> ext_gcd(int a, int b) {
+    int ax = 1, ay = 0, bx = 0, by = 1;
+    for (;;) {
+      if (b == 0) break;
+      auto d = std::div(a, b);
+      int u = d.rem;
+      int ux = ax - bx * d.quot;
+      int uy = ay - by * d.quot;
+      a = b;
+      ax = bx;
+      ay = by;
+      b = u;
+      bx = ux;
+      by = uy;
     }
-    auto d = std::lldiv(a, b);
-    auto g = ext_gcd(b, d.rem, y, x);
-    y -= d.quot * x;
-    return g;
+    return {a, ax, ay};
   }
 
   unsigned int _v;  // raw value
