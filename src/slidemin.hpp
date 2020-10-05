@@ -8,9 +8,11 @@ struct SlideMinQueue {
   std::deque<int> que;
   const Compare compare;
 
+  // Initial window: [0, 0) -- half open interval.
   explicit SlideMinQueue(Container& values)
       : values(values), left(0), right(0) {}
 
+  // Shift both `left` and `right` to the right.
   void slide(int l, int r) {
     assert(l >= left);
     assert(r >= right);
@@ -22,6 +24,7 @@ struct SlideMinQueue {
     right = r;
   }
 
+  // Returns the minimum value in [left, right).
   T fold() const {
     assert(!empty());
     return que.front();
