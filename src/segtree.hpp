@@ -49,6 +49,16 @@ struct SegTree {
   // Returns i-th value (0-indexed).
   T operator[](int i) const { return data_[offset_ + i]; }
 
+  friend std::ostream &operator<<(std::ostream &os, const SegTree &st) {
+    os << "[";
+    for (int i = 0; i < st.n(); ++i) {
+      if (i != 0) os << ", ";
+      const auto &x = st[i];
+      os << x;
+    }
+    return os << "]";
+  }
+
   template <bool (*pred)(const T &)>
   int max_right(int l) {
     return max_right(l, [](const T &x) -> bool { return pred(x); });
@@ -105,16 +115,6 @@ struct SegTree {
       sm = Monoid::op(data_[r], sm);
     } while ((r & -r) != r);
     return 0;
-  }
-
-  friend std::ostream &operator<<(std::ostream &os, const SegTree &st) {
-    os << "[";
-    for (int i = 0; i < st.n(); ++i) {
-      if (i != 0) os << ", ";
-      const auto &x = st[i];
-      os << x;
-    }
-    return os << "]";
   }
 
  private:
