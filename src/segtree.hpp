@@ -46,6 +46,8 @@ struct SegTree {
     return Monoid::op(vleft, vright);
   }
 
+  T fold_all() const { return data_[1]; }
+
   // Returns i-th value (0-indexed).
   T operator[](int i) const { return data_[offset_ + i]; }
 
@@ -59,63 +61,65 @@ struct SegTree {
     return os << "]";
   }
 
-  template <bool (*pred)(const T &)>
-  int max_right(int l) {
-    return max_right(l, [](const T &x) -> bool { return pred(x); });
-  }
-  template <class Predicate>
-  int max_right(int l, Predicate pred) {
-    assert(0 <= l && l <= n_);
-    assert(pred(Monoid::id()));
-    if (l == n_) return n_;
-    l += offset_;
-    T sm = Monoid::id();
-    do {
-      while (l % 2 == 0) l >>= 1;
-      if (!pred(Monoid::op(sm, data_[l]))) {
-        while (l < offset_) {
-          l = (2 * l);
-          if (pred(Monoid::op(sm, data_[l]))) {
-            sm = Monoid::op(sm, data_[l]);
-            l++;
+  /*
+    template <bool (*pred)(const T &)>
+    int max_right(int l) {
+      return max_right(l, [](const T &x) -> bool { return pred(x); });
+    }
+    template <class Predicate>
+    int max_right(int l, Predicate pred) {
+      assert(0 <= l && l <= n_);
+      assert(pred(Monoid::id()));
+      if (l == n_) return n_;
+      l += offset_;
+      T sm = Monoid::id();
+      do {
+        while (l % 2 == 0) l >>= 1;
+        if (!pred(Monoid::op(sm, data_[l]))) {
+          while (l < offset_) {
+            l = (2 * l);
+            if (pred(Monoid::op(sm, data_[l]))) {
+              sm = Monoid::op(sm, data_[l]);
+              l++;
+            }
           }
+          return l - offset_;
         }
-        return l - offset_;
-      }
-      sm = Monoid::op(sm, data_[l]);
-      l++;
-    } while ((l & -l) != l);
-    return n_;
-  }
+        sm = Monoid::op(sm, data_[l]);
+        l++;
+      } while ((l & -l) != l);
+      return n_;
+    }
 
-  template <bool (*pred)(const T &)>
-  int min_left(int r) {
-    return min_left(r, [](const T &x) -> bool { return pred(x); });
-  }
-  template <class Predicate>
-  int min_left(int r, Predicate pred) {
-    assert(0 <= r && r <= n_);
-    assert(pred(Monoid::id()));
-    if (r == 0) return 0;
-    r += offset_;
-    T sm = Monoid::id();
-    do {
-      r--;
-      while (r > 1 && (r % 2)) r >>= 1;
-      if (!pred(Monoid::op(data_[r], sm))) {
-        while (r < offset_) {
-          r = (2 * r + 1);
-          if (pred(Monoid::op(data_[r], sm))) {
-            sm = Monoid::op(data_[r], sm);
-            r--;
+    template <bool (*pred)(const T &)>
+    int min_left(int r) {
+      return min_left(r, [](const T &x) -> bool { return pred(x); });
+    }
+    template <class Predicate>
+    int min_left(int r, Predicate pred) {
+      assert(0 <= r && r <= n_);
+      assert(pred(Monoid::id()));
+      if (r == 0) return 0;
+      r += offset_;
+      T sm = Monoid::id();
+      do {
+        r--;
+        while (r > 1 && (r % 2)) r >>= 1;
+        if (!pred(Monoid::op(data_[r], sm))) {
+          while (r < offset_) {
+            r = (2 * r + 1);
+            if (pred(Monoid::op(data_[r], sm))) {
+              sm = Monoid::op(data_[r], sm);
+              r--;
+            }
           }
+          return r + 1 - offset_;
         }
-        return r + 1 - offset_;
-      }
-      sm = Monoid::op(data_[r], sm);
-    } while ((r & -r) != r);
-    return 0;
-  }
+        sm = Monoid::op(data_[r], sm);
+      } while ((r & -r) != r);
+      return 0;
+    }
+  */
 
  private:
   int n_;                // number of valid leaves.
