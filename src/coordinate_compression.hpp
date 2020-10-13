@@ -6,10 +6,9 @@ struct Compress {
     sort(vec.begin(), vec.end());
     vec.erase(unique(vec.begin(), vec.end()), vec.end());
   }
-  int index(T x) {
+  int index(T x) const {
     return (int)(lower_bound(vec.begin(), vec.end(), x) - vec.begin());
   }
-  T &value(int i) { return vec[i]; }
   const T &value(int i) const { return vec[i]; }
-  int size() { return vec.size(); }
+  int size() const { return vec.size(); }
 };
