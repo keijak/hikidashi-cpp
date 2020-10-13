@@ -9,6 +9,7 @@ struct Compress {
   int index(T x) {
     return (int)(lower_bound(vec.begin(), vec.end(), x) - vec.begin());
   }
-  T &operator[](int i) { return vec[i]; }
+  T &value(int i) { return vec[i]; }
+  const T &value(int i) const { return vec[i]; }
   int size() { return vec.size(); }
 };
