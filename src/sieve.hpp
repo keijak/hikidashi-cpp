@@ -1,6 +1,8 @@
+#include <bits/stdc++.h>
+
 // Returns a bitset to tell if a number less than or equal to n is prime.
-vector<bool> sieve_simple(int n) {
-  vector<bool> is_prime(n + 1, true);
+std::vector<bool> sieve_simple(int n) {
+  std::vector<bool> is_prime(n + 1, true);
   is_prime[0] = is_prime[1] = false;
   for (int i = 4; i <= n; i += 2) is_prime[i] = false;
   for (int i = 3; i * i <= n; i += 2) {
@@ -11,23 +13,27 @@ vector<bool> sieve_simple(int n) {
 }
 
 // osa_k's algorithm.
-vector<int> sieve(int n) {
-  vector<int> min_factor(n + 1);
-  REP(i, n + 1) { min_factor[i] = i; }
-  for (int i = 4; i <= n; i += 2) min_factor[i] = 2;
-  for (int i = 3; i * i <= n; i += 2) {
-    if (min_factor[i] != i) continue;
-    for (int j = 2 * i; j <= n; j += i) min_factor[j] = i;
+// Returns a vector that maps x to x's smallest divisor.
+std::vector<int> min_divisors(int n) {
+  std::vector<int> res(n + 1);
+  for (int i = 1; i <= n; ++i) {
+    res[i] = i;
   }
-  return min_factor;
+  for (int i = 4; i <= n; i += 2) res[i] = 2;
+  for (int i = 3; i * i <= n; i += 2) {
+    if (res[i] != i) continue;
+    for (int j = 2 * i; j <= n; j += i) res[j] = i;
+  }
+  return res;
 }
 
 // Quick factorization.
-vector<pair<int, int>> factorize(int n, const vector<int>& min_factor) {
-  assert(0 < n and n < int(min_factor.size()));
-  vector<pair<int, int>> res;
+std::vector<std::pair<int, int>> quick_factorize(
+    int n, const std::vector<int>& min_divisor) {
+  assert(0 < n and n < int(res.size()));
+  std::vector<std::pair<int, int>> res;
   for (;;) {
-    int p = min_factor[n];
+    int p = min_divisor[n];
     if (p == 1) break;
     int count = 0;
     do {
@@ -39,12 +45,12 @@ vector<pair<int, int>> factorize(int n, const vector<int>& min_factor) {
   return res;
 }
 
-// Returns the prime numbers less than or equal to n.
-vector<int> primes(int n) {
-  vector<int> res;
-  auto min_factor = sieve(n);
+// Returns the prime numbers smaller than or equal to n.
+std::vector<int> primes(int n) {
+  std::vector<int> res;
+  auto res = min_divisors(n);
   for (int i = 2; i <= n; ++i) {
-    if (min_factor[i] == i) res.push_back(i);
+    if (res[i] == i) res.push_back(i);
   }
   return res;
 }
