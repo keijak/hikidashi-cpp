@@ -308,7 +308,7 @@ DenseFPS<ModInt, DMAX> &operator*=(DenseFPS<ModInt, DMAX> &x,
   const int dy_max = y.degree(y.size() - 1);
   const int dx_max = x.size() - 1;
   const int n = std::min(dx_max + dy_max + 1, DMAX + 1);
-  if (x.size() < n) x.resize(n);
+  if (x.size() < n) x.coeff_.resize(n);
   for (int dx = n - 1; dx >= 0; --dx) {
     x.coeff_[dx] *= c0;
     for (int j = j0; j < y.size(); ++j) {
@@ -341,7 +341,7 @@ DenseFPS<ModInt, DMAX> &operator/=(DenseFPS<ModInt, DMAX> &x,
   const int dy_max = y.degree(y.size() - 1);
   const int dx_max = x.size() - 1;
   const int n = std::min(dx_max + dy_max + 1, DMAX + 1);
-  if (x.size() < n) x.resize(n);
+  if (x.size() < n) x.coeff_.resize(n);
   for (int dx = 0; dx < n; ++dx) {
     for (int j = 1; j < y.size(); ++j) {
       int dy = y.degree(j);
