@@ -6,8 +6,6 @@
 using i64 = long long;
 using u64 = unsigned long long;
 
-namespace fps {
-
 // Formal Power Series (dense format).
 template <typename T, int DMAX>
 struct DenseFPS {
@@ -36,7 +34,7 @@ struct DenseFPS {
   const T &operator[](int d) const { return coeff_[d]; }
 
   DenseFPS &operator+=(const T &scalar) {
-    for (auto &x : coeff_) x += scalar;
+    coeff_[0] += scalar;
     return *this;
   }
   friend DenseFPS operator+(const DenseFPS &x, const T &scalar) {
@@ -93,6 +91,8 @@ struct DenseFPS {
     return res;
   }
 };
+
+namespace fps {
 
 // Fast polynomial multiplication by single NTT.
 template <typename ModInt, int DMAX>
@@ -160,9 +160,11 @@ DenseFPS<i64, DMAX> pow_ll(const DenseFPS<i64, DMAX> &x, u64 t) {
   return pow_generic(x, t, mul_ll);
 }
 
+}  // namespace fps
+
 // Formal Power Series (sparse format).
 template <typename T>
-class SparseFPS {
+struct SparseFPS {
   int size_;
   std::vector<int> degree_;
   std::vector<T> coeff_;
@@ -303,7 +305,7 @@ DenseFPS<ModInt, DMAX> &operator*=(DenseFPS<ModInt, DMAX> &x,
     for (int j = j0; j < y.size(); ++j) {
       int d = y.degree(j);
       if (d > i) break;
-      x.coeff_[i] += x.coeff_[i - d] * y.coeff[j];
+      x.coeff_[i] += x[i - d] * y.coeff(j);
     }
   }
   return x;
@@ -344,5 +346,3 @@ DenseFPS<ModInt, DMAX> operator/(const DenseFPS<ModInt, DMAX> &x,
   res /= y;
   return res;
 }
-
-}  // namespace fps
