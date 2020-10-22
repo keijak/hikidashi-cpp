@@ -186,6 +186,8 @@ class SparseFPS {
   inline int degree(int i) const { return degree_[i]; }
   inline const T &coeff(int i) const { return coeff_[i]; }
 
+  int max_degree() const { return (size_ == 0) ? 0 : degree_.back(); }
+
   void emplace_back(int d, T c) {
     if (not degree_.empty()) {
       assert(d > degree_.back());
@@ -241,7 +243,8 @@ class SparseFPS {
  private:
   SparseFPS add(const SparseFPS &other) const {
     SparseFPS res;
-    for (int i = 0, j = 0; i < size();) {
+    int j = 0;
+    for (int i = 0; i < size();) {
       const int deg = this->degree(i);
       for (; j < other.size() and other.degree(j) < deg; ++j) {
         res.emplace_back(other.degree(j), other.coeff(j));
@@ -262,11 +265,36 @@ class SparseFPS {
   }
 };
 
+// Polynomial addition (dense * sparse).
+template <typename ModInt, int MAX_DEGREE>
+DenseFPS<ModInt, MAX_DEGREE> &operator+=(DenseFPS<ModInt, MAX_DEGREE> &x,
+                                         const SparseFPS<ModInt> &y) {
+  for (int i = 0; i < y.size(); ++i) {
+    if (y.degree(i) > MAX_DEGREE) break;  // ignore
+    x.coeff_[y.degree(i)] += y.coeff(i);
+  }
+  return x;
+}
+template <typename ModInt, int MAX_DEGREE>
+DenseFPS<ModInt, MAX_DEGREE> operator+(const DenseFPS<ModInt, MAX_DEGREE> &x,
+                                       const SparseFPS<ModInt> &y) {
+  DenseFPS<ModInt, MAX_DEGREE> res = x;
+  res += y;
+  return res;
+}
+template <typename ModInt, int MAX_DEGREE>
+DenseFPS<ModInt, MAX_DEGREE> operator+(const SparseFPS<ModInt> &x,
+                                       const DenseFPS<ModInt, MAX_DEGREE> &y) {
+  return y + x;  // commutative
+}
+
 // Polynomial multiplication (dense * sparse).
 template <typename ModInt, int MAX_DEGREE>
 DenseFPS<ModInt, MAX_DEGREE> &operator*=(DenseFPS<ModInt, MAX_DEGREE> &x,
                                          const SparseFPS<ModInt> &y) {
-  assert(y.size() > 0);
+  if (y.size() == 0) {
+    return x *= 0;
+  }
   ModInt c0 = 0;
   int j0 = 0;
   if (y.degree(0) == 0) {
@@ -289,6 +317,11 @@ DenseFPS<ModInt, MAX_DEGREE> operator*(const DenseFPS<ModInt, MAX_DEGREE> &x,
   DenseFPS<ModInt, MAX_DEGREE> res = x;
   res *= y;
   return res;
+}
+template <typename ModInt, int MAX_DEGREE>
+DenseFPS<ModInt, MAX_DEGREE> operator*(const SparseFPS<ModInt> &x,
+                                       const DenseFPS<ModInt, MAX_DEGREE> &y) {
+  return y * x;  // commutative
 }
 
 // Polynomial division (dense * sparse).
