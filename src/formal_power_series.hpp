@@ -1,4 +1,8 @@
 #include <bits/stdc++.h>
+
+#include <atcoder/convolution>
+#include <atcoder/modint>
+
 using i64 = long long;
 using u64 = unsigned long long;
 
@@ -9,7 +13,9 @@ struct DenseFPS {
   std::vector<T> coeff;
 
   DenseFPS() : coeff(MAX_DEGREE + 1) {}  // zero-initialized
-  explicit DenseFPS(std::vector<T> c) : coeff(std::move(c)) {}
+  explicit DenseFPS(std::vector<T> c) : coeff(std::move(c)) {
+    assert((int)coeff.size() == MAX_DEGREE + 1);
+  }
 
   DenseFPS(const DenseFPS &other) : coeff(other.coeff) {}
   DenseFPS(DenseFPS &&other) : coeff(std::move(other.coeff)) {}
@@ -40,14 +46,19 @@ struct DenseFPS {
     return *this;
   }
 
-  DenseFPS &operator*=(const DenseFPS &other) {
-    std::vector<T> res(size());
+  // Naive multiplication. O(N^2)
+  DenseFPS mul_naive(const DenseFPS &other) const {
+    DenseFPS res;
     for (int i = 0; i < size(); ++i) {
       for (int j = 0; i + j < size(); ++j) {
-        res[i + j] += (*this)[i] * other[j];
+        res.coeff[i + j] += (*this)[i] * other[j];
       }
     }
-    coeff = std::move(res);
+    return res;
+  }
+
+  DenseFPS &operator*=(const DenseFPS &other) {
+    *this = this->mul_naive(other);
     return *this;
   }
 
@@ -64,27 +75,15 @@ struct DenseFPS {
   }
 
   friend DenseFPS operator*(const DenseFPS &x, const DenseFPS &y) {
-    DenseFPS res(x);
-    res *= y;
-    return res;
-  }
-
-  DenseFPS pow(u64 t) const {
-    DenseFPS base = *this;
-    DenseFPS res(T(1));
-    while (t) {
-      if (t & 1) res *= base;
-      base *= base;
-      t >>= 1;
-    }
-    return res;
+    return x.mul_naive(y);
   }
 };
 
 // Fast polynomial multiplication by single NTT.
 template <typename ModInt, int MAX_DEGREE>
-DenseFPS<ModInt, MAX_DEGREE> mul_ntt(const DenseFPS<ModInt, MAX_DEGREE> &x,
-                                     const DenseFPS<ModInt, MAX_DEGREE> &y) {
+DenseFPS<ModInt, MAX_DEGREE> fps_mul_ntt(
+    const DenseFPS<ModInt, MAX_DEGREE> &x,
+    const DenseFPS<ModInt, MAX_DEGREE> &y) {
   static_assert(ModInt::mod() != 1'000'000'007);  // Must be NTT-friendly MOD!
   auto z = atcoder::convolution(x.coeff, y.coeff);
   z.resize(MAX_DEGREE + 1);  // Maybe shrink.
@@ -93,8 +92,9 @@ DenseFPS<ModInt, MAX_DEGREE> mul_ntt(const DenseFPS<ModInt, MAX_DEGREE> &x,
 
 // Polynomial multiplication by NTT + Garner (arbitrary mod).
 template <typename ModInt, int MAX_DEGREE>
-DenseFPS<ModInt, MAX_DEGREE> mul_mod(const DenseFPS<ModInt, MAX_DEGREE> &x,
-                                     const DenseFPS<ModInt, MAX_DEGREE> &y) {
+DenseFPS<ModInt, MAX_DEGREE> fps_mul_mod(
+    const DenseFPS<ModInt, MAX_DEGREE> &x,
+    const DenseFPS<ModInt, MAX_DEGREE> &y) {
   std::vector<i64> xll(x.size()), yll(y.size());
   for (int i = 0; i < x.size(); ++i) {
     xll[i] = x[i].val();
@@ -112,11 +112,42 @@ DenseFPS<ModInt, MAX_DEGREE> mul_mod(const DenseFPS<ModInt, MAX_DEGREE> &x,
 
 // Polynomial multiplication by NTT + Garner (long long).
 template <int MAX_DEGREE>
-DenseFPS<i64, MAX_DEGREE> mul_ll(const DenseFPS<i64, MAX_DEGREE> &x,
-                                 const DenseFPS<i64, MAX_DEGREE> &y) {
+DenseFPS<i64, MAX_DEGREE> fps_mul_ll(const DenseFPS<i64, MAX_DEGREE> &x,
+                                     const DenseFPS<i64, MAX_DEGREE> &y) {
   auto z = atcoder::convolution_ll(x.coeff, y.coeff);
   z.resize(MAX_DEGREE + 1);  // Maybe shrink.
   return DenseFPS<i64, MAX_DEGREE>(std::move(z));
+}
+
+template <typename T, int MAX_DEGREE, typename Func>
+DenseFPS<T, MAX_DEGREE> fps_pow_generic(const DenseFPS<T, MAX_DEGREE> &x, u64 t,
+                                        Func mulfunc) {
+  DenseFPS<T, MAX_DEGREE> base = x, res;
+  res.coeff[0] = 1;
+  while (t) {
+    if (t & 1) res = mulfunc(res, base);
+    base = mulfunc(base, base);
+    t >>= 1;
+  }
+  return res;
+}
+
+template <typename ModInt, int MAX_DEGREE>
+DenseFPS<ModInt, MAX_DEGREE> fps_pow_ntt(const DenseFPS<ModInt, MAX_DEGREE> &x,
+                                         u64 t) {
+  return fps_pow_generic(x, t, fps_mul_ntt);
+}
+
+template <typename ModInt, int MAX_DEGREE>
+DenseFPS<ModInt, MAX_DEGREE> fps_pow_mod(const DenseFPS<ModInt, MAX_DEGREE> &x,
+                                         u64 t) {
+  return fps_pow_generic(x, t, fps_mul_mod);
+}
+
+template <int MAX_DEGREE>
+DenseFPS<i64, MAX_DEGREE> fps_pow_ll(const DenseFPS<i64, MAX_DEGREE> &x,
+                                     u64 t) {
+  return fps_pow_generic(x, t, fps_mul_ll);
 }
 
 // Formal Power Series (sparse format).
