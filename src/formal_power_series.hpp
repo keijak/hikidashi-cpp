@@ -12,9 +12,9 @@ struct DenseFPS {
   // Coefficients of terms from x^0 to x^DMAX.
   std::vector<T> coeff_;
 
-  DenseFPS() : coeff_(DMAX + 1) {}  // zero-initialized
+  DenseFPS() : coeff_(1) {}  // zero-initialized
   explicit DenseFPS(std::vector<T> c) : coeff_(std::move(c)) {
-    assert((int)coeff_.size() == DMAX + 1);
+    assert((int)c.size() <= DMAX + 1);
   }
 
   DenseFPS(const DenseFPS &other) : coeff_(other.coeff_) {}
@@ -28,10 +28,13 @@ struct DenseFPS {
     return *this;
   }
 
-  static constexpr int size() { return DMAX + 1; }
+  int size() const { return (int)coeff_.size(); }
 
-  // Returns the coefficient of x^d.
-  const T &operator[](int d) const { return coeff_[d]; }
+  // Returns the coefficient of x^dy.
+  T operator[](int dy) const {
+    if (dy >= size()) return 0;
+    return coeff_[dy];
+  }
 
   DenseFPS &operator+=(const T &scalar) {
     coeff_[0] += scalar;
@@ -43,7 +46,10 @@ struct DenseFPS {
     return res;
   }
   DenseFPS &operator+=(const DenseFPS &other) {
-    for (int i = 0; i < size(); ++i) coeff_[i] += other[i];
+    if (size() < other.size()) {
+      coeff_.resize(other.size());
+    }
+    for (int dx = 0; dx < other.size(); ++dx) coeff_[dx] += other[dx];
     return *this;
   }
   friend DenseFPS operator+(const DenseFPS &x, const DenseFPS &y) {
@@ -53,7 +59,10 @@ struct DenseFPS {
   }
 
   DenseFPS &operator-=(const DenseFPS &other) {
-    for (int i = 0; i < size(); ++i) coeff_[i] -= other[i];
+    if (size() < other.size()) {
+      coeff_.resize(other.size());
+    }
+    for (int dx = 0; dx < other.size(); ++dx) coeff_[dx] -= other[dx];
     return *this;
   }
   friend DenseFPS operator-(const DenseFPS &x, const DenseFPS &y) {
@@ -82,10 +91,12 @@ struct DenseFPS {
  private:
   // Naive multiplication. O(N^2)
   DenseFPS mul_naive(const DenseFPS &other) const {
-    DenseFPS res;
-    for (int i = 0; i < size(); ++i) {
-      for (int j = 0; i + j < size(); ++j) {
-        res.coeff_[i + j] += (*this)[i] * other[j];
+    const int n = std::min(size() + other.size() - 1, DMAX + 1);
+    DenseFPS res(std::vector<T>(n));
+    for (int dx = 0; dx < size(); ++dx) {
+      for (int j = 0; j < other.size(); ++j) {
+        if (dx + j >= n) break;
+        res.coeff_[dx + j] += (*this)[dx] * other[j];
       }
     }
     return res;
@@ -100,8 +111,8 @@ DenseFPS<ModInt, DMAX> mul_ntt(const DenseFPS<ModInt, DMAX> &x,
                                const DenseFPS<ModInt, DMAX> &y) {
   static_assert(ModInt::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
   auto z = atcoder::convolution(x.coeff_, y.coeff_);
-  z.resize(DMAX + 1);  // Maybe shrink.
-  return {std::move(z)};
+  if (z.size() > DMAX + 1) z.resize(DMAX + 1);  // shrink
+  return DenseFPS<ModInt, DMAX>(std::move(z));
 }
 
 // Polynomial multiplication by NTT + Garner (arbitrary mod).
@@ -109,18 +120,12 @@ template <typename ModInt, int DMAX>
 DenseFPS<ModInt, DMAX> mul_mod(const DenseFPS<ModInt, DMAX> &x,
                                const DenseFPS<ModInt, DMAX> &y) {
   std::vector<i64> xll(x.size()), yll(y.size());
-  for (int i = 0; i < x.size(); ++i) {
-    xll[i] = x[i].val();
-  }
-  for (int i = 0; i < y.size(); ++i) {
-    yll[i] = y[i].val();
-  }
+  for (int dx = 0; dx < x.size(); ++dx) xll[dx] = x[dx].val();
+  for (int dx = 0; dx < y.size(); ++dx) yll[dx] = y[dx].val();
   auto zll = atcoder::convolution_ll(xll, yll);
-  DenseFPS<ModInt, DMAX> res;
-  int n = std::min<int>(res.size(), zll.size());
-  for (int i = 0; i < n; ++i) {
-    res.coeff_[i] = zll[i];
-  }
+  int n = std::min<int>(zll.size(), DMAX + 1);
+  DenseFPS<ModInt, DMAX> res(std::vector<ModInt>(n));
+  for (int dx = 0; dx < n; ++dx) res.coeff_[dx] = zll[dx];
   return res;
 }
 
@@ -129,7 +134,7 @@ template <int DMAX>
 DenseFPS<i64, DMAX> mul_ll(const DenseFPS<i64, DMAX> &x,
                            const DenseFPS<i64, DMAX> &y) {
   auto z = atcoder::convolution_ll(x.coeff_, y.coeff_);
-  z.resize(DMAX + 1);  // Maybe shrink.
+  if (z.size() > DMAX + 1) z.resize(DMAX + 1);  // shrink
   return DenseFPS<i64, DMAX>(std::move(z));
 }
 
@@ -175,31 +180,31 @@ struct SparseFPS {
       : size_(terms.size()), degree_(size_), coeff_(size_) {
     // Sort by degree_ in ascending order.
     sort(terms.begin(), terms.end());
-    for (int i = 0; i < size_; ++i) {
-      degree_[i] = terms[i].first;
-      coeff_[i] = terms[i].second;
+    for (int dx = 0; dx < size_; ++dx) {
+      degree_[dx] = terms[dx].first;
+      coeff_[dx] = terms[dx].second;
     }
   }
 
   inline int size() const { return size_; }
-  inline int degree(int i) const { return degree_[i]; }
-  inline const T &coeff(int i) const { return coeff_[i]; }
+  inline int degree(int dx) const { return degree_[dx]; }
+  inline const T &coeff(int dx) const { return coeff_[dx]; }
 
   int DMAX() const { return (size_ == 0) ? 0 : degree_.back(); }
 
-  void emplace_back(int d, T c) {
+  void emplace_back(int dy, T c) {
     if (not degree_.empty()) {
-      assert(d > degree_.back());
+      assert(dy > degree_.back());
     }
-    degree_.push_back(std::move(d));
+    degree_.push_back(std::move(dy));
     coeff_.push_back(std::move(c));
     ++size_;
   }
 
-  // Returns the coefficient of x^d.
-  T operator[](int d) const {
-    auto it = std::lower_bound(degree_.begin(), degree_.end(), d);
-    if (it == degree_.end() or *it != d) return (T)(0);
+  // Returns the coefficient of x^dy.
+  T operator[](int dy) const {
+    auto it = std::lower_bound(degree_.begin(), degree_.end(), dy);
+    if (it == degree_.end() or *it != dy) return (T)(0);
     int j = std::distance(degree_.begin(), it);
     return coeff_[j];
   }
@@ -243,12 +248,12 @@ struct SparseFPS {
   SparseFPS add(const SparseFPS &other) const {
     SparseFPS res;
     int j = 0;
-    for (int i = 0; i < size();) {
-      const int deg = this->degree(i);
+    for (int dx = 0; dx < size();) {
+      const int deg = this->degree(dx);
       for (; j < other.size() and other.degree(j) < deg; ++j) {
         res.emplace_back(other.degree(j), other.coeff(j));
       }
-      T c = this->coeff(i);
+      T c = this->coeff(dx);
       if (j < other.size() and other.degree(j) == deg) {
         c += other.coeff(j);
         ++j;
@@ -268,9 +273,9 @@ struct SparseFPS {
 template <typename ModInt, int DMAX>
 DenseFPS<ModInt, DMAX> &operator+=(DenseFPS<ModInt, DMAX> &x,
                                    const SparseFPS<ModInt> &y) {
-  for (int i = 0; i < y.size(); ++i) {
-    if (y.degree(i) > DMAX) break;  // ignore
-    x.coeff_[y.degree(i)] += y.coeff(i);
+  for (int dx = 0; dx < y.size(); ++dx) {
+    if (y.degree(dx) > DMAX) break;  // ignore
+    x.coeff_[y.degree(dx)] += y.coeff(dx);
   }
   return x;
 }
@@ -300,12 +305,16 @@ DenseFPS<ModInt, DMAX> &operator*=(DenseFPS<ModInt, DMAX> &x,
     c0 = y.coeff(0);
     ++j0;
   }
-  for (int i = DMAX; i >= 0; --i) {
-    x.coeff_[i] *= c0;
+  const int dy_max = y.degree(y.size() - 1);
+  const int dx_max = x.size() - 1;
+  const int n = std::min(dx_max + dy_max + 1, DMAX + 1);
+  if (x.size() < n) x.resize(n);
+  for (int dx = n - 1; dx >= 0; --dx) {
+    x.coeff_[dx] *= c0;
     for (int j = j0; j < y.size(); ++j) {
-      int d = y.degree(j);
-      if (d > i) break;
-      x.coeff_[i] += x[i - d] * y.coeff(j);
+      int dy = y.degree(j);
+      if (dy > dx) break;
+      x.coeff_[dx] += x[dx - dy] * y.coeff(j);
     }
   }
   return x;
@@ -328,14 +337,18 @@ template <typename ModInt, int DMAX>
 DenseFPS<ModInt, DMAX> &operator/=(DenseFPS<ModInt, DMAX> &x,
                                    const SparseFPS<ModInt> &y) {
   assert(y.size() > 0 and y.degree(0) == 0 and y.coeff(0) != 0);
-  ModInt inv_c0 = y.coeff(0).inv();
-  for (int i = 0; i < x.size(); ++i) {
+  const ModInt inv_c0 = y.coeff(0).inv();
+  const int dy_max = y.degree(y.size() - 1);
+  const int dx_max = x.size() - 1;
+  const int n = std::min(dx_max + dy_max + 1, DMAX + 1);
+  if (x.size() < n) x.resize(n);
+  for (int dx = 0; dx < n; ++dx) {
     for (int j = 1; j < y.size(); ++j) {
-      int d = y.degree(j);
-      if (d > i) break;
-      x.coeff_[i] -= x.coeff_[i - d] * y.coeff[j];
+      int dy = y.degree(j);
+      if (dy > dx) break;
+      x.coeff_[dx] -= x.coeff_[dx - dy] * y.coeff[j];
     }
-    x.coeff_[i] *= inv_c0;
+    x.coeff_[dx] *= inv_c0;
   }
   return x;
 }
