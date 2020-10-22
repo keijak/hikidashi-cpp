@@ -117,7 +117,8 @@ DenseFPS<ModInt, DMAX> mul_mod(const DenseFPS<ModInt, DMAX> &x,
   }
   auto zll = atcoder::convolution_ll(xll, yll);
   DenseFPS<ModInt, DMAX> res;
-  for (int i = 0; i <= DMAX; ++i) {
+  int n = std::min<int>(res.size(), zll.size());
+  for (int i = 0; i < n; ++i) {
     res.coeff_[i] = zll[i];
   }
   return res;
