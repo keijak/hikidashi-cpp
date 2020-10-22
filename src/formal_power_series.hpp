@@ -265,7 +265,7 @@ class SparseFPS {
   }
 };
 
-// Polynomial addition (dense * sparse).
+// Polynomial addition (dense + sparse).
 template <typename ModInt, int MAX_DEGREE>
 DenseFPS<ModInt, MAX_DEGREE> &operator+=(DenseFPS<ModInt, MAX_DEGREE> &x,
                                          const SparseFPS<ModInt> &y) {
