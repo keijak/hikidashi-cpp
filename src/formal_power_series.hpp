@@ -98,7 +98,7 @@ struct DenseFPS {
 template <typename ModInt, int DMAX>
 DenseFPS<ModInt, DMAX> mul_ntt(const DenseFPS<ModInt, DMAX> &x,
                                const DenseFPS<ModInt, DMAX> &y) {
-  static_assert(ModInt::mod() != 1'000'000'007);  // Must be NTT-friendly MOD!
+  static_assert(ModInt::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
   auto z = atcoder::convolution(x.coeff_, y.coeff_);
   z.resize(DMAX + 1);  // Maybe shrink.
   return {std::move(z)};
