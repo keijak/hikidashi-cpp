@@ -261,3 +261,56 @@ class SparseFPS {
     return res;
   }
 };
+
+// Polynomial multiplication (dense * sparse).
+template <typename ModInt, int MAX_DEGREE>
+DenseFPS<ModInt, MAX_DEGREE> &operator*=(DenseFPS<ModInt, MAX_DEGREE> &x,
+                                         const SparseFPS<ModInt> &y) {
+  assert(y.size() > 0);
+  ModInt c0 = 0;
+  int j0 = 0;
+  if (y.degree(0) == 0) {
+    c0 = y.coeff(0);
+    ++j0;
+  }
+  for (int i = MAX_DEGREE; i >= 0; --i) {
+    x.coeff_[i] *= c0;
+    for (int j = j0; j < y.size(); ++j) {
+      int d = y.degree(j);
+      if (d > i) break;
+      x.coeff_[i] += x.coeff_[i - d] * y.coeff[j];
+    }
+  }
+  return x;
+}
+template <typename ModInt, int MAX_DEGREE>
+DenseFPS<ModInt, MAX_DEGREE> operator*(const DenseFPS<ModInt, MAX_DEGREE> &x,
+                                       const SparseFPS<ModInt> &y) {
+  DenseFPS<ModInt, MAX_DEGREE> res = x;
+  res *= y;
+  return res;
+}
+
+// Polynomial division (dense * sparse).
+template <typename ModInt, int MAX_DEGREE>
+DenseFPS<ModInt, MAX_DEGREE> &operator/=(DenseFPS<ModInt, MAX_DEGREE> &x,
+                                         const SparseFPS<ModInt> &y) {
+  assert(y.size() > 0 and y.degree(0) == 0 and y.coeff(0) != 0);
+  ModInt inv_c0 = y.coeff(0).inv();
+  for (int i = 0; i < x.size(); ++i) {
+    for (int j = 1; j < y.size(); ++j) {
+      int d = y.degree(j);
+      if (d > i) break;
+      x.coeff_[i] -= x.coeff_[i - d] * y.coeff[j];
+    }
+    x.coeff_[i] *= inv_c0;
+  }
+  return x;
+}
+template <typename ModInt, int MAX_DEGREE>
+DenseFPS<ModInt, MAX_DEGREE> operator/(const DenseFPS<ModInt, MAX_DEGREE> &x,
+                                       const SparseFPS<ModInt> &y) {
+  DenseFPS<ModInt, MAX_DEGREE> res = x;
+  res /= y;
+  return res;
+}
