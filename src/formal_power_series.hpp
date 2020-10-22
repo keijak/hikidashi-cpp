@@ -320,7 +320,7 @@ DenseFPS<ModInt, DMAX> operator*(const SparseFPS<ModInt> &x,
   return y * x;  // commutative
 }
 
-// Polynomial division (dense * sparse).
+// Polynomial division (dense / sparse).
 template <typename ModInt, int DMAX>
 DenseFPS<ModInt, DMAX> &operator/=(DenseFPS<ModInt, DMAX> &x,
                                    const SparseFPS<ModInt> &y) {
