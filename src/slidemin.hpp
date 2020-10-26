@@ -29,8 +29,8 @@ struct SlideMinQueue {
   }
 
   // Returns the minimum value in [left, right).
-  const T &fold() const {
-    assert(!empty());
+  std::optional<T> fold() const {
+    if (empty()) return std::nullopt;
     return vals[index_queue.front()];
   }
 
