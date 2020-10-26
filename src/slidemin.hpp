@@ -1,16 +1,19 @@
-
 template <class T, class Container = std::vector<T>,
           class Compare = std::less<typename Container::value_type>>
 struct SlideMinQueue {
-  Container& values;
-  int left;
-  int right;
-  std::deque<int> que;
-  const Compare compare;
+  Container vals;
+  Compare compare;              // comparison funcation.
+  int left, right;              // [left, right)
+  std::deque<int> index_queue;  // indices where min values are stored.
 
-  // Initial window: [0, 0) -- half open interval.
-  explicit SlideMinQueue(Container& values)
-      : values(values), left(0), right(0) {}
+  SlideMinQueue() : compare(), left(0), right(0) {}
+  SlideMinQueue(const SlideMinQueue &) = default;
+  SlideMinQueue &operator=(const SlideMinQueue &) = default;
+  SlideMinQueue(SlideMinQueue &&) = default;
+  SlideMinQueue &operator=(SlideMinQueue &&) = default;
+
+  explicit SlideMinQueue(Container v)
+      : vals(std::move(v)), compare(), left(0), right(0) {}
 
   // Shift both `left` and `right` to the right.
   void slide(int l, int r) {
@@ -25,29 +28,30 @@ struct SlideMinQueue {
   }
 
   // Returns the minimum value in [left, right).
-  T fold() const {
+  const T &fold() const {
     assert(!empty());
-    return que.front();
+    return vals[index_queue.front()];
   }
 
-  bool empty() const { return que.empty(); }
+  bool empty() const { return index_queue.empty(); }
 
  private:
   // Enqueues the i-th value.
   void push_right(int i) {
-    while (!que.empty() && !compare(values[que.back()], values[i])) {
-      que.pop_back();
+    while (!index_queue.empty() &&
+           !compare(vals[index_queue.back()], vals[i])) {
+      index_queue.pop_back();
     }
-    que.emplace_back(i);
+    index_queue.emplace_back(i);
   }
 
   // Dequeues indices less than i.
   void pop_left(int i) {
-    while (!que.empty() && que.front() < i) {
-      que.pop_front();
+    while (!index_queue.empty() && index_queue.front() < i) {
+      index_queue.pop_front();
     }
   }
 };
 
 template <class T, class Container = std::vector<T>>
-using SlideMaxQueue = SlideMinQueue<T, Container, greater<T>>;
+using SlideMaxQueue = SlideMinQueue<T, Container, std::greater<T>>;
