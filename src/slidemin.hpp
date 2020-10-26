@@ -7,13 +7,14 @@ struct SlideMinQueue {
   std::deque<int> index_queue;  // indices where min values are stored.
 
   SlideMinQueue() : compare(), left(0), right(0) {}
+
+  explicit SlideMinQueue(Container v)
+      : vals(std::move(v)), compare(), left(0), right(0) {}
+
   SlideMinQueue(const SlideMinQueue &) = default;
   SlideMinQueue &operator=(const SlideMinQueue &) = default;
   SlideMinQueue(SlideMinQueue &&) = default;
   SlideMinQueue &operator=(SlideMinQueue &&) = default;
-
-  explicit SlideMinQueue(Container v)
-      : vals(std::move(v)), compare(), left(0), right(0) {}
 
   // Shift both `left` and `right` to the right.
   void slide(int l, int r) {
