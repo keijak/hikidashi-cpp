@@ -1,4 +1,4 @@
-template <class T = Mint>  // Usually used over ModInt.
+template <class T = Mint>
 struct Factorials {
   // factorials and inverse factorials.
   std::vector<T> fact, ifact;
