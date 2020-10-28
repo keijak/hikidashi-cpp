@@ -1,14 +1,19 @@
+#include <bits/stdc++.h>
+
 template <typename T>
 struct Compress {
-  vector<T> vec;
+  std::vector<T> vec;
 
-  explicit Compress(vector<T> v) : vec(v) {
-    sort(vec.begin(), vec.end());
-    vec.erase(unique(vec.begin(), vec.end()), vec.end());
+  explicit Compress(std::vector<T> v) : vec(v) {
+    std::sort(vec.begin(), vec.end());
+    vec.erase(std::unique(vec.begin(), vec.end()), vec.end());
   }
+
+  int size() const { return vec.size(); }
+
   int index(T x) const {
     return (int)(lower_bound(vec.begin(), vec.end(), x) - vec.begin());
   }
+
   const T &value(int i) const { return vec[i]; }
-  int size() const { return vec.size(); }
 };
