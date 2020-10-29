@@ -1,61 +1,67 @@
-class IntervalSet {
- public:
-  IntervalSet() : length_sum_(0) {}
-  IntervalSet(const IntervalSet &other) = default;
-  IntervalSet(IntervalSet &&other)
-      : set_(std::move(other.set_)), length_sum_(other.length_sum_) {}
-  IntervalSet &operator=(const IntervalSet &other) = default;
-  IntervalSet &operator=(IntervalSet &&other) {
-    set_ = std::move(other.set_);
-    length_sum_ = other.length_sum_;
-    return *this;
-  }
+#include <bits/stdc++.h>
+using namespace std;
+using i64 = long long;
 
-  i64 length_sum() const { return length_sum_; }
+const i64 INF = 1e18;
+
+// Set of disjoint half-open intervals.
+struct IntervalSet {
+  using PSet = std::set<std::pair<i64, i64>>;
+  PSet set_;  // {{start, end}}
+
+  // Sum of all interval lengths.
+  i64 total_length_;
+
+  IntervalSet() : total_length_(0) {}
+
+  i64 total_length() const { return total_length_; }
 
   int count() const { return set_.size(); }
 
-  const std::set<std::pair<i64, i64>> &get() const { return set_; }
+  const PSet &get() const { return set_; }
 
   // Adds an interval. It's merged with all existing intervals.
   // [istart, iend) - right-open interval
   void emplace(i64 istart, i64 iend) {
+    if (istart >= iend) {
+      return;  // Ignore empty intervals.
+    }
+    if (auto it = this->find(istart);
+        it != this->end() and it->first <= istart and iend <= it->second) {
+      return;  // Completely contained. Skip.
+    }
+
     // New interval to be inserted.
-    std::pair<i64, i64> inew = {iend, istart};
+    std::pair<i64, i64> inew = {istart, iend};
 
-    auto it1 = set_.upper_bound({istart, 0});
-    if (it1 != set_.end() && it1->second <= istart) {
-      if (it1->first >= iend) return;
-      inew.second = it1->second;
+    auto it = set_.upper_bound({istart, INF});
+    if (it != set_.begin()) --it;
+    while (it != set_.end()) {
+      if (it->first > iend) break;
+      if (it->second < istart) {
+        ++it;
+        continue;
+      }
+      // Merge.
+      inew.first = std::min(inew.first, it->first);
+      inew.second = std::max(inew.second, it->second);
+      total_length_ -= it->second - it->first;
+      it = set_.erase(it);
     }
-
-    auto it2 = set_.lower_bound({iend, 0});
-    if (it2 != set_.end() && it2->second < iend) {
-      if (it2->second <= istart) return;
-      inew.first = it2->first;
-      ++it2;
-    }
-
-    for (auto it = it1; it != it2; ++it) {
-      length_sum_ -= it->first - it->second;
-    }
-    set_.erase(it1, it2);
-
     set_.insert(inew);
-    length_sum_ += inew.first - inew.second;
+    total_length_ += inew.second - inew.first;
+  }
+
+  PSet::iterator end() const { return set_.end(); }
+
+  PSet::iterator find(i64 point) const {
+    auto it = set_.upper_bound({point, INF});
+    if (it == set_.begin()) return set_.end();
+    --it;
+    if (it->second <= point) return set_.end();
+    return it;
   }
 
   // Returns true if the point is included in an interval in the set.
-  bool contains(i64 point) const {
-    auto it = set_.upper_bound({point, 0});
-    if (it == set_.end()) return false;
-    return (it->second <= point);
-  }
-
- private:
-  // Set of disjoint right-open intervals.
-  std::set<std::pair<i64, i64>> set_;  // {{end, start}}
-
-  // Sum of all interval lengths.
-  i64 length_sum_;
+  bool contains(i64 point) const { return this->find(point) != this->end(); }
 };
