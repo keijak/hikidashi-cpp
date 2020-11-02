@@ -104,23 +104,6 @@ struct DenseFPS {
     return x * y.inv_naive();
   }
 
-  DenseFPS derivative() const {
-    std::vector<T> res(size());
-    for (int i = 1; i < size(); ++i) {
-      res[i - 1] = coeff_[i] * i;
-    }
-    return DenseFPS(std::move(res));
-  }
-
-  DenseFPS integral(T c) const {
-    std::vector<T> res(size());
-    res[0] = std::move(c);
-    for (int i = 1; i < size(); ++i) {
-      res[i] = coeff_[i - 1] / i;
-    }
-    return DenseFPS(std::move(res));
-  }
-
  private:
   // Naive multiplication. O(N^2)
   DenseFPS mul_naive(const DenseFPS &other) const {
@@ -235,6 +218,24 @@ DenseFPS<i64, DMAX> pow_ll(const DenseFPS<i64, DMAX> &x, u64 t) {
   return pow_generic(x, t, mul_ll);
 }
 
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> derivative(const DenseFPS<T, DMAX> &x) {
+  std::vector<T> res(x.size() - 1);
+  for (int i = 1; i < x.size(); ++i) {
+    res[i - 1] = x[i] * i;
+  }
+  return DenseFPS(std::move(res));
+}
+
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> integral(const DenseFPS<T, DMAX> &x, const T &c) {
+  std::vector<T> res(x.size() + 1);
+  res[0] = c;
+  for (int i = 1; i <= x.size(); ++i) {
+    res[i] = x[i - 1] / i;
+  }
+  return DenseFPS(std::move(res));
+}
 }  // namespace fps
 
 // Formal Power Series (sparse format).
