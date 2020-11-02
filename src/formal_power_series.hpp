@@ -97,23 +97,11 @@ struct DenseFPS {
     res /= scalar;
     return res;
   }
-  DenseFPS &operator/=(const DenseFPS &other) { return *this *= other.inv(); }
-  friend DenseFPS operator/(const DenseFPS &x, const DenseFPS &y) {
-    return x * y.inv();
+  DenseFPS &operator/=(const DenseFPS &other) {
+    return *this *= other.inv_naive();
   }
-
-  // Naive multiplication. O(N^2)
-  DenseFPS inv() const {
-    std::vector<T> res(size());
-    res[0] = coeff_[0].inv();
-    for (int i = 1; i < size(); ++i) {
-      mint s = 0;
-      for (int j = 1; j <= i; ++j) {
-        s += coeff_[j] * res[i - j];
-      }
-      res[i] = -res[0] * s;
-    }
-    return DenseFPS(std::move(res));
+  friend DenseFPS operator/(const DenseFPS &x, const DenseFPS &y) {
+    return x * y.inv_naive();
   }
 
  private:
@@ -126,6 +114,20 @@ struct DenseFPS {
         if (dx + j >= n) break;
         res[dx + j] += coeff_[dx] * other.coeff_[j];
       }
+    }
+    return DenseFPS(std::move(res));
+  }
+
+  // Naive inverse. O(N^2)
+  DenseFPS inv_naive() const {
+    std::vector<T> res(size());
+    res[0] = coeff_[0].inv();
+    for (int i = 1; i < size(); ++i) {
+      mint s = 0;
+      for (int j = 1; j <= i; ++j) {
+        s += coeff_[j] * res[i - j];
+      }
+      res[i] = -res[0] * s;
     }
     return DenseFPS(std::move(res));
   }
@@ -164,6 +166,26 @@ DenseFPS<i64, DMAX> mul_ll(const DenseFPS<i64, DMAX> &x,
   auto res = atcoder::convolution_ll(x.coeff_, y.coeff_);
   if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
   return DenseFPS<i64, DMAX>(std::move(res));
+}
+
+// Fast polynomial inverse with NTT.
+template <typename ModInt, int DMAX>
+DenseFPS<ModInt, DMAX> inv_ntt(const DenseFPS<ModInt, DMAX> &x) {
+  assert(x[0].val() != 0);  // must be invertible
+  const int n = x.size();
+  std::vector<ModInt> res(n);
+  res[0] = x[0].inv();
+  for (int d = 1; d < n; d <<= 1) {
+    vector<mint> f(2 * d), g(2 * d);
+    for (int j = 0, m = min(n, 2 * d); j < m; ++j) f[j] = x[j];
+    for (int j = 0; j < d; ++j) g[j] = res[j];
+    f = atcoder::convolution(f, g);
+    f.resize(2 * d);
+    for (int j = 0; j < d; ++j) f[j] = 0;
+    f = atcoder::convolution(f, g);
+    for (int j = d, m = min(2 * d, n); j < m; ++j) res[j] = -f[j];
+  }
+  return DenseFPS<ModInt, DMAX>(std::move(res));
 }
 
 template <typename T, int DMAX, typename Func>
