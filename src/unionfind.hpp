@@ -59,6 +59,10 @@ struct UpdatableUnionFind : public AggregatableUnionFind<Abelian> {
   using T = typename Abelian::T;
   std::vector<T> leaf_data;
 
+  explicit UpdatableUnionFind(int sz)
+      : AggregatableUnionFind<Abelian>(std::vector<T>(sz, Abelian::id())),
+        leaf_data(std::vector<T>(sz, Abelian::id())) {}
+
   explicit UpdatableUnionFind(std::vector<T> data)
       : AggregatableUnionFind<Abelian>(data), leaf_data(std::move(data)) {}
 
