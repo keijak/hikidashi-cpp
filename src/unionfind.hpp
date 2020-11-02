@@ -43,7 +43,7 @@ struct AggregatableUnionFind : public UnionFind {
   explicit AggregatableUnionFind(std::vector<T> data)
       : UnionFind(data.size()), agg_data(std::move(data)) {}
 
-  bool unite(int x, int y) const {
+  bool unite(int x, int y) {
     int rx = this->find(x), ry = this->find(y);
     if (not UnionFind::unite(x, y)) return false;
     int r = this->find(x);
@@ -51,7 +51,7 @@ struct AggregatableUnionFind : public UnionFind {
     return true;
   }
 
-  T agg(int x) const { return agg_data[this->find(x)]; }
+  const T& agg(int x) const { return agg_data[this->find(x)]; }
 };
 
 template <typename Abelian>  // Abelian Group
