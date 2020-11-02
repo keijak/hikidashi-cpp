@@ -14,6 +14,7 @@ struct Sum {
   using T = long long;
   static T op(const T &x, const T &y) { return x + y; }
   static constexpr T id() { return 0; }
+  static T invert(const T &x) { return -x; }
 };
 
 struct Prod {
