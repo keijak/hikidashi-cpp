@@ -88,18 +88,46 @@ struct DenseFPS {
     return x.mul_naive(y);
   }
 
+  DenseFPS &operator/=(const T &scalar) {
+    for (auto &x : coeff_) x /= scalar;
+    return *this;
+  }
+  friend DenseFPS operator/(const DenseFPS &x, const T &scalar) {
+    DenseFPS res = x;
+    res /= scalar;
+    return res;
+  }
+  DenseFPS &operator/=(const DenseFPS &other) { return *this *= other.inv(); }
+  friend DenseFPS operator/(const DenseFPS &x, const DenseFPS &y) {
+    return x * y.inv();
+  }
+
+  // Naive multiplication. O(N^2)
+  DenseFPS inv() const {
+    std::vector<T> res(size());
+    res[0] = coeff_[0].inv();
+    for (int i = 1; i < size(); ++i) {
+      mint s = 0;
+      for (int j = 1; j <= i; ++j) {
+        s += coeff_[j] * res[i - j];
+      }
+      res[i] = -res[0] * s;
+    }
+    return DenseFPS(std::move(res));
+  }
+
  private:
   // Naive multiplication. O(N^2)
   DenseFPS mul_naive(const DenseFPS &other) const {
     const int n = std::min(size() + other.size() - 1, DMAX + 1);
-    DenseFPS res(std::vector<T>(n));
+    std::vector<T> res(n);
     for (int dx = 0; dx < size(); ++dx) {
       for (int j = 0; j < other.size(); ++j) {
         if (dx + j >= n) break;
-        res.coeff_[dx + j] += (*this)[dx] * other[j];
+        res[dx + j] += coeff_[dx] * other.coeff_[j];
       }
     }
-    return res;
+    return DenseFPS(std::move(res));
   }
 };
 
@@ -110,9 +138,9 @@ template <typename ModInt, int DMAX>
 DenseFPS<ModInt, DMAX> mul_ntt(const DenseFPS<ModInt, DMAX> &x,
                                const DenseFPS<ModInt, DMAX> &y) {
   static_assert(ModInt::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
-  auto z = atcoder::convolution(x.coeff_, y.coeff_);
-  if (z.size() > DMAX + 1) z.resize(DMAX + 1);  // shrink
-  return DenseFPS<ModInt, DMAX>(std::move(z));
+  auto res = atcoder::convolution(x.coeff_, y.coeff_);
+  if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
+  return DenseFPS<ModInt, DMAX>(std::move(res));
 }
 
 // Polynomial multiplication by NTT + Garner (arbitrary mod).
@@ -124,18 +152,18 @@ DenseFPS<ModInt, DMAX> mul_mod(const DenseFPS<ModInt, DMAX> &x,
   for (int dx = 0; dx < y.size(); ++dx) yll[dx] = y[dx].val();
   auto zll = atcoder::convolution_ll(xll, yll);
   int n = std::min<int>(zll.size(), DMAX + 1);
-  DenseFPS<ModInt, DMAX> res(std::vector<ModInt>(n));
-  for (int dx = 0; dx < n; ++dx) res.coeff_[dx] = zll[dx];
-  return res;
+  std::vector<T> res(n);
+  for (int dx = 0; dx < n; ++dx) res[dx] = zll[dx];
+  return DenseFPS<ModInt, DMAX>(std::move(res));
 }
 
 // Polynomial multiplication by NTT + Garner (long long).
 template <int DMAX>
 DenseFPS<i64, DMAX> mul_ll(const DenseFPS<i64, DMAX> &x,
                            const DenseFPS<i64, DMAX> &y) {
-  auto z = atcoder::convolution_ll(x.coeff_, y.coeff_);
-  if (z.size() > DMAX + 1) z.resize(DMAX + 1);  // shrink
-  return DenseFPS<i64, DMAX>(std::move(z));
+  auto res = atcoder::convolution_ll(x.coeff_, y.coeff_);
+  if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
+  return DenseFPS<i64, DMAX>(std::move(res));
 }
 
 template <typename T, int DMAX, typename Func>
