@@ -188,13 +188,16 @@ DenseFPS<ModInt, DMAX> inv_ntt(const DenseFPS<ModInt, DMAX> &x) {
   return DenseFPS<ModInt, DMAX>(std::move(res));
 }
 
-template <typename T, int DMAX, typename Func>
-DenseFPS<T, DMAX> pow_generic(const DenseFPS<T, DMAX> &x, u64 t, Func mulfunc) {
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> pow_generic(
+    const DenseFPS<T, DMAX> &x, u64 t,
+    DenseFPS<T, DMAX> (*mul)(const DenseFPS<T, DMAX> &,
+                             const DenseFPS<T, DMAX> &)) {
   DenseFPS<T, DMAX> base = x, res;
   res.coeff_[0] = 1;
   while (t) {
-    if (t & 1) res = mulfunc(res, base);
-    base = mulfunc(base, base);
+    if (t & 1) res = mul(res, base);
+    base = mul(base, base);
     t >>= 1;
   }
   return res;
