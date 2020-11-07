@@ -1,6 +1,6 @@
 vector<int> topological_sort(const vector<vector<int>>& g, int n) {
   vector<int> indeg(n);
-  REP(i, N) {
+  REP(i, n) {
     for (auto j : g[i]) {
       indeg[j]++;
     }
@@ -18,7 +18,7 @@ vector<int> topological_sort(const vector<vector<int>>& g, int n) {
     auto v = q.front();
     q.pop_front();
     res.push_back(v);
-    for (auto u : G[v]) {
+    for (auto u : g[v]) {
       if (--indeg[u] == 0) {
         q.push_back(u);
       }
