@@ -42,21 +42,29 @@ std::vector<i64> dijkstra(const std::vector<std::vector<Edge>> &g, int source) {
   return mincost;
 }
 
-std::vector<i64> grid_bfs(const std::vector<std::string> &g, int source_r,
-                          int source_c) {
+struct GridState {
+  i64 cost;
+  int r;
+  int c;
+  //...
+};
+bool operator>(const GridState &x, const GridState &y) {
+  return x.cost > y.cost;
+}
+
+std::vector<std::vector<i64>> grid_bfs(const std::vector<std::string> &g,
+                                       int source_r, int source_c) {
   const int H = g.size();
   const int W = g[0].size();
   array<int, 4> dx = {0, 0, 1, -1}, dy = {1, -1, 0, 0};
   auto mincost = std::vector(H, std::vector(W, INF));
   mincost[source_r][source_c] = 0LL;
-  std::deque<State> que;
+  std::deque<GridState> que;
   que.push_back({0LL, source_r, source_c});
   while (not que.empty()) {
     State cur = std::move(que.front());
     que.pop_front();
-    if (cur.cost != mincost[cur.node]) {
-      continue;
-    }
+    if (cur.cost != mincost[cur.r][cur.c]) continue;
     for (int i = 0; i < 4; ++i) {
       int nr = cur.r + dy[i];
       int nc = cur.c + dx[i];
