@@ -11,6 +11,11 @@ i64 floordiv(i64 x, i64 y) {
   }
 }
 
+i64 floormod(i64 x, i64 y) {
+  i64 a = floordiv(x, y);
+  return x - a * y;
+}
+
 // Returns ceil(x / y).
 i64 ceildiv(i64 x, i64 y) {
   int sign = (x < 0 ? -1 : 1) * (y < 0 ? -1 : 1);
