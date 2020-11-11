@@ -60,7 +60,7 @@ struct HLD {
   void dfs_subsize(int v) {
     auto &edges = adj[v];
     if (parent[v] >= 0) {
-      // In `adj`, retain only children.
+      // Drop the parent from `adj`. It's separately stored in `parent`.
       edges.erase(std::find(edges.begin(), edges.end(), parent[v]));
     }
     for (int &u : edges) {
