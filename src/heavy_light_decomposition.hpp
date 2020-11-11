@@ -61,7 +61,8 @@ struct HLD {
     auto &edges = adj[v];
     if (parent[v] >= 0) {
       // Drop the parent from `adj`. It's separately stored in `parent`.
-      edges.erase(std::find(edges.begin(), edges.end(), parent[v]));
+      auto it = std::find(edges.begin(), edges.end(), parent[v]);
+      if (it != edges.end()) edges.erase(it);
     }
     for (int &u : edges) {
       parent[u] = v;
