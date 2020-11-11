@@ -17,18 +17,18 @@ struct HLD {
         component_root(n),
         root(root_),
         counter(0) {
-    dfs_sz(root, -1);
+    dfs_subsize(root, -1);
 
     component_root[root] = root;
     dfs_hld(root, -1);
   }
 
  private:
-  void dfs_sz(int v, int p) {
+  void dfs_subsize(int v, int p) {
     sub_size[v] = 1;
     for (auto &u : adj[v]) {
       if (u == p) continue;
-      dfs_sz(u, v);
+      dfs_subsize(u, v);
       sub_size[v] += sub_size[u];
       if (sub_size[u] > sub_size[adj[v][0]]) {
         std::swap(u, adj[v][0]);

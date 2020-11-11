@@ -264,7 +264,7 @@ P minEnclosingCircle(const VP& ps) {
 // Populates the upper hull and the lower hull separately.
 void scan_convex_hull(const vector<P>& ps, vector<P>& upper, vector<P>& lower) {
   for (int i = 0; i < (int)ps.size(); ++i) {
-    double ax = ps[i].real(), ay = ps[i].imag();
+    auto ax = ps[i].real(), ay = ps[i].imag();
     P now{ax, ay};
     while (upper.size() >= 2) {
       P& p2 = upper[upper.size() - 2];
@@ -278,7 +278,7 @@ void scan_convex_hull(const vector<P>& ps, vector<P>& upper, vector<P>& lower) {
     upper.push_back(move(now));
   }
   for (int i = ps.size() - 1; i >= 0; --i) {
-    double ax = ps[i].real(), ay = ps[i].imag();
+    auto ax = ps[i].real(), ay = ps[i].imag();
     P now{ax, ay};
     while (lower.size() >= 2) {
       P& p2 = lower[lower.size() - 2];
@@ -312,7 +312,7 @@ struct Point2d {
   // outer product
   T cross(const Point2d& other) const { return y * other.x - x * other.y; }
 
-  T abs2() const { return this->dot(this); }                // |x|^2
+  T abs2() const { return this->dot(*this); }               // |x|^2
   double abs() const { return std::sqrt((double)abs2()); }  // |x|
 
   Point2d& operator+=(const Point2d& other) {
