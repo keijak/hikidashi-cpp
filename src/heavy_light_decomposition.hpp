@@ -4,45 +4,83 @@
 struct HLD {
   int n;
   std::vector<std::vector<int>> adj;
-  std::vector<int> sub_size, et_in, et_out, component_root;
+  std::vector<int> subsize, parent, node_to_index, index_to_node, comp_root;
   int root;
   int counter;
 
-  explicit HLD(std::vector<std::vector<int>> g, int root_ = 0)
+  explicit HLD(std::vector<std::vector<int>> g, int root = 0)
       : n(int(g.size())),
         adj(g),
-        sub_size(n),
-        et_in(n),
-        et_out(n),
-        component_root(n),
-        root(root_),
-        counter(0) {
-    dfs_subsize(root, -1);
+        subsize(n, 1),
+        parent(n, -1),
+        node_to_index(n, -1),
+        index_to_node(n, -1),
+        comp_root(n, -1),
+        root(root) {
+    dfs_subsize(root);
+    int counter = 0;
+    comp_root[root] = root;
+    dfs_hld(root, counter);
+  }
 
-    component_root[root] = root;
-    dfs_hld(root, -1);
+  int lca(int u, int v) {
+    for (;;) {
+      if (node_to_index[u] > node_to_index[v]) std::swap(u, v);
+      if (comp_root[u] == comp_root[v]) return u;
+      v = parent[comp_root[v]];
+    }
+  }
+
+  template <typename F>
+  void for_each(int u, int v, const F &f) {
+    for (;;) {
+      if (node_to_index[u] > node_to_index[v]) std::swap(u, v);
+      f(std::max(node_to_index[comp_root[v]], node_to_index[u]),
+        node_to_index[v] + 1);
+      if (comp_root[u] == comp_root[v]) break;
+      v = parent[comp_root[v]];
+    }
+  }
+
+  template <typename F>
+  void for_each_edge(int u, int v, const F &f) {
+    for (;;) {
+      if (node_to_index[u] > node_to_index[v]) std::swap(u, v);
+      if (comp_root[u] == comp_root[v]) {
+        if (u != v) f(node_to_index[u] + 1, node_to_index[v] + 1);
+        break;
+      }
+      f(node_to_index[comp_root[v]], node_to_index[v] + 1);
+      v = parent[comp_root[v]];
+    }
   }
 
  private:
-  void dfs_subsize(int v, int p) {
-    sub_size[v] = 1;
-    for (auto &u : adj[v]) {
-      if (u == p) continue;
-      dfs_subsize(u, v);
-      sub_size[v] += sub_size[u];
-      if (sub_size[u] > sub_size[adj[v][0]]) {
-        std::swap(u, adj[v][0]);
+  // Fills `subsize` and `parent`.
+  void dfs_subsize(int v) {
+    auto &edges = adj[v];
+    if (parent[v] >= 0) {
+      // In `adj`, retain only children.
+      edges.erase(std::find(edges.begin(), edges.end(), parent[v]));
+    }
+    for (int &u : edges) {
+      parent[u] = v;
+      dfs_subsize(u);
+      subsize[v] += subsize[u];
+      if (subsize[u] > subsize[edges[0]]) {
+        std::swap(u, edges[0]);
       }
     }
   }
 
-  void dfs_hld(int v, int p) {
-    et_in[v] = counter++;
-    for (auto u : adj[v]) {
-      if (u == p) continue;
-      component_root[u] = (u == adj[v][0] ? component_root[v] : u);
-      dfs_hld(u, v);
+  // Fills `node_to_index`, `index_to_node`, and `comp_root`.
+  void dfs_hld(int v, int &counter) {
+    node_to_index[v] = counter++;
+    index_to_node[node_to_index[v]] = v;
+    for (int u : adj[v]) {
+      assert(u != parent[v]);
+      comp_root[u] = (u == adj[v][0] ? comp_root[v] : u);
+      dfs_hld(u, counter);
     }
-    et_out[v] = counter;
   }
 };
