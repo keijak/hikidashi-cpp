@@ -2,11 +2,15 @@
 
 // Heavy-Light Decomposition and Euler Tour
 struct HLD {
-  int n;
-  std::vector<std::vector<int>> adj;
-  std::vector<int> subsize, parent, node_to_index, index_to_node, comp_root;
-  int root;
-  int counter;
+  int n;                              // number of nodes in the tree
+  std::vector<std::vector<int>> adj;  // The tree's adjacency list.
+  std::vector<int> subsize;           // subtree size
+  std::vector<int> parent;            // parent node id (or -1)
+  // "index" is preorder index in DFS traversal (Euler Tour).
+  std::vector<int> node_to_index;  // node id to index
+  std::vector<int> index_to_node;  // index to node id
+  std::vector<int> comp_root;      // root of its heavy path component
+  int root;                        // root of the tree
 
   explicit HLD(std::vector<std::vector<int>> g, int root = 0)
       : n(int(g.size())),
@@ -31,6 +35,8 @@ struct HLD {
     }
   }
 
+  // f: [l, r) -> void
+  // The intervals contain the indices of both u and v.
   template <typename F>
   void for_each(int u, int v, const F &f) {
     for (;;) {
@@ -42,6 +48,9 @@ struct HLD {
     }
   }
 
+  // f: [l, r) -> void
+  // The intervals contain the indices of nodes that represent each edge's
+  // deeper end (closer to leaves).
   template <typename F>
   void for_each_edge(int u, int v, const F &f) {
     for (;;) {
