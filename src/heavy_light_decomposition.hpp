@@ -12,7 +12,7 @@ struct HLD {
   // "ord" is preorder index in DFS traversal (Euler Tour).
   std::vector<int> node_to_ord;     // node id to preorder index
   std::vector<NodeID> ord_to_node;  // preorder index to node id
-  std::vector<NodeID> comp_root;    // root of its heavy path component
+  std::vector<NodeID> comp_root;    // root of each heavy path component
   NodeID root;                      // root of the tree
 
   explicit HLD(std::vector<std::vector<int>> g, NodeID root = 0)
