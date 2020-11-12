@@ -80,6 +80,7 @@ struct EulerTour {
 
   explicit EulerTour(const Graph &g, int root = 0)
       : n(g.n), adj(g.adj), depth(g.n, 0), index(g.n, -1), tour() {
+    tour.reserve(n * 2);
     dfs(root, -1);
   }
 
