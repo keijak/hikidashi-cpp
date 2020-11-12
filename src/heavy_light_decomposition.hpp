@@ -9,7 +9,7 @@ struct HLD {
   std::vector<std::vector<NodeID>> child;  // children node ids
   std::vector<int> subsize;                // subtree size
   std::vector<NodeID> parent;              // parent node id (or -1)
-  // "ord" is preorder index in DFS traversal (Euler Tour).
+  // "ord" is preorder index in DFS traversal. [0, n)
   std::vector<int> node_to_ord;     // node id to preorder index
   std::vector<NodeID> ord_to_node;  // preorder index to node id
   std::vector<NodeID> comp_root;    // root of each heavy path component
