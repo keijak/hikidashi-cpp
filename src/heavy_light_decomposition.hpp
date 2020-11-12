@@ -3,7 +3,7 @@
 
 // Heavy-Light Decomposition
 struct HLD {
-  using NodeID = int;
+  using NodeID = int;  // [0, n)
 
   int n;                                   // number of nodes in the tree
   std::vector<std::vector<NodeID>> child;  // children node ids
