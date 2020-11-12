@@ -6,24 +6,24 @@ struct HLD {
   using NodeID = int;  // [0, n)
 
   int n;                                   // number of nodes in the tree
+  NodeID root;                             // root of the tree
   std::vector<std::vector<NodeID>> child;  // children node ids
-  std::vector<int> subsize;                // subtree size
   std::vector<NodeID> parent;              // parent node id (or -1)
+  std::vector<int> subsize;                // subtree size
   // "ord" is preorder index in DFS traversal. [0, n)
   std::vector<int> node_to_ord;     // node id to preorder index
   std::vector<NodeID> ord_to_node;  // preorder index to node id
   std::vector<NodeID> comp_root;    // root of each heavy path component
-  NodeID root;                      // root of the tree
 
   explicit HLD(std::vector<std::vector<int>> g, NodeID root = 0)
       : n(int(g.size())),
+        root(root),
         child(g),
-        subsize(n, 1),
         parent(n, -1),
+        subsize(n, 1),
         node_to_ord(n, -1),
         ord_to_node(n, -1),
-        comp_root(n, -1),
-        root(root) {
+        comp_root(n, -1) {
     dfs_subsize(root);
     int counter = 0;
     comp_root[root] = root;
@@ -67,12 +67,10 @@ struct HLD {
   }
 
  private:
-  // Fills `subsize` and `parent`.
+  // Fills `parent` and `subsize` and drops parent node ids from `child`.
   void dfs_subsize(NodeID v) {
     auto &edges = child[v];
     if (parent[v] >= 0) {
-      // Drop the parent from the `child` adjacency list.
-      // It's separately stored in `parent`.
       auto it = std::find(edges.begin(), edges.end(), parent[v]);
       if (it != edges.end()) edges.erase(it);
     }
