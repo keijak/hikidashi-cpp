@@ -75,7 +75,7 @@ struct EulerTour {
   const vector<vector<int>> &adj;
   vector<int> depth;
   vector<int> index;
-  // EulerTour on nodes.
+  // Euler Tour on nodes.
   vector<pair<int, int>> tour;  // (depth, node id)
 
   explicit EulerTour(const Graph &g, int root = 0)
