@@ -43,35 +43,39 @@ struct HLD {
     }
   }
 
-  // f: [l, r) -> void
-  // The intervals contain the preorder indices of the nodes in the
-  // u-v path, including both u and v.
-  void for_each(NodeID u, NodeID v, std::function<void(int, int)> f) {
+  // Returns the set of nodes on the path in the form of half-open intervals of
+  // the preorder indices of the nodes on the u-v path, including both u and v.
+  auto node_ranges_on_path(NodeID u, NodeID v) {
+    std::vector<std::pair<int, int>> res;
     for (;;) {
       if (node_to_ord[u] > node_to_ord[v]) std::swap(u, v);
       NodeID crv = comp_root[v];
-      f(std::max(node_to_ord[crv], node_to_ord[u]), node_to_ord[v] + 1);
+      res.emplace_back(std::max(node_to_ord[crv], node_to_ord[u]),
+                       node_to_ord[v] + 1);
       if (comp_root[u] == crv) break;
       assert(parent[crv].has_value());
       v = parent[crv].value();
     }
+    return res;
   }
 
-  // f: [l, r) -> void
-  // The intervals contain the preorder indices of nodes corresponding to the
-  // deeper end (closer to leaves) of edges in the u-v path.
-  void for_each_edge(NodeID u, NodeID v, std::function<void(int, int)> f) {
+  // Returns the set of edges in the path in the form of half-open intervals
+  // of the preorder indices of nodes corresponding to the deeper end (closer to
+  // leaves) of each edge in the path. Here we identify Edge(v, parent[v]) as v.
+  auto edge_ranges_on_path(NodeID u, NodeID v) {
+    std::vector<std::pair<int, int>> res;
     for (;;) {
       if (node_to_ord[u] > node_to_ord[v]) std::swap(u, v);
       NodeID crv = comp_root[v];
       if (comp_root[u] == crv) {
-        if (u != v) f(node_to_ord[u] + 1, node_to_ord[v] + 1);
+        if (u != v) res.emplace_back(node_to_ord[u] + 1, node_to_ord[v] + 1);
         break;
       }
-      f(node_to_ord[crv], node_to_ord[v] + 1);
+      res.emplace_back(node_to_ord[crv], node_to_ord[v] + 1);
       assert(parent[crv].has_value());
       v = parent[crv].value();
     }
+    return res;
   }
 
  private:
