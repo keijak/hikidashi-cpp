@@ -70,7 +70,6 @@ struct DoublingLCA {
 // - query: O(1)
 // - build: O(N log N)
 // - space: O(N log N)
-
 struct EulerTour {
   const int n;  // number of nodes
   const vector<vector<int>> &adj;
