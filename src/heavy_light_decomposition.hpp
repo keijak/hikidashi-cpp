@@ -1,15 +1,16 @@
 #include <functional>
+#include <optional>
 #include <vector>
 
 // Heavy-Light Decomposition
 struct HLD {
   using NodeID = int;  // [0, n)
 
-  int n;                                   // number of nodes in the tree
-  NodeID root;                             // root of the tree
-  std::vector<std::vector<NodeID>> child;  // children node ids
-  std::vector<NodeID> parent;              // parent node id (or -1)
-  std::vector<int> subsize;                // subtree size
+  int n;                                      // number of nodes in the tree
+  NodeID root;                                // root of the tree
+  std::vector<std::vector<NodeID>> child;     // children node ids
+  std::vector<std::optional<NodeID>> parent;  // parent node id (or -1)
+  std::vector<int> subsize;                   // subtree size
   // "ord" is preorder index in DFS traversal. [0, n)
   std::vector<int> node_to_ord;     // node id to preorder index
   std::vector<NodeID> ord_to_node;  // preorder index to node id
