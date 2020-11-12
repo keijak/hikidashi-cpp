@@ -7,13 +7,15 @@ using namespace std;
 // - build: O(N log N)
 // - space: O(N log N)
 struct DoublingLCA {
+  using G = vector<vector<int>>;
+
   const int n;  // number of nodes
-  const vector<vector<int>> &adj;
+  G adj;
   vector<vector<int>> upper;  // 2^k upper node
   vector<int> depth;
 
-  explicit DoublingLCA(const Graph &g, int root = 0)
-      : n(g.n), adj(g.adj), upper(K, vector<int>(g.n, -1)), depth(g.n) {
+  explicit DoublingLCA(G g, int root = 0)
+      : n(g.size()), adj(move(g)), upper(K, vector<int>(n, -1)), depth(n) {
     depth[root] = 0;
     dfs(0, -1);
     for (int k = 0; k + 1 < K; k++) {
@@ -71,15 +73,17 @@ struct DoublingLCA {
 // - build: O(N log N)
 // - space: O(N log N)
 struct EulerTour {
+  using G = vector<vector<int>>;
+
   const int n;  // number of nodes
-  const vector<vector<int>> &adj;
+  G adj;
   vector<int> depth;
   vector<int> index;
   // Euler Tour on nodes.
   vector<pair<int, int>> tour;  // (depth, node id)
 
-  explicit EulerTour(const Graph &g, int root = 0)
-      : n(g.n), adj(g.adj), depth(g.n, 0), index(g.n, -1), tour() {
+  explicit EulerTour(G g, int root = 0)
+      : n(g.size()), adj(move(g)), depth(n, 0), index(n, -1), tour() {
     tour.reserve(n * 2);
     dfs(root, -1);
   }
@@ -92,9 +96,14 @@ struct EulerTour {
     for (auto u : adj[v]) {
       if (u == p) continue;
       dfs(u, v);
-      tour.emplace_back(v);
+      tour.emplace_back(depth[v], v);
     }
   }
+};
+struct Min {
+  using T = pair<int, int>;
+  static T op(const T &x, const T &y) { return std::min(x, y); }
+  static constexpr T id() { return {std::numeric_limits<int>::max(), 0}; }
 };
 
 int euler_tour_lca_example(const Graph &g, int u, int v) {

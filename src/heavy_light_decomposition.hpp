@@ -5,10 +5,11 @@
 // Heavy-Light Decomposition
 struct HLD {
   using NodeID = int;  // [0, n)
+  using G = std::vector<std::vector<int>>;
 
   int n;                                      // number of nodes in the tree
   NodeID root;                                // root of the tree
-  std::vector<std::vector<NodeID>> child;     // children node ids
+  G child;                                    // children node ids
   std::vector<std::optional<NodeID>> parent;  // parent node id (or -1)
   std::vector<int> subsize;                   // subtree size
   // "ord" is preorder index in DFS traversal. [0, n)
@@ -16,7 +17,7 @@ struct HLD {
   std::vector<NodeID> ord_to_node;  // preorder index to node id
   std::vector<NodeID> comp_root;    // node id to its heavy path component
 
-  explicit HLD(std::vector<std::vector<int>> g, NodeID root = 0)
+  explicit HLD(G g, NodeID root = 0)
       : n(int(g.size())),
         root(root),
         child(g),
@@ -35,8 +36,10 @@ struct HLD {
   NodeID lca(NodeID u, NodeID v) {
     for (;;) {
       if (node_to_ord[u] > node_to_ord[v]) std::swap(u, v);
-      if (comp_root[u] == comp_root[v]) return u;
-      v = parent[comp_root[v]];
+      NodeID crv = comp_root[v];
+      if (comp_root[u] == crv) return u;
+      assert(parent[crv].has_value());
+      v = parent[crv].value();
     }
   }
 
@@ -46,10 +49,11 @@ struct HLD {
   void for_each(NodeID u, NodeID v, std::function<void(int, int)> f) {
     for (;;) {
       if (node_to_ord[u] > node_to_ord[v]) std::swap(u, v);
-      f(std::max(node_to_ord[comp_root[v]], node_to_ord[u]),
-        node_to_ord[v] + 1);
-      if (comp_root[u] == comp_root[v]) break;
-      v = parent[comp_root[v]];
+      NodeID crv = comp_root[v];
+      f(std::max(node_to_ord[crv], node_to_ord[u]), node_to_ord[v] + 1);
+      if (comp_root[u] == crv) break;
+      assert(parent[crv].has_value());
+      v = parent[crv].value();
     }
   }
 
@@ -59,12 +63,14 @@ struct HLD {
   void for_each_edge(NodeID u, NodeID v, std::function<void(int, int)> f) {
     for (;;) {
       if (node_to_ord[u] > node_to_ord[v]) std::swap(u, v);
-      if (comp_root[u] == comp_root[v]) {
+      NodeID crv = comp_root[v];
+      if (comp_root[u] == crv) {
         if (u != v) f(node_to_ord[u] + 1, node_to_ord[v] + 1);
         break;
       }
-      f(node_to_ord[comp_root[v]], node_to_ord[v] + 1);
-      v = parent[comp_root[v]];
+      f(node_to_ord[crv], node_to_ord[v] + 1);
+      assert(parent[crv].has_value());
+      v = parent[crv].value();
     }
   }
 
@@ -72,8 +78,8 @@ struct HLD {
   // Fills `parent` and `subsize` and drops parent node ids from `child`.
   void dfs_subsize(NodeID v) {
     auto &edges = child[v];
-    if (parent[v] >= 0) {
-      auto it = std::find(edges.begin(), edges.end(), parent[v]);
+    if (parent[v].has_value()) {
+      auto it = std::find(edges.begin(), edges.end(), parent[v].value());
       if (it != edges.end()) edges.erase(it);
     }
     for (NodeID &u : edges) {
@@ -91,7 +97,6 @@ struct HLD {
     node_to_ord[v] = counter++;
     ord_to_node[node_to_ord[v]] = v;
     for (NodeID u : child[v]) {
-      assert(u != parent[v]);
       comp_root[u] = (u == child[v][0] ? comp_root[v] : u);
       dfs_hld(u, counter);
     }
