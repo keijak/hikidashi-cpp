@@ -43,8 +43,9 @@ struct HLD {
     }
   }
 
-  // Returns the set of nodes on the path in the form of half-open intervals of
-  // the preorder indices of the nodes on the u-v path, including both u and v.
+  // Returns the set of nodes on the u-v path, including both u and v.
+  // It's half-open intervals of the preorder indices of the nodes.
+  // One interval corresponds to one heavy path component.
   auto node_ranges_on_path(NodeID u, NodeID v) {
     std::vector<std::pair<int, int>> res;
     for (;;) {
