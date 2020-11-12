@@ -40,7 +40,8 @@ struct HLD {
   }
 
   // f: [l, r) -> void
-  // The intervals contain the indices of both u and v.
+  // The intervals contain the preorder indices of the nodes in the
+  // u-v path, including both u and v.
   void for_each(NodeID u, NodeID v, std::function<void(int, int)> f) {
     for (;;) {
       if (node_to_ord[u] > node_to_ord[v]) std::swap(u, v);
@@ -52,8 +53,8 @@ struct HLD {
   }
 
   // f: [l, r) -> void
-  // The intervals contain the indices of nodes that represent each edge's
-  // deeper end (closer to leaves).
+  // The intervals contain the preorder indices of nodes corresponding to the
+  // deeper end (closer to leaves) of edges in the u-v path.
   void for_each_edge(NodeID u, NodeID v, std::function<void(int, int)> f) {
     for (;;) {
       if (node_to_ord[u] > node_to_ord[v]) std::swap(u, v);
