@@ -1,10 +1,11 @@
 #include <vector>
 
 struct UnionFind {
+  int n;
   mutable std::vector<int> par;  // positive: parent, negative: size
   int num_roots;
 
-  explicit UnionFind(int sz) : par(sz, -1), num_roots(sz) {}
+  explicit UnionFind(int sz) : n(sz), par(sz, -1), num_roots(sz) {}
 
   bool unite(int x, int y) {
     x = find(x), y = find(y);
