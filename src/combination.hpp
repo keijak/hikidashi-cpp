@@ -29,7 +29,7 @@ struct Factorials {
 // Cretates a combination matrix using Pascal's triangle.
 // Time and space complexity: Θ(n^2)
 // Useful to avoid factorials causing integer overflow.
-template <class T = uint64_t>
+template <class T = unsigned long long>
 vector<vector<T>> comb_table(int n) {
   vector<vector<T>> C(n + 1, vector<T>(n + 1, 0));
   for (int i = 0; i <= n; ++i) {
