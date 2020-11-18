@@ -7,7 +7,7 @@ struct Min {
 struct Max {
   using T = long long;
   static T op(const T &x, const T &y) { return std::max(x, y); }
-  static constexpr T id() { return std::numeric_limits<T>::min(); }
+  static constexpr T id() { return std::numeric_limits<T>::lowest(); }
 };
 
 struct Sum {
@@ -31,7 +31,7 @@ struct Assign {
     long long value;
   };
   static T op(const T &x, const T &y) { return (x.time > y.time) ? x : y; }
-  static T id() { return {std::numeric_limits<int>::min(), 0}; }
+  static T id() { return {std::numeric_limits<int>::lowest(), 0}; }
 };
 
 struct GCD {
@@ -71,8 +71,8 @@ struct Max2 {
     return {a[3], a[2]};
   }
   static constexpr T id() {
-    return {std::numeric_limits<value_type>::min(),
-            std::numeric_limits<value_type>::min()};
+    return {std::numeric_limits<value_type>::lowest(),
+            std::numeric_limits<value_type>::lowest()};
   }
 };
 
@@ -96,7 +96,7 @@ struct AddMax {
 
   // Fold: Max
   static T op(const T &x, const T &y) { return std::max(x, y); }
-  static constexpr T id() { return std::numeric_limits<T>::min(); }
+  static constexpr T id() { return std::numeric_limits<T>::lowest(); }
 
   // Update: Add
   static T f_apply(const F &f, const T &x) { return f + x; }
@@ -127,34 +127,30 @@ struct AddSum {
 
 struct AssignMin {
   using T = long long;
-  using F = std::optional<long long>;
+  using F = long long;  // optional<> is cleaner but slower
 
   // Fold: Min
   static T op(const T &x, const T &y) { return std::min(x, y); }
   static constexpr T id() { return std::numeric_limits<T>::max(); }
 
   // Update: Assign
-  static T f_apply(const F &f, const T &x) {
-    return f.has_value() ? f.value() : x;
-  }
-  static F f_compose(const F &f, const F &g) { return f.has_value() ? f : g; }
-  static constexpr F f_id() { return std::nullopt; }
+  static T f_apply(const F &f, const T &x) { return (f != f_id()) ? f : x; }
+  static F f_compose(const F &f, const F &g) { return (f != f_id()) ? f : g; }
+  static constexpr F f_id() { return numeric_limits<F>::lowest(); }
 };
 
 struct AssignMax {
   using T = long long;
-  using F = std::optional<long long>;
+  using F = long long;  // optional<> is cleaner but slower
 
   // Fold: Max
   static T op(const T &x, const T &y) { return std::max(x, y); }
-  static constexpr T id() { return std::numeric_limits<T>::min(); }
+  static constexpr T id() { return std::numeric_limits<T>::lowest(); }
 
   // Update: Assign
-  static T f_apply(const F &f, const T &x) {
-    return f.has_value() ? f.value() : x;
-  }
-  static F f_compose(const F &f, const F &g) { return f.has_value() ? f : g; }
-  static constexpr F f_id() { return std::nullopt; }
+  static T f_apply(const F &f, const T &x) { return (f != f_id()) ? f : x; }
+  static F f_compose(const F &f, const F &g) { return (f != f_id()) ? f : g; }
+  static constexpr F f_id() { return numeric_limits<F>::lowest(); }
 };
 
 struct AssignSum {
@@ -162,7 +158,7 @@ struct AssignSum {
     long long sum;
     int width;
   };
-  using F = std::optional<long long>;
+  using F = long long;  // optional<> is cleaner but slower
 
   // Fold: Sum
   static T op(const T &x, const T &y) {
@@ -172,10 +168,10 @@ struct AssignSum {
 
   // Update: Assign
   static T f_apply(const F &f, const T &x) {
-    return f.has_value() ? {f.value() * x.width, x.width} : x;
+    return (f != f_id()) ? T{f * x.width, x.width} : x;
   }
-  static F f_compose(const F &f, const F &g) { return f.has_value() ? f : g; }
-  static constexpr F f_id() { return std::nullopt; }
+  static F f_compose(const F &f, const F &g) { return (f != f_id()) ? f : g; }
+  static constexpr F f_id() { return numeric_limits<F>::lowest(); }
 };
 
 struct MinMin {
@@ -198,10 +194,10 @@ struct MaxMax {
 
   // Fold: Max
   static T op(const T &x, const T &y) { return std::max(x, y); }
-  static constexpr T id() { return std::numeric_limits<T>::min(); }
+  static constexpr T id() { return std::numeric_limits<T>::lowest(); }
 
   // Update: Max
   static T f_apply(const F &f, const T &x) { return std::max(f, x); }
   static F f_compose(const F &f, const F &g) { return std::max(f, g); }
-  static constexpr F f_id() { return std::numeric_limits<T>::min(); }
+  static constexpr F f_id() { return std::numeric_limits<T>::lowest(); }
 };
