@@ -43,42 +43,39 @@ std::vector<std::optional<i64>> dijkstra(
   return mincost;
 }
 
-struct GridState {
-  i64 cost;
-  int r;
-  int c;
-  //...
-};
-bool operator>(const GridState &x, const GridState &y) {
-  return x.cost > y.cost;
-}
-
-std::vector<std::vector<std::optional<i64>>> grid_bfs(
-    const std::vector<std::string> &g, int source_r, int source_c) {
+std::vector<std::optional<i64>> grid_bfs(const std::vector<std::string> &g,
+                                         int source_r, int source_c) {
+  const i64 INF = 1e18;
   const int H = g.size();
   const int W = g[0].size();
+  auto pack = [&](int r, int c) -> int { return r * W + c; };
+  auto unpack = [&](int node) -> pair<int, int> {
+    return {node / W, node % W};
+  };
   array<int, 4> dx = {0, 0, 1, -1}, dy = {1, -1, 0, 0};
-  auto mincost = std::vector(H, std::vector(W, std::optional<i64>()));
-  mincost[source_r][source_c] = 0LL;
-  std::deque<GridState> que;
-  que.push_back({0LL, source_r, source_c});
+  auto mincost = std::vector(H * W, std::optional<i64>());
+  int source_node = pack(source_r, source_c);
+  mincost[source_node] = 0LL;
+  std::deque<State> que;
+  que.push_back({0LL, source_node});
   while (not que.empty()) {
     State cur = std::move(que.front());
     que.pop_front();
-    if (not mincost[cur.r][cur.c].has_value() or
-        mincost[cur.r][cur.c].value() != cur.cost) {
+    if (not mincost[cur.node].has_value() or
+        mincost[cur.node].value() != cur.cost) {
       continue;
     }
+    auto [cur_r, cur_c] = unpack(cur.node);
     for (int i = 0; i < 4; ++i) {
-      int nr = cur.r + dy[i];
-      int nc = cur.c + dx[i];
+      int nr = cur_r + dy[i];
+      int nc = cur_c + dx[i];
       if (nr < 0 or nr >= H or nc < 0 or nc >= W) continue;
       if (g[nr][nc] == '#') continue;
+      int new_node = pack(nr, nc);
       i64 new_cost = cur.cost + 1;
-      if (not mincost[nr][nc].has_value() or
-          mincost[nr][nc].value() > new_cost) {
-        mincost[nr][nc] = new_cost;
-        que.push_back({new_cost, nr, nc});
+      if (mincost[new_node].value_or(INF) > new_cost) {
+        mincost[new_node] = new_cost;
+        que.push_back({new_cost, new_node});
       }
     }
   }
