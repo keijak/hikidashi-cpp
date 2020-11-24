@@ -100,18 +100,19 @@ struct EulerTour {
     }
   }
 };
+
 struct Min {
   using T = pair<int, int>;
   static T op(const T &x, const T &y) { return std::min(x, y); }
   static constexpr T id() { return {std::numeric_limits<int>::max(), 0}; }
 };
 
-int euler_tour_lca_example(const Graph &g, int u, int v) {
+void euler_tour_lca_example(const EulerTour::G &g, int u, int v) {
   EulerTour et(g);
   SparseTable<Min> st(et.tour);
 
   // Usage
   int ui = et.index[u], vi = et.index[v];
-  auto [lca_depth, lca_id] = st.fold(min(ui, vi), max(ui, vi) + 1);
-  return lca_id;
+  auto [lca_depth, lca_node] = st.fold(min(ui, vi), max(ui, vi) + 1);
+  int distance = (et.depth[u] - lca_depth) + (et.depth[v] - lca_depth);
 }
