@@ -16,6 +16,9 @@ struct DenseFPS {
   explicit DenseFPS(std::vector<T> c) : coeff_(std::move(c)) {
     assert((int)c.size() <= DMAX + 1);
   }
+  DenseFPS(std::initializer_list<T> init) : coeff_(init.begin(), init.end()) {
+    assert((int)init.size() <= DMAX + 1);
+  }
 
   DenseFPS(const DenseFPS &other) : coeff_(other.coeff_) {}
   DenseFPS(DenseFPS &&other) : coeff_(std::move(other.coeff_)) {}
@@ -80,6 +83,11 @@ struct DenseFPS {
     res *= scalar;
     return res;
   }
+  friend DenseFPS operator*(const T &scalar, const DenseFPS &y) {
+    DenseFPS res = {scalar};
+    res *= y;
+    return res;
+  }
   DenseFPS &operator*=(const DenseFPS &other) {
     *this = this->mul_naive(other);
     return *this;
@@ -97,11 +105,31 @@ struct DenseFPS {
     res /= scalar;
     return res;
   }
+  friend DenseFPS operator/(const T &scalar, const DenseFPS &y) {
+    DenseFPS res = {scalar};
+    res /= y;
+    return res;
+  }
   DenseFPS &operator/=(const DenseFPS &other) {
     return *this *= other.inv_naive();
   }
   friend DenseFPS operator/(const DenseFPS &x, const DenseFPS &y) {
     return x * y.inv_naive();
+  }
+
+  // Naive inverse. O(N^2)
+  DenseFPS inv_naive() const {
+    std::vector<T> res(DMAX + 1);
+    res[0] = coeff_[0].inv();
+    for (int i = 1; i <= DMAX; ++i) {
+      T s = 0;
+      const int mi = std::min(i + 1, size());
+      for (int j = 1; j < mi; ++j) {
+        s += coeff_[j] * res[i - j];
+      }
+      res[i] = -res[0] * s;
+    }
+    return DenseFPS(std::move(res));
   }
 
  private:
@@ -114,20 +142,6 @@ struct DenseFPS {
         if (i + j >= n) break;
         res[i + j] += coeff_[i] * other.coeff_[j];
       }
-    }
-    return DenseFPS(std::move(res));
-  }
-
-  // Naive inverse. O(N^2)
-  DenseFPS inv_naive() const {
-    std::vector<T> res(size());
-    res[0] = coeff_[0].inv();
-    for (int i = 1; i < size(); ++i) {
-      mint s = 0;
-      for (int j = 1; j <= i; ++j) {
-        s += coeff_[j] * res[i - j];
-      }
-      res[i] = -res[0] * s;
     }
     return DenseFPS(std::move(res));
   }
