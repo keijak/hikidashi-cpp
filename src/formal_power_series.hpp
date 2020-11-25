@@ -30,10 +30,10 @@ struct DenseFPS {
 
   int size() const { return (int)coeff_.size(); }
 
-  // Returns the coefficient of x^dy.
-  T operator[](int dy) const {
-    if (dy >= size()) return 0;
-    return coeff_[dy];
+  // Returns the coefficient of x^k.
+  T operator[](int k) const {
+    if (k >= size()) return 0;
+    return coeff_[k];
   }
 
   DenseFPS &operator+=(const T &scalar) {
@@ -263,19 +263,19 @@ struct SparseFPS {
 
   int DMAX() const { return (size_ == 0) ? 0 : degree_.back(); }
 
-  void emplace_back(int dy, T c) {
+  void emplace_back(int k, T c) {
     if (not degree_.empty()) {
-      assert(dy > degree_.back());
+      assert(k > degree_.back());
     }
-    degree_.push_back(std::move(dy));
+    degree_.push_back(std::move(k));
     coeff_.push_back(std::move(c));
     ++size_;
   }
 
-  // Returns the coefficient of x^dy.
-  T operator[](int dy) const {
-    auto it = std::lower_bound(degree_.begin(), degree_.end(), dy);
-    if (it == degree_.end() or *it != dy) return (T)(0);
+  // Returns the coefficient of x^k.
+  T operator[](int k) const {
+    auto it = std::lower_bound(degree_.begin(), degree_.end(), k);
+    if (it == degree_.end() or *it != k) return (T)(0);
     int j = std::distance(degree_.begin(), it);
     return coeff_[j];
   }
