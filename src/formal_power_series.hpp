@@ -395,10 +395,9 @@ DenseFPS<T, DMAX> inv_ntt(const DenseFPS<T, DMAX> &x) {
 }
 
 template <typename T, int DMAX>
-DenseFPS<T, DMAX> pow_generic(
-    const DenseFPS<T, DMAX> &x, u64 t,
-    DenseFPS<T, DMAX> (*mul)(const DenseFPS<T, DMAX> &,
-                             const DenseFPS<T, DMAX> &)) {
+DenseFPS<T, DMAX> pow(const DenseFPS<T, DMAX> &x, u64 t,
+                      DenseFPS<T, DMAX> (*mul)(const DenseFPS<T, DMAX> &,
+                                               const DenseFPS<T, DMAX> &)) {
   DenseFPS<T, DMAX> base = x, res;
   res.coeff_[0] = 1;
   while (t) {
@@ -411,27 +410,26 @@ DenseFPS<T, DMAX> pow_generic(
 
 template <typename T, int DMAX>
 DenseFPS<T, DMAX> pow_naive(const DenseFPS<T, DMAX> &x, u64 t) {
-  return pow_generic(
-      x, t, [](const DenseFPS<T, DMAX> &y, const DenseFPS<T, DMAX> &z) {
-        return y * z;
-      });
+  return pow(x, t, [](const DenseFPS<T, DMAX> &y, const DenseFPS<T, DMAX> &z) {
+    return y * z;
+  });
 }
 
 // T: modint
 template <typename T, int DMAX>
 DenseFPS<T, DMAX> pow_ntt(const DenseFPS<T, DMAX> &x, u64 t) {
-  return pow_generic(x, t, mul_ntt);
+  return pow(x, t, mul_ntt);
 }
 
 // T: modint
 template <typename T, int DMAX>
 DenseFPS<T, DMAX> pow_mod(const DenseFPS<T, DMAX> &x, u64 t) {
-  return pow_generic(x, t, mul_mod);
+  return pow(x, t, mul_mod);
 }
 
 template <int DMAX>
 DenseFPS<i64, DMAX> pow_ll(const DenseFPS<i64, DMAX> &x, u64 t) {
-  return pow_generic(x, t, mul_ll);
+  return pow(x, t, mul_ll);
 }
 
 template <typename T, int DMAX>
