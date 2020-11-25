@@ -136,27 +136,29 @@ struct DenseFPS {
 namespace fps {
 
 // Fast polynomial multiplication by single NTT.
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> mul_ntt(const DenseFPS<ModInt, DMAX> &x,
-                               const DenseFPS<ModInt, DMAX> &y) {
-  static_assert(ModInt::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
+// T: modint
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> mul_ntt(const DenseFPS<T, DMAX> &x,
+                          const DenseFPS<T, DMAX> &y) {
+  static_assert(T::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
   auto res = atcoder::convolution(x.coeff_, y.coeff_);
   if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
-  return DenseFPS<ModInt, DMAX>(std::move(res));
+  return DenseFPS<T, DMAX>(std::move(res));
 }
 
 // Polynomial multiplication by NTT + Garner (arbitrary mod).
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> mul_mod(const DenseFPS<ModInt, DMAX> &x,
-                               const DenseFPS<ModInt, DMAX> &y) {
+// T: modint
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> mul_mod(const DenseFPS<T, DMAX> &x,
+                          const DenseFPS<T, DMAX> &y) {
   std::vector<i64> xll(x.size()), yll(y.size());
   for (int i = 0; i < x.size(); ++i) xll[i] = x[i].val();
   for (int i = 0; i < y.size(); ++i) yll[i] = y[i].val();
   auto zll = atcoder::convolution_ll(move(xll), move(yll));
   int n = std::min<int>(zll.size(), DMAX + 1);
-  std::vector<ModInt> res(n);
+  std::vector<T> res(n);
   for (int i = 0; i < n; ++i) res[i] = zll[i];
-  return DenseFPS<ModInt, DMAX>(std::move(res));
+  return DenseFPS<T, DMAX>(std::move(res));
 }
 
 // Polynomial multiplication by NTT + Garner (long long).
@@ -169,11 +171,12 @@ DenseFPS<i64, DMAX> mul_ll(const DenseFPS<i64, DMAX> &x,
 }
 
 // Fast polynomial inverse with NTT.
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> inv_ntt(const DenseFPS<ModInt, DMAX> &x) {
+// T: modint
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> inv_ntt(const DenseFPS<T, DMAX> &x) {
   assert(x[0].val() != 0);  // must be invertible
   const int n = x.size();
-  std::vector<ModInt> res(n);
+  std::vector<T> res(n);
   res[0] = x[0].inv();
   for (int d = 1; d < n; d <<= 1) {
     vector<mint> f(2 * d), g(2 * d);
@@ -185,7 +188,7 @@ DenseFPS<ModInt, DMAX> inv_ntt(const DenseFPS<ModInt, DMAX> &x) {
     f = atcoder::convolution(f, g);
     for (int j = d, m = min(2 * d, n); j < m; ++j) res[j] = -f[j];
   }
-  return DenseFPS<ModInt, DMAX>(std::move(res));
+  return DenseFPS<T, DMAX>(std::move(res));
 }
 
 template <typename T, int DMAX>
@@ -203,13 +206,15 @@ DenseFPS<T, DMAX> pow_generic(
   return res;
 }
 
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> pow_ntt(const DenseFPS<ModInt, DMAX> &x, u64 t) {
+// T: modint
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> pow_ntt(const DenseFPS<T, DMAX> &x, u64 t) {
   return pow_generic(x, t, mul_ntt);
 }
 
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> pow_mod(const DenseFPS<ModInt, DMAX> &x, u64 t) {
+// T: modint
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> pow_mod(const DenseFPS<T, DMAX> &x, u64 t) {
   return pow_generic(x, t, mul_mod);
 }
 
@@ -341,36 +346,32 @@ struct SparseFPS {
 };
 
 // Polynomial addition (dense + sparse).
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> &operator+=(DenseFPS<ModInt, DMAX> &x,
-                                   const SparseFPS<ModInt> &y) {
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> &operator+=(DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
   for (int dx = 0; dx < y.size(); ++dx) {
     if (y.degree(dx) > DMAX) break;  // ignore
     x.coeff_[y.degree(dx)] += y.coeff(dx);
   }
   return x;
 }
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> operator+(const DenseFPS<ModInt, DMAX> &x,
-                                 const SparseFPS<ModInt> &y) {
-  DenseFPS<ModInt, DMAX> res = x;
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> operator+(const DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
+  DenseFPS<T, DMAX> res = x;
   res += y;
   return res;
 }
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> operator+(const SparseFPS<ModInt> &x,
-                                 const DenseFPS<ModInt, DMAX> &y) {
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> operator+(const SparseFPS<T> &x, const DenseFPS<T, DMAX> &y) {
   return y + x;  // commutative
 }
 
 // Polynomial multiplication (dense * sparse).
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> &operator*=(DenseFPS<ModInt, DMAX> &x,
-                                   const SparseFPS<ModInt> &y) {
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> &operator*=(DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
   if (y.size() == 0) {
     return x *= 0;
   }
-  ModInt c0 = 0;
+  T c0 = 0;
   int j0 = 0;
   if (y.degree(0) == 0) {
     c0 = y.coeff(0);
@@ -390,25 +391,22 @@ DenseFPS<ModInt, DMAX> &operator*=(DenseFPS<ModInt, DMAX> &x,
   }
   return x;
 }
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> operator*(const DenseFPS<ModInt, DMAX> &x,
-                                 const SparseFPS<ModInt> &y) {
-  DenseFPS<ModInt, DMAX> res = x;
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> operator*(const DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
+  DenseFPS<T, DMAX> res = x;
   res *= y;
   return res;
 }
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> operator*(const SparseFPS<ModInt> &x,
-                                 const DenseFPS<ModInt, DMAX> &y) {
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> operator*(const SparseFPS<T> &x, const DenseFPS<T, DMAX> &y) {
   return y * x;  // commutative
 }
 
 // Polynomial division (dense / sparse).
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> &operator/=(DenseFPS<ModInt, DMAX> &x,
-                                   const SparseFPS<ModInt> &y) {
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> &operator/=(DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
   assert(y.size() > 0 and y.degree(0) == 0 and y.coeff(0) != 0);
-  const ModInt inv_c0 = y.coeff(0).inv();
+  const T inv_c0 = y.coeff(0).inv();
   const int dy_max = y.degree(y.size() - 1);
   const int dx_max = x.size() - 1;
   const int n = std::min(dx_max + dy_max + 1, DMAX + 1);
@@ -423,10 +421,9 @@ DenseFPS<ModInt, DMAX> &operator/=(DenseFPS<ModInt, DMAX> &x,
   }
   return x;
 }
-template <typename ModInt, int DMAX>
-DenseFPS<ModInt, DMAX> operator/(const DenseFPS<ModInt, DMAX> &x,
-                                 const SparseFPS<ModInt> &y) {
-  DenseFPS<ModInt, DMAX> res = x;
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> operator/(const DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
+  DenseFPS<T, DMAX> res = x;
   res /= y;
   return res;
 }
