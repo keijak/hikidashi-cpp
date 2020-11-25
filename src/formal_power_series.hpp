@@ -150,12 +150,12 @@ template <typename ModInt, int DMAX>
 DenseFPS<ModInt, DMAX> mul_mod(const DenseFPS<ModInt, DMAX> &x,
                                const DenseFPS<ModInt, DMAX> &y) {
   std::vector<i64> xll(x.size()), yll(y.size());
-  for (int dx = 0; dx < x.size(); ++dx) xll[dx] = x[dx].val();
-  for (int dx = 0; dx < y.size(); ++dx) yll[dx] = y[dx].val();
-  auto zll = atcoder::convolution_ll(xll, yll);
+  for (int i = 0; i < x.size(); ++i) xll[i] = x[i].val();
+  for (int i = 0; i < y.size(); ++i) yll[i] = y[i].val();
+  auto zll = atcoder::convolution_ll(move(xll), move(yll));
   int n = std::min<int>(zll.size(), DMAX + 1);
-  std::vector<T> res(n);
-  for (int dx = 0; dx < n; ++dx) res[dx] = zll[dx];
+  std::vector<ModInt> res(n);
+  for (int i = 0; i < n; ++i) res[i] = zll[i];
   return DenseFPS<ModInt, DMAX>(std::move(res));
 }
 

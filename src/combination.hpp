@@ -1,3 +1,5 @@
+#include <bits/stdc++.h>
+
 template <class T = Mint>
 struct Factorials {
   // factorials and inverse factorials.
@@ -30,8 +32,8 @@ struct Factorials {
 // Time and space complexity: Θ(n^2)
 // Useful to avoid factorials causing integer overflow.
 template <class T = unsigned long long>
-vector<vector<T>> comb_table(int n) {
-  vector<vector<T>> C(n + 1, vector<T>(n + 1, 0));
+std::vector<std::vector<T>> comb_table(int n) {
+  std::vector<std::vector<T>> C(n + 1, vector<T>(n + 1, 0));
   for (int i = 0; i <= n; ++i) {
     C[i][0] = C[i][i] = 1;
   }
@@ -46,7 +48,7 @@ vector<vector<T>> comb_table(int n) {
 Mint factorial(int x) {
   static std::vector<Mint> facts = {1, 1, 2};
   facts.reserve(x + 1);
-  while (facts.size() <= x) {
+  while ((int)facts.size() <= x) {
     facts.push_back(facts.back() * facts.size());
   }
   return facts[x];
