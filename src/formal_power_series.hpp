@@ -49,7 +49,7 @@ struct DenseFPS {
     if (size() < other.size()) {
       coeff_.resize(other.size());
     }
-    for (int dx = 0; dx < other.size(); ++dx) coeff_[dx] += other[dx];
+    for (int i = 0; i < other.size(); ++i) coeff_[i] += other[i];
     return *this;
   }
   friend DenseFPS operator+(const DenseFPS &x, const DenseFPS &y) {
@@ -62,7 +62,7 @@ struct DenseFPS {
     if (size() < other.size()) {
       coeff_.resize(other.size());
     }
-    for (int dx = 0; dx < other.size(); ++dx) coeff_[dx] -= other[dx];
+    for (int i = 0; i < other.size(); ++i) coeff_[i] -= other[i];
     return *this;
   }
   friend DenseFPS operator-(const DenseFPS &x, const DenseFPS &y) {
@@ -109,10 +109,10 @@ struct DenseFPS {
   DenseFPS mul_naive(const DenseFPS &other) const {
     const int n = std::min(size() + other.size() - 1, DMAX + 1);
     std::vector<T> res(n);
-    for (int dx = 0; dx < size(); ++dx) {
+    for (int i = 0; i < size(); ++i) {
       for (int j = 0; j < other.size(); ++j) {
-        if (dx + j >= n) break;
-        res[dx + j] += coeff_[dx] * other.coeff_[j];
+        if (i + j >= n) break;
+        res[i + j] += coeff_[i] * other.coeff_[j];
       }
     }
     return DenseFPS(std::move(res));
@@ -178,15 +178,15 @@ DenseFPS<T, DMAX> inv_ntt(const DenseFPS<T, DMAX> &x) {
   const int n = x.size();
   std::vector<T> res(n);
   res[0] = x[0].inv();
-  for (int d = 1; d < n; d <<= 1) {
-    vector<mint> f(2 * d), g(2 * d);
-    for (int j = 0, m = min(n, 2 * d); j < m; ++j) f[j] = x[j];
-    for (int j = 0; j < d; ++j) g[j] = res[j];
+  for (int i = 1; i < n; i <<= 1) {
+    vector<mint> f(2 * i), g(2 * i);
+    for (int j = 0, m = min(n, 2 * i); j < m; ++j) f[j] = x[j];
+    for (int j = 0; j < i; ++j) g[j] = res[j];
     f = atcoder::convolution(f, g);
-    f.resize(2 * d);
-    for (int j = 0; j < d; ++j) f[j] = 0;
+    f.resize(2 * i);
+    for (int j = 0; j < i; ++j) f[j] = 0;
     f = atcoder::convolution(f, g);
-    for (int j = d, m = min(2 * d, n); j < m; ++j) res[j] = -f[j];
+    for (int j = i, m = min(2 * i, n); j < m; ++j) res[j] = -f[j];
   }
   return DenseFPS<T, DMAX>(std::move(res));
 }
@@ -256,31 +256,30 @@ struct SparseFPS {
       : size_(terms.size()), degree_(size_), coeff_(size_) {
     // Sort by degree_ in ascending order.
     sort(terms.begin(), terms.end());
-    for (int dx = 0; dx < size_; ++dx) {
-      degree_[dx] = terms[dx].first;
-      coeff_[dx] = terms[dx].second;
+    for (int i = 0; i < size_; ++i) {
+      degree_[i] = terms[i].first;
+      coeff_[i] = terms[i].second;
     }
   }
 
   inline int size() const { return size_; }
-  inline int degree(int dx) const { return degree_[dx]; }
-  inline const T &coeff(int dx) const { return coeff_[dx]; }
+  inline const T &coeff(int i) const { return coeff_[i]; }
+  inline int degree(int i) const { return degree_[i]; }
+  int max_degree() const { return (size_ == 0) ? 0 : degree_.back(); }
 
-  int DMAX() const { return (size_ == 0) ? 0 : degree_.back(); }
-
-  void emplace_back(int k, T c) {
+  void emplace_back(int d, T c) {
     if (not degree_.empty()) {
-      assert(k > degree_.back());
+      assert(d > degree_.back());
     }
-    degree_.push_back(std::move(k));
+    degree_.push_back(std::move(d));
     coeff_.push_back(std::move(c));
     ++size_;
   }
 
-  // Returns the coefficient of x^k.
-  T operator[](int k) const {
-    auto it = std::lower_bound(degree_.begin(), degree_.end(), k);
-    if (it == degree_.end() or *it != k) return (T)(0);
+  // Returns the coefficient of x^d.
+  T operator[](int d) const {
+    auto it = std::lower_bound(degree_.begin(), degree_.end(), d);
+    if (it == degree_.end() or *it != d) return (T)(0);
     int j = std::distance(degree_.begin(), it);
     return coeff_[j];
   }
@@ -323,13 +322,13 @@ struct SparseFPS {
  private:
   SparseFPS add(const SparseFPS &other) const {
     SparseFPS res;
-    int j = 0;
-    for (int dx = 0; dx < size();) {
-      const int deg = this->degree(dx);
+    int j = 0;  // two pointers (i, j)
+    for (int i = 0; i < size(); ++i) {
+      const int deg = this->degree(i);
       for (; j < other.size() and other.degree(j) < deg; ++j) {
         res.emplace_back(other.degree(j), other.coeff(j));
       }
-      T c = this->coeff(dx);
+      T c = this->coeff(i);
       if (j < other.size() and other.degree(j) == deg) {
         c += other.coeff(j);
         ++j;
@@ -348,9 +347,9 @@ struct SparseFPS {
 // Polynomial addition (dense + sparse).
 template <typename T, int DMAX>
 DenseFPS<T, DMAX> &operator+=(DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
-  for (int dx = 0; dx < y.size(); ++dx) {
-    if (y.degree(dx) > DMAX) break;  // ignore
-    x.coeff_[y.degree(dx)] += y.coeff(dx);
+  for (int i = 0; i < y.size(); ++i) {
+    if (y.degree(i) > DMAX) break;  // ignore
+    x.coeff_[y.degree(i)] += y.coeff(i);
   }
   return x;
 }
