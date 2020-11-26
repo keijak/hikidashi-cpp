@@ -161,9 +161,12 @@ struct SparseFPS {
     // Sort by degree.
     std::sort(terms.begin(), terms.end(),
               [](const auto &x, const auto &y) { return x.first < y.first; });
-    for (int i = 0; i < size_; ++i) {
-      degree_[i] = terms[i].first;
-      coeff_[i] = terms[i].second;
+    int i = 0;
+    for (auto [d, c] : terms) {
+      assert(d >= 0);
+      degree_[i] = d;
+      coeff_[i] = c;
+      ++i;
     }
   }
 
@@ -176,6 +179,7 @@ struct SparseFPS {
   int max_degree() const { return (size_ == 0) ? 0 : degree_.back(); }
 
   void emplace_back(int d, T c) {
+    assert(d >= 0);
     if (not degree_.empty()) {
       assert(d > degree_.back());
     }
