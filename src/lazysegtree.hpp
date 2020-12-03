@@ -63,6 +63,8 @@ struct LazySegTree {
     return LazyMonoid::op(sml, smr);
   }
 
+  T fold_all() const { return data_[1]; }
+
   void apply(int p, F f) {
     assert(0 <= p && p < n_);
     p += offset_;
@@ -85,8 +87,8 @@ struct LazySegTree {
     {
       int l2 = l, r2 = r;
       while (l < r) {
-        if (l & 1) all_apply(l++, f);
-        if (r & 1) all_apply(--r, f);
+        if (l & 1) apply_all(l++, f);
+        if (r & 1) apply_all(--r, f);
         l >>= 1;
         r >>= 1;
       }
@@ -176,13 +178,13 @@ struct LazySegTree {
   void update(int k) {
     data_[k] = LazyMonoid::op(data_[2 * k], data_[2 * k + 1]);
   }
-  void all_apply(int k, F f) const {
+  void apply_all(int k, F f) const {
     data_[k] = LazyMonoid::f_apply(f, data_[k]);
     if (k < offset_) lazy_[k] = LazyMonoid::f_compose(f, lazy_[k]);
   }
   void push(int k) const {
-    all_apply(2 * k, lazy_[k]);
-    all_apply(2 * k + 1, lazy_[k]);
+    apply_all(2 * k, lazy_[k]);
+    apply_all(2 * k + 1, lazy_[k]);
     lazy_[k] = LazyMonoid::f_id();
   }
 
