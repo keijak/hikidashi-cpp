@@ -45,6 +45,16 @@ std::vector<std::vector<T>> comb_table(int n) {
   return C;
 }
 
+// nCk where n can be large but min(k, n-k) is small.
+Mint comb(i64 n, i64 k) {
+  i64 p = std::min(k, n - k), q = std::max(k, n - k);
+  assert(p >= 0);
+  Mint nume = 1, deno = 1;
+  for (i64 i = n; i > q; --i) nume *= i;
+  for (i64 i = 2; i <= p; ++i) deno *= i;
+  return nume / deno;
+}
+
 Mint factorial(int x) {
   static std::vector<Mint> facts = {1, 1, 2};
   facts.reserve(x + 1);
