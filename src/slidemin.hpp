@@ -16,7 +16,8 @@ struct SlideMinQueue {
   SlideMinQueue(SlideMinQueue &&) = default;
   SlideMinQueue &operator=(SlideMinQueue &&) = default;
 
-  // Shift both `left` and `right` to the right.
+  // Shifts the window to the right.
+  // Sets `left` to `l`, and `right` to `r`.
   void slide(int l, int r) {
     assert(l >= left);
     assert(r >= right);
