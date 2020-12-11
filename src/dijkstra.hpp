@@ -43,8 +43,8 @@ std::vector<std::optional<i64>> dijkstra(
   return mincost;
 }
 
-std::vector<std::optional<i64>> grid_bfs(const std::vector<std::string> &g,
-                                         int source_r, int source_c) {
+std::vector<std::optional<i64>> grid_search(const std::vector<std::string> &g,
+                                            int source_r, int source_c) {
   const i64 INF = 1e18;
   const int H = g.size();
   const int W = g[0].size();
@@ -56,11 +56,11 @@ std::vector<std::optional<i64>> grid_bfs(const std::vector<std::string> &g,
   auto mincost = std::vector(H * W, std::optional<i64>());
   int source_node = pack(source_r, source_c);
   mincost[source_node] = 0LL;
-  std::deque<State> que;
-  que.push_back({0LL, source_node});
+  std::queue<State> que;
+  que.push({0LL, source_node});
   while (not que.empty()) {
     State cur = std::move(que.front());
-    que.pop_front();
+    que.pop();
     if (not mincost[cur.node].has_value() or
         mincost[cur.node].value() != cur.cost) {
       continue;
@@ -75,7 +75,7 @@ std::vector<std::optional<i64>> grid_bfs(const std::vector<std::string> &g,
       i64 new_cost = cur.cost + 1;
       if (mincost[new_node].value_or(INF) > new_cost) {
         mincost[new_node] = new_cost;
-        que.push_back({new_cost, new_node});
+        que.push({new_cost, new_node});
       }
     }
   }
