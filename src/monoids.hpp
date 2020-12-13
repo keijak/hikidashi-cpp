@@ -27,11 +27,11 @@ struct Prod {
 struct Assign {
   // Value with a timestamp.
   struct T {
-    int time;
+    unsigned time;
     long long value;
   };
   static T op(const T &x, const T &y) { return (x.time > y.time) ? x : y; }
-  static T id() { return {std::numeric_limits<int>::lowest(), 0}; }
+  static T id() { return {0, 0}; }
 };
 
 struct GCD {
@@ -127,30 +127,30 @@ struct AddSum {
 
 struct AssignMin {
   using T = long long;
-  using F = long long;  // optional<> is cleaner but slower
+  using F = std::optional<long long>;
 
   // Fold: Min
   static T op(const T &x, const T &y) { return std::min(x, y); }
   static constexpr T id() { return std::numeric_limits<T>::max(); }
 
   // Update: Assign
-  static T f_apply(const F &f, const T &x) { return (f != f_id()) ? f : x; }
-  static F f_compose(const F &f, const F &g) { return (f != f_id()) ? f : g; }
-  static constexpr F f_id() { return numeric_limits<F>::lowest(); }
+  static T f_apply(const F &f, const T &x) { return f ? *f : x; }
+  static F f_compose(const F &f, const F &g) { return f ? f : g; }
+  static constexpr F f_id() { return std::nullopt; }
 };
 
 struct AssignMax {
   using T = long long;
-  using F = long long;  // optional<> is cleaner but slower
+  using F = std::optional<long long>;
 
   // Fold: Max
   static T op(const T &x, const T &y) { return std::max(x, y); }
   static constexpr T id() { return std::numeric_limits<T>::lowest(); }
 
   // Update: Assign
-  static T f_apply(const F &f, const T &x) { return (f != f_id()) ? f : x; }
-  static F f_compose(const F &f, const F &g) { return (f != f_id()) ? f : g; }
-  static constexpr F f_id() { return numeric_limits<F>::lowest(); }
+  static T f_apply(const F &f, const T &x) { return f ? *f : x; }
+  static F f_compose(const F &f, const F &g) { return f ? f : g; }
+  static constexpr F f_id() { return std::nullopt; }
 };
 
 struct AssignSum {
@@ -158,7 +158,7 @@ struct AssignSum {
     long long sum;
     int width;
   };
-  using F = long long;  // optional<> is cleaner but slower
+  using F = std::optional<long long>;
 
   // Fold: Sum
   static T op(const T &x, const T &y) {
@@ -168,10 +168,10 @@ struct AssignSum {
 
   // Update: Assign
   static T f_apply(const F &f, const T &x) {
-    return (f != f_id()) ? T{f * x.width, x.width} : x;
+    return f ? T{(*f) * x.width, x.width} : x;
   }
-  static F f_compose(const F &f, const F &g) { return (f != f_id()) ? f : g; }
-  static constexpr F f_id() { return numeric_limits<F>::lowest(); }
+  static F f_compose(const F &f, const F &g) { return f ? f : g; }
+  static constexpr F f_id() { return std::nullopt; }
 };
 
 struct MinMin {
