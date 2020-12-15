@@ -6,12 +6,12 @@ struct Factorials {
   std::vector<T> fact, ifact;
 
   // n: max cached value.
-  Factorials(size_t n) : fact(n + 1), ifact(n + 1) {
-    assert(n > 0 and n < MOD);
+  Factorials(int n) : fact(n + 1), ifact(n + 1) {
+    assert(n > 0 and n < T::mod());
     fact[0] = 1;
-    for (size_t i = 1; i <= n; ++i) fact[i] = fact[i - 1] * i;
+    for (int i = 1; i <= n; ++i) fact[i] = fact[i - 1] * i;
     ifact[n] = fact[n].inv();
-    for (size_t i = n; i >= 1; --i) ifact[i - 1] = ifact[i] * i;
+    for (int i = n; i >= 1; --i) ifact[i - 1] = ifact[i] * i;
   }
 
   // Combination (nCk)
