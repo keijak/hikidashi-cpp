@@ -1,14 +1,13 @@
-// Integer math operations that handle negative numbers.
+// Integer math operations that take negative numbers into account.
 
 // Returns ceil(x / y).
 i64 ceil_div(i64 x, i64 y) {
   int sign = (x < 0 ? -1 : 1) * (y < 0 ? -1 : 1);
   if (sign == 1) {
-    i64 d = abs(y);
-    return (abs(x) + d - 1) / d;
+    auto d = std::abs(y);
+    return (std::abs(x) + d - 1) / d;
   } else {
-    i64 q = abs(x) / abs(y);
-    return -q;
+    return -(std::abs(x) / std::abs(y));
   }
 }
 
@@ -16,11 +15,10 @@ i64 ceil_div(i64 x, i64 y) {
 i64 floor_div(i64 x, i64 y) {
   int sign = (x < 0 ? -1 : 1) * (y < 0 ? -1 : 1);
   if (sign == 1) {
-    return abs(x) / abs(y);
+    return std::abs(x) / std::abs(y);
   } else {
-    i64 d = abs(y);
-    i64 q = (abs(x) + d - 1) / d;
-    return -q;
+    auto d = std::abs(y);
+    return -((std::abs(x) + d - 1) / d);
   }
 }
 
