@@ -5,7 +5,8 @@ using i64 = long long;
 
 // Returns ceil(x / y).
 i64 ceildiv(i64 x, i64 y) {
-  int sign = (x < 0 ? -1 : 1) * (y < 0 ? -1 : 1);
+  assert(y != 0);
+  int sign = ((x < 0) ^ (y < 0)) ? -1 : 1;
   if (sign == 1) {
     auto d = std::abs(y);
     return (std::abs(x) + d - 1) / d;
@@ -16,7 +17,8 @@ i64 ceildiv(i64 x, i64 y) {
 
 // Returns floor(x / y).
 i64 floordiv(i64 x, i64 y) {
-  int sign = (x < 0 ? -1 : 1) * (y < 0 ? -1 : 1);
+  assert(y != 0);
+  int sign = ((x < 0) ^ (y < 0)) ? -1 : 1;
   if (sign == 1) {
     return std::abs(x) / std::abs(y);
   } else {
