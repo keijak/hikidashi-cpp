@@ -5,59 +5,53 @@ using i64 = long long;
 
 // Returns ceil(x / y).
 i64 ceildiv(i64 x, i64 y) {
-  assert(y != 0);
-  int sign = ((x < 0) ^ (y < 0)) ? -1 : 1;
-  if (sign == 1) {
-    auto d = std::abs(y);
-    return (std::abs(x) + d - 1) / d;
+  if (y <= 0) {
+    assert(y != 0);
+    y *= -1;
+    x *= -1;
+  }
+  if (x >= 0) {
+    return (x + y - 1) / y;
   } else {
-    return -(std::abs(x) / std::abs(y));
+    return -((-x) / y);
   }
 }
 
 // Returns floor(x / y).
 i64 floordiv(i64 x, i64 y) {
-  assert(y != 0);
-  int sign = ((x < 0) ^ (y < 0)) ? -1 : 1;
-  if (sign == 1) {
-    return std::abs(x) / std::abs(y);
+  if (y <= 0) {
+    assert(y != 0);
+    y *= -1;
+    x *= -1;
+  }
+  if (x >= 0) {
+    return x / y;
   } else {
-    auto d = std::abs(y);
-    return -((std::abs(x) + d - 1) / d);
+    return -((-x + y - 1) / y);
   }
 }
 
 // Returns x mod y.
+// Guarantees 0 <= r < y (even when x is negative).
 i64 floormod(i64 x, i64 y) {
-  auto q = floordiv(x, y);
-  auto r = x - q * y;
-  assert(r >= 0);
-  return r;
+  assert(y > 0);
+  auto r = x % y;
+  return (r < 0) ? (r + y) : r;
 }
 
 // Etended Euclidean algorithm.
 // Returns [g, x, y] where g = a*x + b*y = GCD(a, b).
-// Either x or y is negative.
 std::array<i64, 3> ext_gcd(i64 a, i64 b) {
-  i64 ax = 1, ay = 0, bx = 0, by = 1;
-  while (b != 0) {
-    auto r = a % b;
-    auto q = a / b;
-    a = b;
-    b = r;
-    ax -= bx * q;
-    std::swap(ax, bx);
-    ay -= by * q;
-    std::swap(ay, by);
-  }
-  return {a, ax, ay};
+  if (b == 0) return {a, 1LL, 0LL};
+  auto res = ext_gcd(b, a % b);  // = (g, x, y)
+  res[1] -= (a / b) * res[2];
+  std::swap(res[1], res[2]);
+  return res;  // = (g, y, x - (a/b)*y)
 }
 
 // Linear Diophantine equation (Bezout equation).
 // Solves a*x + b*y = c (a,b,c: positive integers).
 // Returns [x, y] where 0 <= x < b/gcd(a,b).
-// If you want y which satisfies "0 <= y < a/gcd(a,b)", swap arguments:
-// i.e. invoke `linear_diophantine(b, a, c)`.
 std::optional<std::array<i64, 2>> linear_diophantine(i64 a, i64 b, i64 c) {
   auto [g, x, y] = ext_gcd(a, b);
   if (c % g != 0) return std::nullopt;
