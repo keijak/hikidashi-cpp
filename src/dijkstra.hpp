@@ -13,7 +13,6 @@ struct Edge {
 struct State {
   i64 cost;
   int node;
-  //...
 };
 bool operator>(const State &x, const State &y) { return x.cost > y.cost; }
 
@@ -24,7 +23,7 @@ std::vector<std::optional<i64>> dijkstra(
   std::vector<std::optional<i64>> mincost(n);
   mincost[source] = 0LL;
   MinHeap<State> que;
-  que.push({0LL, source});
+  que.push({0, source});
   while (not que.empty()) {
     State cur = std::move(que.top());
     que.pop();
@@ -33,7 +32,7 @@ std::vector<std::optional<i64>> dijkstra(
       continue;
     }
     for (const auto &e : g[cur.node]) {
-      i64 new_cost = cur.cost + e.cost;
+      auto new_cost = cur.cost + e.cost;
       if (not mincost[e.to].has_value() or mincost[e.to].value() > new_cost) {
         mincost[e.to] = new_cost;
         que.push({new_cost, e.to});
