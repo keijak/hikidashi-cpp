@@ -4,9 +4,10 @@
 
 // Heavy-Light Decomposition
 struct HLD {
-  using NodeID = int;  // [0, n)
-  using G = std::vector<std::vector<int>>;
-  using IntervalVector = std::vector<std::pair<int, int>>;
+  using NodeID = int;                       // [0, n)
+  using G = std::vector<std::vector<int>>;  // undirected graph
+  // half-open intervals of preorder indices of nodes.
+  using IntervalVec = std::vector<std::pair<int, int>>;
 
   int n;                                      // number of nodes in the tree
   NodeID root;                                // root of the tree
@@ -48,8 +49,8 @@ struct HLD {
   //
   // The return value is half-open intervals of the preorder indices of the
   // nodes. One interval corresponds to one heavy path component.
-  IntervalVector node_ranges_on_path(NodeID u, NodeID v) const {
-    IntervalVector res;
+  IntervalVec node_ranges_on_path(NodeID u, NodeID v) const {
+    IntervalVec res;
     for (;;) {
       if (node_to_ord[u] > node_to_ord[v]) std::swap(u, v);
       NodeID crv = comp_root[v];
@@ -67,8 +68,8 @@ struct HLD {
   // The return value is half-open intervals of the preorder indices of nodes
   // corresponding to the deeper end (closer to leaves) of each edge in the
   // path. Here we identify Edge(v, parent[v]) as v.
-  IntervalVector edge_ranges_on_path(NodeID u, NodeID v) const {
-    IntervalVector res;
+  IntervalVec edge_ranges_on_path(NodeID u, NodeID v) const {
+    IntervalVec res;
     for (;;) {
       if (node_to_ord[u] > node_to_ord[v]) std::swap(u, v);
       NodeID crv = comp_root[v];

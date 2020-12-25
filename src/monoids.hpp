@@ -23,6 +23,17 @@ struct Prod {
   static constexpr T id() { return 1; }
 };
 
+struct SumCount {
+  struct T {
+    long long sum;
+    int count;
+  };
+  static T op(const T &x, const T &y) {
+    return {x.sum + y.sum, x.count + y.count};
+  }
+  static constexpr T id() { return {0, 0}; }
+};
+
 // Keeps the value with the latest time.
 struct Assign {
   // Value with a timestamp.
