@@ -62,6 +62,18 @@ struct ReRooting {
   }
 };
 
+// Examples
+
+struct EDPC_V {
+  using T = Mint;
+
+  static T op(const T &x, const T &y) { return x * y; }
+
+  static T id() { return 1; }
+
+  static T build(T val) { return val + 1; }
+};
+
 struct ABC160 {
   struct T {
     int size;
