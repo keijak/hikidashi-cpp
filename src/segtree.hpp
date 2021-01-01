@@ -2,6 +2,12 @@ template <typename Monoid>
 struct SegTree {
   using T = typename Monoid::T;
 
+ private:
+  int n_;                // number of valid leaves.
+  int offset_;           // where leaves start
+  std::vector<T> data_;  // data size: 2*offset_
+
+ public:
   inline int n() const { return n_; }
   inline int offset() const { return offset_; }
 
@@ -120,9 +126,4 @@ struct SegTree {
       return 0;
     }
   */
-
- private:
-  int n_;                // number of valid leaves.
-  int offset_;           // where leaves start
-  std::vector<T> data_;  // data size: 2*offset_
 };
