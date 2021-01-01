@@ -47,11 +47,13 @@ std::vector<std::vector<T>> comb_table(int n) {
 
 // nCk where n can be large but min(k, n-k) is small.
 Mint comb(i64 n, i64 k) {
-  i64 p = std::min(k, n - k), q = std::max(k, n - k);
-  assert(p >= 0);
+  if (k < 0 or k > n) return 0;
+  if (k > n - k) k = n - k;
   Mint nume = 1, deno = 1;
-  for (i64 i = n; i > q; --i) nume *= i;
-  for (i64 i = 2; i <= p; ++i) deno *= i;
+  for (i64 i = 0; i < k; ++i) {
+    nume *= n - i;
+    deno *= i + 1;
+  }
   return nume / deno;
 }
 
