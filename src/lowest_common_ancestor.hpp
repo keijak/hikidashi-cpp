@@ -77,13 +77,14 @@ struct EulerTour {
 
   const int n;  // number of nodes
   G adj;
-  vector<int> depth;
-  vector<int> index;
+
   // Euler Tour on nodes.
   vector<pair<int, int>> tour;  // (depth, node id)
+  vector<int> depth;
+  vector<int> index;  // index in the tour on entering the subtree of v.
 
   explicit EulerTour(G g, int root = 0)
-      : n(g.size()), adj(move(g)), depth(n, 0), index(n, -1), tour() {
+      : n(g.size()), adj(move(g)), depth(n, 0), index(n, -1) {
     tour.reserve(n * 2);
     dfs(root, -1);
   }
