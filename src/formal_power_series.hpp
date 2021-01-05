@@ -1,10 +1,9 @@
 #include <bits/stdc++.h>
+using i64 = long long;
+using u64 = unsigned long long;
 
 #include <atcoder/convolution>
 #include <atcoder/modint>
-
-using i64 = long long;
-using u64 = unsigned long long;
 
 // Formal Power Series (dense format).
 template <typename T, int DMAX>
