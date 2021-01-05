@@ -44,17 +44,17 @@ std::vector<bool> prime_sieve(int n) {
   return is_prime;
 }
 
-// osa_k's algorithm.
-// Returns a vector that maps x to x's smallest divisor. O(n log log n).
+// osa_k's algorithm. O(n log log n).
+// Returns a vector that maps x to x's smallest divisor (> 1).
 std::vector<int> min_divisor_sieve(int n) {
   std::vector<int> res(n + 1);
-  for (int i = 1; i <= n; ++i) {
-    res[i] = i;
-  }
+  for (int i = 1; i <= n; ++i) res[i] = i;
   for (int i = 4; i <= n; i += 2) res[i] = 2;
   for (int i = 3; i * i <= n; i += 2) {
     if (res[i] != i) continue;
-    for (int j = 2 * i; j <= n; j += i) res[j] = i;
+    for (int j = 2 * i; j <= n; j += i) {
+      if (res[j] == j) res[j] = i;
+    }
   }
   return res;
 }
