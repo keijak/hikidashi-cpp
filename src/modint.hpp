@@ -1,4 +1,4 @@
-template <unsigned int M>
+template <unsigned M>
 struct ModInt {
   constexpr ModInt(long long val = 0) : _v(0) {
     if (val < 0) {
@@ -10,8 +10,8 @@ struct ModInt {
   }
 
   static constexpr int mod() { return M; }
-  static constexpr unsigned int umod() { return M; }
-  inline unsigned int val() const { return _v; }
+  static constexpr unsigned umod() { return M; }
+  inline unsigned val() const { return _v; }
 
   ModInt &operator++() {
     _v++;
@@ -63,11 +63,10 @@ struct ModInt {
     // M doesn't need to be prime, but x and M must be coprime.
     assert(_v != 0);
     auto [g, x, y] = ext_gcd(_v, M);
-    assert(g == 1LL);  // The GCD must be 1.
+    assert(g == 1);  // The GCD must be 1.
     return x;
 
-    // Inverse by Fermat's little theorem.
-    // M must be prime. It's often faster.
+    // Inverse by Fermat's little theorem. M must be prime.
     //
     //     return pow(M - 2);
   }
@@ -99,29 +98,22 @@ struct ModInt {
   }
 
  private:
-  // Extended Euclidean algorithm
-  // Returns (gcd(a,b), x, y) where `a*x + b*y == gcd(a,b)`.
-  static std::tuple<int, int, int> ext_gcd(int a, int b) {
-    int ax = 1, ay = 0, bx = 0, by = 1;
-    for (;;) {
-      if (b == 0) break;
-      auto d = std::div(a, b);
-      a = b;
-      b = d.rem;
-      ax -= bx * d.quot;
-      std::swap(ax, bx);
-      ay -= by * d.quot;
-      std::swap(ay, by);
-    }
-    return {a, ax, ay};
+  // Etended Euclidean algorithm.
+  // Returns [g, x, y] where g = a*x + b*y = GCD(a, b).
+  std::array<unsigned, 3> ext_gcd(unsigned a, unsigned b) {
+    if (b == 0) return {a, 1, 0};
+    auto res = ext_gcd(b, a % b);  // = (g, x, y)
+    res[1] -= (a / b) * res[2];
+    std::swap(res[1], res[2]);
+    return res;  // = (g, y, x - (a/b)*y)
   }
 
-  unsigned int _v;  // raw value
+  unsigned _v;  // raw value
 };
-const unsigned int MOD = 1'000'000'007;
+const unsigned MOD = 1'000'000'007;
 using Mint = ModInt<MOD>;
 
 // Runtime MOD:
-//   unsigned int MOD = 1'000'000'007;  // modifiable.
-//   template <unsigned int& M> struct ModInt { ... };
+//   unsigned MOD = 1'000'000'007;  // modifiable.
+//   template <unsigned& M> struct ModInt { ... };
 //   using Mint = ModInt<MOD>;

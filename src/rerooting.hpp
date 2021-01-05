@@ -5,7 +5,7 @@ struct ReRooting {
 
   int n;                  // number of nodes
   vector<vector<int>> g;  // graph (tree)
-  vector<T> sub;          // values for each subtree rooted at i.
+  vector<T> sub;          // values for each subtree rooted at i
   vector<T> full;         // values for each entire tree rooted at i
   int base_root;          // base root node where we start DFS
 
