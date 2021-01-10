@@ -8,8 +8,8 @@ vector<int> topological_sort(const vector<vector<int>> &g) {
     for (auto u : g[v]) ++indeg[u];
   }
   deque<int> q;
-  for (int i = 0; i < n; ++i) {
-    if (indeg[i] == 0) q.emplace_back(i);
+  for (int v = 0; v < n; ++v) {
+    if (indeg[v] == 0) q.emplace_back(v);
   }
   vector<int> res;
   while (not q.empty()) {
