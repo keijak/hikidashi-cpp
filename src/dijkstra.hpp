@@ -1,6 +1,10 @@
 #include <bits/stdc++.h>
 using namespace std;
 using i64 = long long;
+template <typename T, typename U>
+inline bool chmin(T &a, U b) {
+  return a > b and ((a = std::move(b)), true);
+}
 
 const i64 INF = 1e16;
 
@@ -31,8 +35,7 @@ vector<i64> dijkstra(const vector<vector<Edge>> &g, int source) {
     if (cur.cost > mincost[cur.node]) continue;
     for (const auto &e : g[cur.node]) {
       auto new_cost = cur.cost + e.cost;
-      if (mincost[e.to] > new_cost) {
-        mincost[e.to] = new_cost;
+      if (chmin(mincost[e.to], new_cost)) {
         que.push({new_cost, e.to});
       }
     }
@@ -66,8 +69,7 @@ vector<vector<i64>> grid_search(const vector<string> &g, int source_r,
       if (g[nr][nc] == '#') continue;
       int new_node = pack(nr, nc);
       i64 new_cost = cur.cost + 1;
-      if (new_cost < mincost[nr][nc]) {
-        mincost[nr][nc] = new_cost;
+      if (chmin(mincost[nr][nc], new_cost)) {
         que.push({new_cost, new_node});
       }
     }
