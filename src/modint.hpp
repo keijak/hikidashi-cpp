@@ -100,7 +100,7 @@ struct ModInt {
  private:
   // Etended Euclidean algorithm.
   // Returns [g, x, y] where g = a*x + b*y = GCD(a, b).
-  static std::array<unsigned, 3> ext_gcd(unsigned a, unsigned b) {
+  static constexpr std::array<unsigned, 3> ext_gcd(unsigned a, unsigned b) {
     if (b == 0) return {a, 1, 0};
     auto res = ext_gcd(b, a % b);  // = (g, x, y)
     res[1] -= (a / b) * res[2];
