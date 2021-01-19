@@ -1,7 +1,7 @@
 // Returns the topogically sorted list of nodes.
 // Nodes with zero indegree come first.
-// The input graph must be a DAG. Otherwise try SCC decomposition.
-vector<int> topological_sort(const vector<vector<int>> &g) {
+// Returns nullopt if the input graph is not a DAG.
+optional<vector<int>> topological_sort(const vector<vector<int>> &g) {
   const int n = g.size();
   vector<int> indeg(n);
   for (int v = 0; v < n; ++v) {
@@ -20,6 +20,6 @@ vector<int> topological_sort(const vector<vector<int>> &g) {
       if (--indeg[u] == 0) q.push_back(u);
     }
   }
-  assert(int(res.size()) == n);  // Otherwise g is not a DAG.
+  if (int(res.size()) != n) return nullopt;  // not a DAG
   return res;
 }
