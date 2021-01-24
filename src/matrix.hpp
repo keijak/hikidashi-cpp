@@ -1,13 +1,13 @@
-template <class T = Mint>
+template <class T>
 struct Matrix {
   using Row = std::vector<T>;
   std::vector<Row> A;
 
   Matrix() {}
-
   Matrix(int n, int m) : A(n, Row(m, 0)) {}
-
-  Matrix(int n) : A(n, Row(n, 0)){};
+  explicit Matrix(int n) : A(n, Row(n, 0)){};
+  explicit Matrix(std::vector<Row> a) : A(std::move(a)) {}
+  Matrix(std::initializer_list<Row> a) : A(std::move(a)) {}
 
   inline int height() const { return (int)(A.size()); }
 
