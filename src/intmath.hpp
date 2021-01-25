@@ -41,6 +41,7 @@ i64 floormod(i64 x, i64 y) {
 
 // Etended Euclidean algorithm.
 // Returns [g, x, y] where g = a*x + b*y = GCD(a, b).
+// Note that g, x, y can be negative.
 std::array<i64, 3> ext_gcd(i64 a, i64 b) {
   if (b == 0) return {a, 1LL, 0LL};
   auto res = ext_gcd(b, a % b);  // = (g, x, y)
@@ -54,6 +55,9 @@ std::array<i64, 3> ext_gcd(i64 a, i64 b) {
 // Returns [x, y] where 0 <= x < b/gcd(a,b).
 std::optional<std::array<i64, 2>> linear_diophantine(i64 a, i64 b, i64 c) {
   auto [g, x, y] = ext_gcd(a, b);
+  if (g < 0) {
+    g *= -1, x *= -1, y *= -1;
+  }
   if (c % g != 0) return std::nullopt;
   a /= g, b /= g, c /= g;
   x *= c, y *= c;
