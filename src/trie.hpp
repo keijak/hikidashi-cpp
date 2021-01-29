@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
 
-template <int alphabet_size = 26, int alphabet_base = 'a'>
+template <int alphabet_size = 26, int alphabet_base = 'a', int ROOT_ID = 0>
 struct Trie {
   struct Node {
     int c;                                 // character
@@ -9,7 +9,6 @@ struct Trie {
     int entry_count;           // how many entries are stored below this node.
     Node(int c_) : c(c_), next(alphabet_size), entry_count(0) {}
   };
-  static int ROOT_ID = 0;
   std::vector<Node> nodes;
 
   Trie() : nodes(1, Node{ROOT_ID}) {}
@@ -33,7 +32,7 @@ struct Trie {
     insert(entry, nodes[ROOT_ID].entry_count);
   }
 
-  std::std::optional<const Node *> search(std::string_view entry) const {
+  std::optional<const Node *> search(std::string_view entry) const {
     int node_id = ROOT_ID;
     for (char ch : entry) {
       int c = int(ch) - alphabet_base;
