@@ -374,28 +374,6 @@ DenseFPS<i64, DMAX> mul_ll(const DenseFPS<i64, DMAX> &x,
   return DenseFPS<i64, DMAX>(std::move(res));
 }
 
-// Fast polynomial inverse with NTT.
-// T: modint
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> inv_ntt(const DenseFPS<T, DMAX> &x) {
-  static_assert(T::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
-  assert(x[0].val() != 0);                   // must be invertible
-  const int n = x.size();
-  std::vector<T> res(n);
-  res[0] = x[0].inv();
-  for (int i = 1; i < n; i <<= 1) {
-    vector<mint> f(2 * i), g(2 * i);
-    for (int j = 0, m = min(n, 2 * i); j < m; ++j) f[j] = x[j];
-    for (int j = 0; j < i; ++j) g[j] = res[j];
-    f = atcoder::convolution(f, g);
-    f.resize(2 * i);
-    for (int j = 0; j < i; ++j) f[j] = 0;
-    f = atcoder::convolution(f, g);
-    for (int j = i, m = min(2 * i, n); j < m; ++j) res[j] = -f[j];
-  }
-  return DenseFPS<T, DMAX>(std::move(res));
-}
-
 template <typename T, int DMAX>
 DenseFPS<T, DMAX> pow(const DenseFPS<T, DMAX> &x, u64 t,
                       DenseFPS<T, DMAX> (*mul)(const DenseFPS<T, DMAX> &,
@@ -432,6 +410,28 @@ DenseFPS<T, DMAX> pow_mod(const DenseFPS<T, DMAX> &x, u64 t) {
 template <int DMAX>
 DenseFPS<i64, DMAX> pow_ll(const DenseFPS<i64, DMAX> &x, u64 t) {
   return pow(x, t, mul_ll);
+}
+
+// Fast polynomial inverse with NTT.
+// T: modint
+template <typename T, int DMAX>
+DenseFPS<T, DMAX> inv_ntt(const DenseFPS<T, DMAX> &x) {
+  static_assert(T::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
+  assert(x[0].val() != 0);                   // must be invertible
+  const int n = x.size();
+  std::vector<T> res(n);
+  res[0] = x[0].inv();
+  for (int i = 1; i < n; i <<= 1) {
+    vector<mint> f(2 * i), g(2 * i);
+    for (int j = 0, m = min(n, 2 * i); j < m; ++j) f[j] = x[j];
+    for (int j = 0; j < i; ++j) g[j] = res[j];
+    f = atcoder::convolution(f, g);
+    f.resize(2 * i);
+    for (int j = 0; j < i; ++j) f[j] = 0;
+    f = atcoder::convolution(f, g);
+    for (int j = i, m = min(2 * i, n); j < m; ++j) res[j] = -f[j];
+  }
+  return DenseFPS<T, DMAX>(std::move(res));
 }
 
 template <typename T, int DMAX>
