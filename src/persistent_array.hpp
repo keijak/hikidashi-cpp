@@ -5,7 +5,8 @@
 template <typename T, int K = 20>
 struct PersistentArray {
   struct Node;
-  using NodePtr = std::shared_ptr<Node>;
+  // No memory release by default.
+  using NodePtr = Node *;  // ALT: std::shared_ptr<Node>
 
   struct Node {
     std::optional<T> val;
