@@ -39,6 +39,26 @@ i64 floormod(i64 x, i64 y) {
   return (r < 0) ? (r + y) : r;
 }
 
+// Returns floor(sqrt(x)).
+i64 floorsqrt(i64 x) {
+  assert(x >= 0);
+  if (x <= 1) return x;
+  i64 r = sqrtl((long double)x);
+  while (r * r < x) ++r;
+  while (r * r > x) --r;
+  return r;
+}
+
+// Returns ceil(sqrt(x)).
+i64 ceilsqrt(i64 x) {
+  assert(x >= 0);
+  if (x <= 1) return x;
+  i64 r = sqrtl((long double)x);
+  while (r * r > x) --r;
+  while (r * r < x) ++r;
+  return r;
+}
+
 // Etended Euclidean algorithm.
 // Returns [g, x, y] where g = a*x + b*y = GCD(a, b).
 // Note that g, x, y can be negative.
