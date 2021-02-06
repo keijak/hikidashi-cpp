@@ -17,12 +17,12 @@ struct UnionFind {
     return true;
   }
 
-  int find(int k) const {
-    if (par[k] < 0) return k;
-    return par[k] = find(par[k]);
+  int find(int v) const {
+    if (par[v] < 0) return v;
+    return par[v] = find(par[v]);
   }
 
-  int size(int k) const { return -par[find(k)]; }
+  int size(int v) const { return -par[find(v)]; }
 
   bool same(int x, int y) const { return find(x) == find(y); }
 
@@ -34,6 +34,58 @@ struct UnionFind {
     }
     return res;
   }
+};
+
+// Partially Persistent UnionFind.
+struct TimedUnionFind {
+  int n;
+  mutable std::vector<int> par;  // positive: parent, negative: size
+  int num_roots;
+  int clock;
+  std::vector<int> united_time;
+  std::vector<std::vector<std::pair<int, int>>> size_history;
+
+  explicit TimedUnionFind(int sz)
+      : n(sz),
+        par(sz, -1),
+        num_roots(sz),
+        clock(0),
+        united_time(sz, -1),
+        size_history(n, {{0, 1}}) {}
+
+  // Returns current clock.
+  int unite(int x, int y) {
+    ++clock;
+    x = find(x, clock), y = find(y, clock);
+    if (x == y) return clock;
+    if (par[x] > par[y]) std::swap(x, y);  // Ensure size(x) > size(y).
+    par[x] += par[y];
+    par[y] = x;
+    united_time[y] = clock;
+    size_history[x].emplace_back(clock, -par[x]);
+    --num_roots;
+    return clock;
+  }
+
+  int find(int v, int time) const {
+    if (par[v] < 0) return v;
+    if (time < united_time[v]) return v;
+    return find(par[v], time);
+  }
+  int find(int v) const { return find(v, clock); }
+
+  int size(int v, int time) const {
+    int r = find(v, time);
+    const auto& h = size_history[r];
+    auto it = std::upper_bound(h.begin(), h.end(), time);
+    return (--it)->second;
+  }
+  int size(int v) const { return -par[find(v)]; }
+
+  bool same(int x, int y, int time) const {
+    return find(x, time) == find(y, time);
+  }
+  bool same(int x, int y) const { return find(x) == find(y); }
 };
 
 template <typename Abelian>  // Abelian Monoid
