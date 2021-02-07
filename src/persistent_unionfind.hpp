@@ -1,9 +1,9 @@
 
 class PersistentUnionFind {
  public:
-  explicit PersistentUnionFind(PersistentArray<int> data)
-      : data_{std::move(data)} {}
-  PersistentUnionFind() : data_{} {}
+  explicit PersistentUnionFind(PersistentArray<int> par)
+      : parent_{std::move(par)} {}
+  PersistentUnionFind() : parent_{} {}
   PersistentUnionFind(const PersistentUnionFind &) = default;
   PersistentUnionFind(PersistentUnionFind &&) = default;
   PersistentUnionFind &operator=(const PersistentUnionFind &) = default;
@@ -14,17 +14,17 @@ class PersistentUnionFind {
     y = find(y);
     if (x == y) return *this;
     // Ensure x is bigger than y.
-    int x_size = -data_[x].value_or(-1);
-    int y_size = -data_[y].value_or(-1);
+    int x_size = -parent_[x].value_or(-1);
+    int y_size = -parent_[y].value_or(-1);
     if (x_size < y_size) {
       std::swap(x, y);
       std::swap(x_size, y_size);
     }
-    return PersistentUnionFind(data_.set(x, -(x_size + y_size)).set(y, x));
+    return PersistentUnionFind(parent_.set(x, -(x_size + y_size)).set(y, x));
   }
 
   int find(int x) const {
-    const std::optional<int> &par = data_[x];
+    const std::optional<int> &par = parent_[x];
     if (not par or *par < 0) return x;
     return find(*par);
   }
@@ -32,13 +32,10 @@ class PersistentUnionFind {
   bool same(int x, int y) const { return find(x) == find(y); }
 
   int size(int x) const {
-    int r = find(x);
-    assert(data_[r]);
-    int res = -*data_[r];
-    assert(res > 0);
-    return res;
+    int root = find(x);
+    return -(parent_[root].value_or(-1));
   }
 
  private:
-  PersistentArray<int> data_;
+  PersistentArray<int> parent_;
 };
