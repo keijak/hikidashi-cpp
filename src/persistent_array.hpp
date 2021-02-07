@@ -1,6 +1,3 @@
-#include <array>
-#include <memory>
-#include <optional>
 
 template <typename T, int K = 20>
 struct PersistentArray {
