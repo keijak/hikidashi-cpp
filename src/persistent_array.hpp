@@ -1,14 +1,13 @@
 
 template <typename T, int K = 20>
-struct PersistentArray {
+class PersistentArray {
   struct Node;
   // No memory release by default.
-  using NodePtr = Node *;  // ALT: std::shared_ptr<Node>
+  using NodePtr = Node *;  // std::shared_ptr<Node>;
 
   struct Node {
     std::optional<T> val;
-    std::array<NodePtr, K> ch;
-    Node() : val{}, ch{} {}
+    std::unique_ptr<std::array<NodePtr, K>> children;
   };
 
   explicit PersistentArray(NodePtr root) : root_{std::move(root)} {}
@@ -18,34 +17,42 @@ struct PersistentArray {
   PersistentArray &operator=(const PersistentArray &) = default;
   PersistentArray &operator=(PersistentArray &&) = default;
 
-  std::optional<T> operator[](int idx) const { return get_(idx, root_); }
+  std::optional<T> operator[](int idx) const { return do_get(idx, root_); }
 
   PersistentArray<T, K> set(int idx, T val) const {
-    return PersistentArray<T, K>(set_(idx, val, root_));
+    return PersistentArray<T, K>(do_set(idx, val, root_));
   }
 
  private:
-  static std::optional<T> get_(int idx, const NodePtr &node) {
+  static std::optional<T> do_get(int idx, const NodePtr &node) {
     if (node == nullptr) return std::nullopt;
     if (idx == 0) return node->val;
-    const NodePtr &child = node->ch[idx % K];
+    if (node->children == nullptr) return std::nullopt;
+    const NodePtr &child = (*node->children)[idx % K];
     if (child == nullptr) return std::nullopt;
-    return get_(idx / K, child);
+    return do_get(idx / K, child);
   }
 
-  static NodePtr set_(int idx, T val, const NodePtr &node) {
+  static NodePtr do_set(int idx, T val, const NodePtr &node) {
     NodePtr res{new Node()};
     if (node != nullptr) {
       res->val = node->val;
-      std::copy(node->ch.begin(), node->ch.end(), res->ch.begin());
+      if (node->children != nullptr) {
+        res->children.reset(new std::array<NodePtr, K>(*node->children));
+      }
     }
     if (idx == 0) {
       res->val = std::move(val);
     } else {
-      res->ch[idx % K] = set_(idx / K, std::move(val), res->ch[idx % K]);
+      if (res->children == nullptr) {
+        res->children.reset(new std::array<NodePtr, K>());
+      }
+      (*res->children)[idx % K] =
+          do_set(idx / K, std::move(val), (*res->children)[idx % K]);
     }
     return res;
   }
 
+ private:
   NodePtr root_;
 };
