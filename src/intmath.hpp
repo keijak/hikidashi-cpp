@@ -43,7 +43,7 @@ i64 floormod(i64 x, i64 y) {
 i64 floorsqrt(i64 x) {
   assert(x >= 0);
   if (x <= 1) return x;
-  i64 r = sqrtl((long double)x);
+  i64 r = std::floor(sqrtl((long double)x));
   while (r * r < x) ++r;
   while (r * r > x) --r;
   return r;
@@ -53,7 +53,7 @@ i64 floorsqrt(i64 x) {
 i64 ceilsqrt(i64 x) {
   assert(x >= 0);
   if (x <= 1) return x;
-  i64 r = sqrtl((long double)x);
+  i64 r = std::ceil(sqrtl((long double)x));
   while (r * r > x) --r;
   while (r * r < x) ++r;
   return r;
