@@ -101,7 +101,10 @@ struct UnionFindWithTime {
     ++clock_;
     x = find(x, clock_), y = find(y, clock_);
     if (x == y) return clock_;
-    if (rank_[x] < rank_[y]) std::swap(x, y);
+    if (rank_[x] < rank_[y] or
+        (rank_[x] == rank_[y] and -parent_[x] < -parent_[y])) {
+      std::swap(x, y);
+    }
     parent_[x] += parent_[y];
     parent_[y] = x;
     rank_[x] = std::max(rank_[x], rank_[y] + 1);
