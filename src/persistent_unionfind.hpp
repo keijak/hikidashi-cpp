@@ -3,7 +3,7 @@ class PersistentUnionFind {
  public:
   explicit PersistentUnionFind(PersistentArray<int> par)
       : parent_{std::move(par)} {}
-  PersistentUnionFind() : parent_{} {}
+  PersistentUnionFind() = default;
   PersistentUnionFind(const PersistentUnionFind &) = default;
   PersistentUnionFind(PersistentUnionFind &&) = default;
   PersistentUnionFind &operator=(const PersistentUnionFind &) = default;
@@ -13,14 +13,12 @@ class PersistentUnionFind {
     x = find(x);
     y = find(y);
     if (x == y) return *this;
-    // Ensure x is bigger than y.
-    int x_size = -parent_[x].value_or(-1);
-    int y_size = -parent_[y].value_or(-1);
-    if (x_size < y_size) {
-      std::swap(x, y);
-      std::swap(x_size, y_size);
-    }
-    return PersistentUnionFind(parent_.set(x, -(x_size + y_size)).set(y, x));
+    const int x_size = -parent_[x].value_or(-1);
+    const int y_size = -parent_[y].value_or(-1);
+    // Ensure |x| >= |y|.
+    if (x_size < y_size) std::swap(x, y);
+    int x_size = x_size + y_size;  // or x_rank = max(x_rank, y_rank+1)
+    return PersistentUnionFind(parent_.set(x, -united_size).set(y, x));
   }
 
   int find(int x) const {

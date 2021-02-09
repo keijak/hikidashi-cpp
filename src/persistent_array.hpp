@@ -1,6 +1,7 @@
 
 template <typename T, int K = 20>
 class PersistentArray {
+ public:
   struct Node;
   // No memory release by default.
   using NodePtr = Node *;  // std::shared_ptr<Node>;

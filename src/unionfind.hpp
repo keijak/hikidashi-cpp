@@ -81,6 +81,7 @@ struct UpdatableUnionFind : public AggregatableUnionFind<Abelian> {
 struct UnionFindWithTime {
   int n;
   mutable std::vector<int> parent_;  // positive: parent, negative: size
+  std::vector<int> rank_;
   int num_roots_;
   int clock_;
   std::vector<int> parented_time_;
@@ -89,6 +90,7 @@ struct UnionFindWithTime {
   explicit UnionFindWithTime(int sz)
       : n(sz),
         parent_(sz, -1),
+        rank_(sz, 1),
         num_roots_(sz),
         clock_(0),
         parented_time_(sz, -1),
@@ -99,9 +101,10 @@ struct UnionFindWithTime {
     ++clock_;
     x = find(x, clock_), y = find(y, clock_);
     if (x == y) return clock_;
-    if (parent_[x] > parent_[y]) std::swap(x, y);  // Ensure size(x) > size(y).
+    if (rank_[x] < rank_[y]) std::swap(x, y);
     parent_[x] += parent_[y];
     parent_[y] = x;
+    rank_[x] = std::max(rank_[x], rank_[y] + 1);
     parented_time_[y] = clock_;
     size_history_[x].emplace_back(clock_, -parent_[x]);
     --num_roots_;
