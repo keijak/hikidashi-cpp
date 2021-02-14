@@ -2,35 +2,35 @@
 
 struct UnionFind {
   int n;
-  mutable std::vector<int> par;  // positive: parent, negative: size
+  mutable std::vector<int> parent;  // positive: parent, negative: size
   int num_roots;
 
-  explicit UnionFind(int sz) : n(sz), par(sz, -1), num_roots(sz) {}
+  explicit UnionFind(int sz) : n(sz), parent(sz, -1), num_roots(sz) {}
 
   bool unite(int x, int y) {
     x = find(x), y = find(y);
     if (x == y) return false;
-    if (par[x] > par[y]) std::swap(x, y);
-    par[x] += par[y];
-    par[y] = x;
+    if (-parent[x] < -parent[y]) std::swap(x, y);
+    parent[x] += parent[y];
+    parent[y] = x;
     --num_roots;
     return true;
   }
 
   int find(int v) const {
-    if (par[v] < 0) return v;
-    return par[v] = find(par[v]);
+    if (parent[v] < 0) return v;
+    return parent[v] = find(parent[v]);
   }
 
-  int size(int v) const { return -par[find(v)]; }
+  int size(int v) const { return -parent[find(v)]; }
 
   bool same(int x, int y) const { return find(x) == find(y); }
 
   std::vector<int> roots() const {
     std::vector<int> res;
     res.reserve(num_roots);
-    for (int i = 0; i < (int)par.size(); ++i) {
-      if (par[i] < 0) res.push_back(i);
+    for (int i = 0; i < n; ++i) {
+      if (parent[i] < 0) res.push_back(i);
     }
     return res;
   }
@@ -148,5 +148,45 @@ struct UnionFindWithTime {
       }
     }
     return tv;
+  }
+};
+
+struct UndoableUnionFind {
+  std::vector<int> parent_;
+  std::stack<std::pair<int, int>> history_;
+
+  explicit UndoableUnionFind(int sz) { parent_.assign(sz, -1); }
+
+  bool unite(int x, int y) {
+    x = find(x), y = find(y);
+    history_.emplace(x, parent_[x]);
+    history_.emplace(y, parent_[y]);
+    if (x == y) return (false);
+    if (parent_[x] > parent_[y]) std::swap(x, y);
+    parent_[x] += parent_[y];
+    parent_[y] = x;
+    return (true);
+  }
+
+  int find(int k) {
+    if (parent_[k] < 0) return (k);
+    return (find(parent_[k]));
+  }
+
+  int size(int k) { return (-parent_[find(k)]); }
+
+  void undo() {
+    parent_[history_.top().first] = history_.top().second;
+    history_.pop();
+    parent_[history_.top().first] = history_.top().second;
+    history_.pop();
+  }
+
+  void snapshot() {
+    while (history_.size()) history_.pop();
+  }
+
+  void rollback() {
+    while (history_.size()) undo();
   }
 };
