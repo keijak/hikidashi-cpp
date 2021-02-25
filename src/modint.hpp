@@ -110,10 +110,10 @@ struct ModInt {
 
   unsigned _v;  // raw value
 };
-const unsigned MOD = 1'000'000'007;
+const unsigned MOD = int(1e9) + 7;
 using Mint = ModInt<MOD>;
 
 // Runtime MOD:
-//   unsigned MOD = 1'000'000'007;  // modifiable.
+//   unsigned MOD = 998244353;  // modifiable.
 //   template <unsigned& M> struct ModInt { ... };
 //   using Mint = ModInt<MOD>;
