@@ -39,41 +39,44 @@ struct UnionFind {
 template <typename Abelian>  // Abelian Monoid
 struct AggUnionFind : public UnionFind {
   using T = typename Abelian::T;
-  std::vector<T> agg_data;
+  std::vector<T> agg_data_;
 
   explicit AggUnionFind(std::vector<T> data)
-      : UnionFind(data.size()), agg_data(std::move(data)) {}
+      : UnionFind(data.size()), agg_data_(std::move(data)) {}
 
-  bool unite(int x, int y) {
-    int rx = this->find(x), ry = this->find(y);
-    if (not UnionFind::unite(x, y)) return false;
-    int r = this->find(x);
-    agg_data[r] = Abelian::op(agg_data[rx], agg_data[ry]);
+  bool unite(int u, int v) {
+    int ru = this->find(u), rv = this->find(v);
+    bool united = UnionFind::unite(u, v);
+    if (not united) return false;
+    int r = this->find(u);
+    agg_data_[r] = Abelian::op(agg_data_[ru], agg_data_[rv]);
     return true;
   }
 
-  const T& agg(int x) const { return agg_data[this->find(x)]; }
+  T agg(int v) const { return agg_data_[this->find(v)]; }
 };
 
 template <typename Abelian>  // Abelian Group (requires `invert`)
 struct UpdatableAggUnionFind : public AggUnionFind<Abelian> {
   using T = typename Abelian::T;
-  std::vector<T> leaf_data;
+  std::vector<T> leaf_data_;
 
   explicit UpdatableAggUnionFind(int sz)
       : AggUnionFind<Abelian>(std::vector<T>(sz, Abelian::id())),
-        leaf_data(sz, Abelian::id()) {}
+        leaf_data_(sz, Abelian::id()) {}
 
   explicit UpdatableAggUnionFind(std::vector<T> data)
-      : AggUnionFind<Abelian>(data), leaf_data(std::move(data)) {}
+      : AggUnionFind<Abelian>(data), leaf_data_(std::move(data)) {}
 
   void set(int v, T val) {
     int r = this->find(v);
-    T inv_val = Abelian::invert(std::move(leaf_data[v]));
-    this->agg_data[r] = Abelian::op(
-        val, Abelian::op(std::move(this->agg_data[r]), std::move(inv_val)));
-    leaf_data[v] = std::move(val);
+    T inv_val = Abelian::invert(std::move(leaf_data_[v]));
+    this->agg_data_[r] = Abelian::op(
+        val, Abelian::op(std::move(this->agg_data_[r]), std::move(inv_val)));
+    leaf_data_[v] = std::move(val);
   }
+
+  T get(int v) const { return leaf_data_[v]; }
 };
 
 // Partially Persistent UnionFind.
