@@ -62,18 +62,17 @@ struct UpdatableAggUnionFind : public AggUnionFind<Abelian> {
 
   explicit UpdatableAggUnionFind(int sz)
       : AggUnionFind<Abelian>(std::vector<T>(sz, Abelian::id())),
-        leaf_data(std::vector<T>(sz, Abelian::id())) {}
+        leaf_data(sz, Abelian::id()) {}
 
   explicit UpdatableAggUnionFind(std::vector<T> data)
       : AggUnionFind<Abelian>(data), leaf_data(std::move(data)) {}
 
-  void set(int x, T val) {
-    int r = this->find(x);
-    T inv_val = Abelian::invert(std::move(leaf_data[x]));
-    leaf_data[x] = std::move(val);
+  void set(int v, T val) {
+    int r = this->find(v);
+    T inv_val = Abelian::invert(std::move(leaf_data[v]));
     this->agg_data[r] = Abelian::op(
-        Abelian::op(std::move(this->agg_data[r]), std::move(inv_val)),
-        leaf_data[x]);
+        val, Abelian::op(std::move(this->agg_data[r]), std::move(inv_val)));
+    leaf_data[v] = std::move(val);
   }
 };
 
