@@ -37,11 +37,11 @@ struct UnionFind {
 };
 
 template <typename Abelian>  // Abelian Monoid
-struct AggregatableUnionFind : public UnionFind {
+struct AggUnionFind : public UnionFind {
   using T = typename Abelian::T;
   std::vector<T> agg_data;
 
-  explicit AggregatableUnionFind(std::vector<T> data)
+  explicit AggUnionFind(std::vector<T> data)
       : UnionFind(data.size()), agg_data(std::move(data)) {}
 
   bool unite(int x, int y) {
@@ -55,17 +55,17 @@ struct AggregatableUnionFind : public UnionFind {
   const T& agg(int x) const { return agg_data[this->find(x)]; }
 };
 
-template <typename Abelian>  // Abelian Group
-struct UpdatableUnionFind : public AggregatableUnionFind<Abelian> {
+template <typename Abelian>  // Abelian Group (requires `invert`)
+struct UpdatableAggUnionFind : public AggUnionFind<Abelian> {
   using T = typename Abelian::T;
   std::vector<T> leaf_data;
 
-  explicit UpdatableUnionFind(int sz)
-      : AggregatableUnionFind<Abelian>(std::vector<T>(sz, Abelian::id())),
+  explicit UpdatableAggUnionFind(int sz)
+      : AggUnionFind<Abelian>(std::vector<T>(sz, Abelian::id())),
         leaf_data(std::vector<T>(sz, Abelian::id())) {}
 
-  explicit UpdatableUnionFind(std::vector<T> data)
-      : AggregatableUnionFind<Abelian>(data), leaf_data(std::move(data)) {}
+  explicit UpdatableAggUnionFind(std::vector<T> data)
+      : AggUnionFind<Abelian>(data), leaf_data(std::move(data)) {}
 
   void set(int x, T val) {
     int r = this->find(x);
