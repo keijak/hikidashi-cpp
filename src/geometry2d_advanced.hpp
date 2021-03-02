@@ -72,7 +72,7 @@ P proj(P a1, P a2, P p) {
 }
 
 // 点pの直線aへの反射点を返す
-P reflection(P a1, P a2, P p) { return 2.0 * proj(a1, a2, p) - p; }
+P reflection(P a1, P a2, P p) { return D(2.0) * proj(a1, a2, p) - p; }
 
 D distLP(P a1, P a2, P p) { return abs(proj(a1, a2, p) - p); }
 
