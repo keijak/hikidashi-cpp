@@ -131,19 +131,19 @@ struct UnionFindWithTime {
   }
   int size(int v) const { return -parent_[find(v)]; }
 
-  bool same(int x, int y, int time) const {
-    return find(x, time) == find(y, time);
+  bool same(int u, int v, int time) const {
+    return find(u, time) == find(v, time);
   }
-  bool same(int x, int y) const { return find(x) == find(y); }
+  bool same(int u, int v) const { return find(u) == find(v); }
 
-  std::optional<int> united_time(int x, int y) {
-    if (not same(x, y)) {
+  std::optional<int> united_time(int u, int v) {
+    if (not same(u, v)) {
       return std::nullopt;
     }
     int fv = 0, tv = clock_;
     while (tv - fv > 1) {
       int mid = (tv + fv) / 2;
-      if (same(x, y, mid)) {
+      if (same(u, v, mid)) {
         tv = mid;
       } else {
         fv = mid;
