@@ -78,9 +78,9 @@ class ClosedIntervalSet : public std::map<i64, i64> {
 
   // Returns the interval [l, r] which contains p if available.
   // Otherwise returns this->end().
-  std::map<i64, i64>::iterator get(i64 p) const {
+  std::map<i64, i64>::iterator get(i64 p) {
     auto it = upper_bound(p);
-    if (it == begin() || (--it)->second < p) return this->end();
+    if (it == begin() || (--it)->second < p) return end();
     return it;
   }
 
@@ -105,15 +105,22 @@ class ClosedIntervalSet : public std::map<i64, i64> {
       if ((--itl)->second < l) ++itl;
     }
     if (itl == itr) return;
-    int tl = std::min(l, itl->first), tr = std::max(r, std::prev(itr)->second);
+    i64 tl = std::min(l, itl->first);
+    i64 tr = std::max(r, std::prev(itr)->second);
     erase(itl, itr);
     if (tl < l) (*this)[tl] = l - 1;
     if (r < tr) (*this)[r + 1] = tr;
   }
 
   // Are p and q in the same interval?
-  bool same(i64 p, i64 q) const {
+  bool same(i64 p, i64 q) {
     const auto& it = get(p);
     return it != end() && it->first <= q && q <= it->second;
+  }
+
+  i64 mex() {
+    auto it = get(0);
+    if (it == end()) return 0;
+    return it->second + 1;
   }
 };
