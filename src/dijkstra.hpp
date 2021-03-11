@@ -6,7 +6,7 @@ inline bool chmin(T &a, U b) {
   return a > b and ((a = std::move(b)), true);
 }
 
-const i64 INF = 1e16;
+const i64 BIG = 1e16;
 
 template <class T>
 using MinHeap = priority_queue<T, vector<T>, greater<T>>;
@@ -25,7 +25,7 @@ bool operator>(const State &x, const State &y) { return x.cost > y.cost; }
 // Returns min distance from the source node to each node (if exists).
 auto search(const vector<vector<Edge>> &g, int source) {
   const int n = g.size();
-  vector mincost(n, INF);
+  vector mincost(n, BIG);
   MinHeap<State> que;
   auto push = [&](i64 cost, int node) -> bool {
     if (chmin(mincost[node], cost)) {
@@ -62,9 +62,9 @@ bool operator>(const GridState &x, const GridState &y) {
 auto grid_search(const vector<string> &g, int source_r, int source_c) {
   const int H = g.size();
   const int W = g[0].size();
-  array<int, 4> dx = {0, 0, 1, -1}, dy = {1, -1, 0, 0};
-  vector mincost(H, vector(W, INF));
-  queue<GridState> que;
+  array<int, 4> dx = {0, 1, 0, -1}, dy = {1, 0, -1, 0};
+  vector mincost(H, vector(W, BIG));
+  MinHeap<GridState> que;
   auto push = [&](i64 cost, int r, int c) -> bool {
     if (r < 0 or r >= H or c < 0 or c >= W) return false;
     if (g[r][c] == '#') return false;
@@ -75,14 +75,16 @@ auto grid_search(const vector<string> &g, int source_r, int source_c) {
   assert(push(0LL, source_r, source_c));
 
   while (not que.empty()) {
-    State cur = move(que.front());
+    GridState cur = move(que.top());
     que.pop();
     if (cur.cost != mincost[cur.r][cur.c]) {
       continue;
     }
+    assert(g[cur.r][cur.c] == '.');
     for (int i = 0; i < 4; ++i) {
       int nr = cur.r + dx[i];
       int nc = cur.c + dy[i];
+      // Note: If the cost delta is always 0 or 1, BFS should be enough.
       i64 new_cost = cur.cost + 1;
       push(new_cost, nr, nc);
     }
