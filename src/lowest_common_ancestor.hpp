@@ -86,13 +86,14 @@ struct EulerTour {
   explicit EulerTour(G g, int root = 0)
       : n(g.size()), adj(move(g)), depth(n, 0), index(n, -1) {
     tour.reserve(n * 2);
+    depth[root] = 0;
     dfs(root, -1);
   }
 
  private:
   void dfs(int v, int p) {
     index[v] = int(tour.size());
-    depth[v] = (p < 0) ? 0 : (depth[p] + 1);
+    if (p >= 0) depth[v] = depth[p] + 1;
     tour.emplace_back(depth[v], v);
     for (auto u : adj[v]) {
       if (u == p) continue;
