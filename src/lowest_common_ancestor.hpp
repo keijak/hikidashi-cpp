@@ -1,3 +1,9 @@
+// Doubling-based LCA.
+//
+// Note: Other LCA algorithms:
+// - euler_tour_technique.hpp
+// - heavy_light_decomposition.hpp
+
 #include <utility>
 #include <vector>
 using namespace std;
@@ -67,54 +73,3 @@ struct DoublingLCA {
 
   static const int K = 30;  // max upper lookup (2^K)
 };
-
-// Lowest Common Ancestor by EulerTour + RMQ (SparseTable).
-// - query: O(1)
-// - build: O(N log N)
-// - space: O(N log N)
-struct EulerTour {
-  using G = vector<vector<int>>;
-
-  const int n;  // number of nodes
-  G adj;
-
-  // Euler Tour on nodes.
-  vector<pair<int, int>> tour;  // (depth, node id)
-  vector<int> depth;
-  vector<int> index;  // index in the tour on entering the subtree of v.
-
-  explicit EulerTour(G g, int root = 0)
-      : n(g.size()), adj(move(g)), depth(n, 0), index(n, -1) {
-    tour.reserve(n * 2);
-    depth[root] = 0;
-    dfs(root, -1);
-  }
-
- private:
-  void dfs(int v, int p) {
-    index[v] = int(tour.size());
-    if (p >= 0) depth[v] = depth[p] + 1;
-    tour.emplace_back(depth[v], v);
-    for (auto u : adj[v]) {
-      if (u == p) continue;
-      dfs(u, v);
-      tour.emplace_back(depth[v], v);
-    }
-  }
-};
-
-struct Min {
-  using T = pair<int, int>;
-  static T op(const T &x, const T &y) { return std::min(x, y); }
-  static constexpr T id() { return {std::numeric_limits<int>::max(), 0}; }
-};
-
-void euler_tour_lca_example(const EulerTour::G &g, int u, int v) {
-  EulerTour et(g);
-  SparseTable<Min> st(et.tour);
-
-  // Usage
-  int ui = et.index[u], vi = et.index[v];
-  auto [lca_depth, lca_node] = st.fold(min(ui, vi), max(ui, vi) + 1);
-  int distance = (et.depth[u] - lca_depth) + (et.depth[v] - lca_depth);
-}
