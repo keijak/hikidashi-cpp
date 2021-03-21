@@ -5,64 +5,76 @@ struct Edge {
 
 template <typename Task>
 class ReRooting {
-  using T = typename Task::T;
+ private:
+  using NV = typename Task::NodeValue;
+  using EV = typename Task::EdgeValue;
 
- public:
+  Task task;
   int n;                   // number of nodes
   vector<vector<Edge>> g;  // graph (tree)
-  vector<T> sub;           // values for each subtree rooted at i
-  vector<T> full;          // values for each entire tree rooted at i
+  vector<NV> sub;          // values for each subtree rooted at i
+  vector<NV> full;         // values for each entire tree rooted at i
   int base_root;           // base root node where we start DFS
 
-  explicit ReRooting(vector<vector<Edge>> g, int r = 0)
-      : n((int)g.size()), g(move(g)), sub(n), full(n), base_root(r) {}
+ public:
+  explicit ReRooting(Task task, vector<vector<Edge>> g, int r = 0)
+      : task(move(task)),
+        n((int)g.size()),
+        g(move(g)),
+        sub(n),
+        full(n),
+        base_root(r) {}
 
-  const vector<T> &run() {
+  const vector<NV> &run() {
     pull_up(base_root, -1);
-    push_down(base_root, -1, Task::id());
+    push_down(base_root, -1, task.id());
     return full;
   }
 
  private:
-  T pull_up(int v, int par) {
-    T res = Task::id();
+  NV pull_up(int v, int par) {
+    EV res = task.id();
     for (auto &e : g[v]) {
-      if (e.to == par) continue;
-      i64 sub = pull_up(e.to, v);
-      res = Task::op(res, Task::add_edge(sub, e));
+      int u = e.to;
+      if (u == par) continue;
+      i64 sub = pull_up(u, v);
+      res = task.merge(res, task.add_edge(sub, e));
     }
-    return (sub[v] = Task::add_node(res, v));
+    return (sub[v] = task.add_node(res, v));
   }
 
-  void push_down(int v, int par, T upper_sub) {
+  void push_down(int v, int par, NV upper_sub) {
     int m = g[v].size();
-    vector<T> cuml(m + 1, Task::id()), cumr(m + 1, Task::id());
+    vector<EV> cuml(m + 1, task.id()), cumr(m + 1, task.id());
 
     for (int i = 0; i < m; ++i) {
       auto &e = g[v][i];
-      if (e.to == par) {
-        cuml[i + 1] = Task::op(cuml[i], Task::add_edge(upper_sub, e));
+      int u = e.to;
+      if (u == par) {
+        cuml[i + 1] = task.merge(cuml[i], task.add_edge(upper_sub, e));
       } else {
-        cuml[i + 1] = Task::op(cuml[i], Task::add_edge(sub[e.to], e));
+        cuml[i + 1] = task.merge(cuml[i], task.add_edge(sub[u], e));
       }
     }
 
     for (int i = m - 1; i >= 0; --i) {
       auto &e = g[v][i];
-      if (e.to == par) {
-        cumr[i] = Task::op(Task::add_edge(upper_sub, e), cumr[i + 1]);
+      int u = e.to;
+      if (u == par) {
+        cumr[i] = task.merge(task.add_edge(upper_sub, e), cumr[i + 1]);
       } else {
-        cumr[i] = Task::op(Task::add_edge(sub[e.to], e), cumr[i + 1]);
+        cumr[i] = task.merge(task.add_edge(sub[u], e), cumr[i + 1]);
       }
     }
 
-    full[v] = Task::add_node(cuml[m], v);
+    full[v] = task.add_node(cuml[m], v);
 
     for (int i = 0; i < m; ++i) {
       auto &e = g[v][i];
-      if (e.to == par) continue;
-      T next_upper_sub = Task::add_node(Task::op(cuml[i], cumr[i + 1]), v);
-      push_down(e.to, v, next_upper_sub);
+      int u = e.to;
+      if (u == par) continue;
+      NV next_upper_sub = task.add_node(task.merge(cuml[i], cumr[i + 1]), v);
+      push_down(u, v, next_upper_sub);
     }
   }
 };
@@ -72,11 +84,9 @@ class ReRooting {
 struct EDPC_V {
   using T = Mint;
 
-  static T op(const T &x, const T &y) { return x * y; }
-
   static T id() { return 1; }
-
   static T add_node(T val, int node) { return val + 1; }
+  static T op(const T &x, const T &y) { return x * y; }
 };
 
 struct ABC160 {
@@ -98,15 +108,22 @@ struct ABC160 {
 
 // https://codeforces.com/contest/1084/problem/D
 struct FairNut {
-  using T = i64;
+  using NodeValue = i64;
+  using EdgeValue = i64;
 
-  static T id() { return 0LL; }
+  vector<i64> w;
 
-  static T op(const T &x, const T &y) { return std::max(x, y); }
+  explicit FairNut(vector<i64> w) : w(move(w)) {}
 
-  static T add_node(T val, int node) { return val + w[node]; }
+  EdgeValue id() const { return 0LL; }
 
-  static T add_edge(T val, const Edge &edge) {
+  NodeValue add_node(EdgeValue val, int node) const { return val + w[node]; }
+
+  EdgeValue add_edge(NodeValue val, const Edge &edge) const {
     return std::max(val - edge.len, 0LL);
+  }
+
+  EdgeValue merge(const EdgeValue &x, const EdgeValue &y) const {
+    return std::max(x, y);
   }
 };

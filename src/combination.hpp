@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+using Mint = double;
 
 template <class T = Mint>
 struct Factorials {
@@ -15,16 +16,16 @@ struct Factorials {
   }
 
   // Combination (nCk)
-  T C(int n, int k) {
+  T C(int n, int k) const {
     if (k < 0 || k > n) return 0;
     return fact[n] * ifact[k] * ifact[n - k];
   }
 
-  // Permutation (nPk)
-  T P(int n, int k) {
-    if (k < 0 || k > n) return 0;
-    return fact[n] * ifact[n - k];
-  }
+  // // Permutation (nPk)
+  // T P(int n, int k) const {
+  //   if (k < 0 || k > n) return 0;
+  //   return fact[n] * ifact[n - k];
+  // }
 };
 
 // C[n][k] = nCk
@@ -64,4 +65,12 @@ Mint factorial(int x) {
     facts.push_back(facts.back() * facts.size());
   }
   return facts[x];
+}
+
+// Catalan Number
+template <typename T>
+T catalan(const Factorials<T> &fs, int k) {
+  auto ret = fs.C(2 * k, k);
+  if (k > 0) ret -= fs.C(2 * k, k - 1);
+  return ret;
 }
