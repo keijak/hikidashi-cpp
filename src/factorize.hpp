@@ -37,22 +37,20 @@ std::vector<bool> prime_sieve(int n) {
   std::vector<bool> is_prime(n + 1, true);
   is_prime[0] = is_prime[1] = false;
   for (int i = 4; i <= n; i += 2) is_prime[i] = false;
-  int sqrt_n = std::lround(std::ceil(std::sqrt((double)n)));  // n in 32 bits.
-  for (int i = 3; i <= sqrt_n; i += 2) {
+  for (int i = 3; i * i <= n; i += 2) {
     if (not is_prime[i]) continue;
     for (int j = i * i; j <= n; j += i) is_prime[j] = false;
   }
   return is_prime;
 }
 
-// osa_k's algorithm. O(n log log n).
-// Returns a vector that maps x to x's smallest divisor (> 1).
-std::vector<int> min_divisor_sieve(int n) {
+// Returns a vector that maps x to x's smallest prime factor (> 1).
+// O(n log log n)
+std::vector<int> sieve_smallest_prime_factors(int n) {
   std::vector<int> res(n + 1);
   for (int i = 1; i <= n; ++i) res[i] = i;
   for (int i = 4; i <= n; i += 2) res[i] = 2;
-  int sqrt_n = std::lround(std::ceil(std::sqrt((double)n)));  // n in 32 bits.
-  for (int i = 3; i <= sqrt_n; i += 2) {
+  for (int i = 3; i * i <= n; i += 2) {
     if (res[i] != i) continue;
     for (int j = i * i; j <= n; j += i) {
       if (res[j] == j) res[j] = i;
@@ -62,12 +60,12 @@ std::vector<int> min_divisor_sieve(int n) {
 }
 
 // Quick factorization.
-std::vector<std::pair<int, int>> quick_factorize(
-    int n, const std::vector<int>& min_divisor) {
-  assert(0 < n and n < int(min_divisor.size()));
+std::vector<std::pair<int, int>> quick_factorize(int n,
+                                                 const std::vector<int>& spf) {
+  assert(0 < n and n < int(spf.size()));
   std::vector<std::pair<int, int>> res;
   for (;;) {
-    int p = min_divisor[n];
+    int p = spf[n];
     if (p == 1) break;
     int count = 0;
     do {
@@ -82,9 +80,9 @@ std::vector<std::pair<int, int>> quick_factorize(
 // Returns all prime numbers smaller than or equal to n.
 std::vector<int> primes_upto(int n) {
   std::vector<int> res;
-  const auto& res = min_divisor_sieve(n);
+  const auto& spf = sieve_smallest_prime_factors(n);
   for (int i = 2; i <= n; ++i) {
-    if (res[i] == i) res.push_back(i);
+    if (spf[i] == i) res.push_back(i);
   }
   return res;
 }
