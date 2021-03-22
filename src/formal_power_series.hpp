@@ -5,9 +5,123 @@ using u64 = unsigned long long;
 #include <atcoder/convolution>
 #include <atcoder/modint>
 
-// Formal Power Series (dense format).
+namespace multiplication {
 template <typename T, int DMAX>
+struct NaiveMult {
+  using value_type = T;
+  static constexpr int dmax() { return DMAX; }
+
+  static std::vector<T> multiply(const std::vector<T> &x,
+                                 const std::vector<T> &y) {
+    const int n = std::min(x.size() + y.size() - 1, DMAX + 1);
+    std::vector<T> res(n);
+    for (int i = 0; i < x.size(); ++i) {
+      for (int j = 0; j < y.size(); ++j) {
+        if (i + j >= n) break;
+        res[i + j] += x.coeff_[i] * y.coeff_[j];
+      }
+    }
+    return res;
+  }
+
+  static std::vector<T> invert(const std::vector<T> &x) {
+    std::vector<T> res(DMAX + 1);
+    res[0] = x[0].inv();
+    for (int i = 1; i <= DMAX; ++i) {
+      T s = 0;
+      const int mi = std::min(i + 1, x.size());
+      for (int j = 1; j < mi; ++j) {
+        s += x[j] * res[i - j];
+      }
+      res[i] = -res[0] * s;
+    }
+    return res;
+  }
+};
+
+// T: modint
+template <typename T, int DMAX>
+struct NTTMult {
+  using value_type = T;
+  static constexpr int dmax() { return DMAX; }
+
+  static std::vector<T> multiply(const std::vector<T> &x,
+                                 const std::vector<T> &y) {
+    static_assert(T::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
+    std::vector<T> res = atcoder::convolution(x.coeff_, y.coeff_);
+    if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
+    return res;
+  }
+
+  static std::vector<T> invert(const std::vector<T> &x) {
+    static_assert(T::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
+    assert(x[0].val() != 0);                   // must be invertible
+    const int n = x.size();
+    std::vector<T> res(n);
+    res[0] = x[0].inv();
+    for (int i = 1; i < n; i <<= 1) {
+      std::vector<T> f(2 * i), g(2 * i);
+      for (int j = 0, m = std::min(n, 2 * i); j < m; ++j) {
+        f[j] = x[j];
+      }
+      for (int j = 0; j < i; ++j) {
+        g[j] = res[j];
+      }
+      f = atcoder::convolution(f, g);
+      f.resize(2 * i);
+      for (int j = 0; j < i; ++j) {
+        f[j] = 0;
+      }
+      f = atcoder::convolution(f, g);
+      for (int j = i, m = std::min(2 * i, n); j < m; ++j) {
+        res[j] = -f[j];
+      }
+    }
+    return res;
+  }
+};
+
+template <int DMAX>
+struct LLMult {
+  using value_type = long long;
+  static constexpr int dmax() { return DMAX; }
+
+  static std::vector<value_type> multiply(const std::vector<value_type> &x,
+                                          const std::vector<value_type> &y) {
+    auto res = atcoder::convolution_ll(x, y);
+    if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
+    return res;
+  }
+
+  static std::vector<value_type> invert(const std::vector<value_type> &x) {
+    assert(false);  // not implemented
+  }
+};
+
+// dep: fft.hpp
+// T: modint
+template <typename T, int DMAX>
+struct ArbitraryModMult {
+  using value_type = T;
+  static constexpr int dmax() { return DMAX; }
+
+  static std::vector<T> multiply(const std::vector<T> &x,
+                                 const std::vector<T> &y) {
+    // NOTE: Setting `need=DMAX+1` gives incorrect results.
+    auto res = ArbitraryModConvolution<T>::multiply(x, y);
+    if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
+    return res;
+  }
+};
+
+}  // namespace multiplication
+
+// Formal Power Series (dense format).
+template <typename Mult>
 struct DenseFPS {
+  using T = typename Mult::value_type;
+  static const int DMAX = Mult::dmax();
+
   // Coefficients of terms from x^0 to x^DMAX.
   std::vector<T> coeff_;
 
@@ -88,11 +202,11 @@ struct DenseFPS {
     return res;
   }
   DenseFPS &operator*=(const DenseFPS &other) {
-    *this = this->mul_naive(other);
+    *this = DenseFPS(Mult::multiply(std::move(this->coeff_), other.coeff_));
     return *this;
   }
   friend DenseFPS operator*(const DenseFPS &x, const DenseFPS &y) {
-    return x.mul_naive(y);
+    return DenseFPS(Mult::multiply(x.coeff_, y.coeff_));
   }
 
   DenseFPS &operator/=(const T &scalar) {
@@ -110,39 +224,23 @@ struct DenseFPS {
     return res;
   }
   DenseFPS &operator/=(const DenseFPS &other) {
-    return *this *= other.inv_naive();
+    *this *= DenseFPS(Mult::invert(other.coeff_));
+    return *this;
   }
   friend DenseFPS operator/(const DenseFPS &x, const DenseFPS &y) {
-    return x * y.inv_naive();
+    return x * DenseFPS(Mult::invert(y.coeff_));
   }
 
-  // Naive inverse. O(N^2)
-  DenseFPS inv_naive() const {
-    std::vector<T> res(DMAX + 1);
-    res[0] = coeff_[0].inv();
-    for (int i = 1; i <= DMAX; ++i) {
-      T s = 0;
-      const int mi = std::min(i + 1, size());
-      for (int j = 1; j < mi; ++j) {
-        s += coeff_[j] * res[i - j];
-      }
-      res[i] = -res[0] * s;
+  DenseFPS pow(i64 t) {
+    DenseFPS res;
+    DenseFPS base = std::move(*this);
+    res.coeff_[0] = 1;
+    while (t) {
+      if (t & 1) res *= base;
+      base *= base;
+      t >>= 1;
     }
-    return DenseFPS(std::move(res));
-  }
-
- private:
-  // Naive multiplication. O(N^2)
-  DenseFPS mul_naive(const DenseFPS &other) const {
-    const int n = std::min(size() + other.size() - 1, DMAX + 1);
-    std::vector<T> res(n);
-    for (int i = 0; i < size(); ++i) {
-      for (int j = 0; j < other.size(); ++j) {
-        if (i + j >= n) break;
-        res[i + j] += coeff_[i] * other.coeff_[j];
-      }
-    }
-    return DenseFPS(std::move(res));
+    return res;
   }
 };
 
@@ -255,32 +353,32 @@ struct SparseFPS {
 };
 
 // Polynomial addition (dense + sparse).
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> &operator+=(DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
+template <typename FPS>
+FPS &operator+=(FPS &x, const SparseFPS<typename FPS::T> &y) {
   for (int i = 0; i < y.size(); ++i) {
-    if (y.degree(i) > DMAX) break;  // ignore
+    if (y.degree(i) > FPS::DMAX) break;  // ignore
     x.coeff_[y.degree(i)] += y.coeff(i);
   }
   return x;
 }
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> operator+(const DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
-  DenseFPS<T, DMAX> res = x;
+template <typename FPS>
+FPS operator+(const FPS &x, const SparseFPS<typename FPS::T> &y) {
+  auto res = x;
   res += y;
   return res;
 }
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> operator+(const SparseFPS<T> &x, const DenseFPS<T, DMAX> &y) {
+template <typename FPS>
+FPS operator+(const SparseFPS<typename FPS::T> &x, const FPS &y) {
   return y + x;  // commutative
 }
 
 // Polynomial multiplication (dense * sparse).
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> &operator*=(DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
+template <typename FPS>
+FPS &operator*=(FPS &x, const SparseFPS<typename FPS::T> &y) {
   if (y.size() == 0) {
     return x *= 0;
   }
-  T c0 = 0;
+  typename FPS::T c0 = 0;
   int j0 = 0;
   if (y.degree(0) == 0) {
     c0 = y.coeff(0);
@@ -288,7 +386,7 @@ DenseFPS<T, DMAX> &operator*=(DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
   }
   const int yd_max = y.degree(y.size() - 1);
   const int xd_max = x.size() - 1;
-  const int n = std::min(xd_max + yd_max + 1, DMAX + 1);
+  const int n = std::min(xd_max + yd_max + 1, FPS::DMAX + 1);
   if (x.size() < n) x.coeff_.resize(n);
   for (int xd = n - 1; xd >= 0; --xd) {
     x.coeff_[xd] *= c0;
@@ -300,25 +398,25 @@ DenseFPS<T, DMAX> &operator*=(DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
   }
   return x;
 }
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> operator*(const DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
-  DenseFPS<T, DMAX> res = x;
+template <typename FPS>
+FPS operator*(const FPS &x, const SparseFPS<typename FPS::T> &y) {
+  auto res = x;
   res *= y;
   return res;
 }
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> operator*(const SparseFPS<T> &x, const DenseFPS<T, DMAX> &y) {
+template <typename FPS>
+FPS operator*(const SparseFPS<typename FPS::T> &x, const FPS &y) {
   return y * x;  // commutative
 }
 
 // Polynomial division (dense / sparse).
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> &operator/=(DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
+template <typename FPS>
+FPS &operator/=(FPS &x, const SparseFPS<typename FPS::T> &y) {
   assert(y.size() > 0 and y.degree(0) == 0 and y.coeff(0) != 0);
-  const T inv_c0 = y.coeff(0).inv();
+  const auto inv_c0 = y.coeff(0).inv();
   const int yd_max = y.degree(y.size() - 1);
   const int xd_max = x.size() - 1;
-  const int n = std::min(xd_max + yd_max + 1, DMAX + 1);
+  const int n = std::min(xd_max + yd_max + 1, FPS::DMAX + 1);
   if (x.size() < n) x.coeff_.resize(n);
   for (int xd = 0; xd < n; ++xd) {
     for (int j = 1; j < y.size(); ++j) {
@@ -330,126 +428,28 @@ DenseFPS<T, DMAX> &operator/=(DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
   }
   return x;
 }
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> operator/(const DenseFPS<T, DMAX> &x, const SparseFPS<T> &y) {
-  DenseFPS<T, DMAX> res = x;
+template <typename FPS>
+FPS operator/(const FPS &x, const SparseFPS<typename FPS::T> &y) {
+  FPS res = x;
   res /= y;
   return res;
 }
 
-namespace fps {
-
-// Fast polynomial multiplication by single NTT.
-// T: modint
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> mul_ntt(const DenseFPS<T, DMAX> &x,
-                          const DenseFPS<T, DMAX> &y) {
-  static_assert(T::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
-  auto res = atcoder::convolution(x.coeff_, y.coeff_);
-  if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
-  return DenseFPS<T, DMAX>(std::move(res));
-}
-
-// Polynomial multiplication by NTT + Garner (arbitrary mod). (MAYBE BUG)
-// T: modint
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> mul_mod(const DenseFPS<T, DMAX> &x,
-                          const DenseFPS<T, DMAX> &y) {
-  std::vector<i64> xll(x.size()), yll(y.size());
-  for (int i = 0; i < x.size(); ++i) xll[i] = x[i].val();
-  for (int i = 0; i < y.size(); ++i) yll[i] = y[i].val();
-  auto zll = atcoder::convolution_ll(move(xll), move(yll));
-  int n = std::min<int>(zll.size(), DMAX + 1);
-  std::vector<T> res(n);
-  for (int i = 0; i < n; ++i) res[i] = zll[i];
-  return DenseFPS<T, DMAX>(std::move(res));
-}
-
-// Polynomial multiplication by NTT + Garner (long long).
-template <int DMAX>
-DenseFPS<i64, DMAX> mul_ll(const DenseFPS<i64, DMAX> &x,
-                           const DenseFPS<i64, DMAX> &y) {
-  auto res = atcoder::convolution_ll(x.coeff_, y.coeff_);
-  if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
-  return DenseFPS<i64, DMAX>(std::move(res));
-}
-
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> pow(const DenseFPS<T, DMAX> &x, u64 t,
-                      DenseFPS<T, DMAX> (*mul)(const DenseFPS<T, DMAX> &,
-                                               const DenseFPS<T, DMAX> &)) {
-  DenseFPS<T, DMAX> base = x, res;
-  res.coeff_[0] = 1;
-  while (t) {
-    if (t & 1) res = mul(res, base);
-    base = mul(base, base);
-    t >>= 1;
-  }
-  return res;
-}
-
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> pow_naive(const DenseFPS<T, DMAX> &x, u64 t) {
-  return pow(x, t, [](const DenseFPS<T, DMAX> &y, const DenseFPS<T, DMAX> &z) {
-    return y * z;
-  });
-}
-
-// T: modint
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> pow_ntt(const DenseFPS<T, DMAX> &x, u64 t) {
-  return pow(x, t, mul_ntt);
-}
-
-// T: modint
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> pow_mod(const DenseFPS<T, DMAX> &x, u64 t) {
-  return pow(x, t, mul_mod);
-}
-
-template <int DMAX>
-DenseFPS<i64, DMAX> pow_ll(const DenseFPS<i64, DMAX> &x, u64 t) {
-  return pow(x, t, mul_ll);
-}
-
-// Fast polynomial inverse with NTT.
-// T: modint
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> inv_ntt(const DenseFPS<T, DMAX> &x) {
-  static_assert(T::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
-  assert(x[0].val() != 0);                   // must be invertible
-  const int n = x.size();
-  std::vector<T> res(n);
-  res[0] = x[0].inv();
-  for (int i = 1; i < n; i <<= 1) {
-    vector<mint> f(2 * i), g(2 * i);
-    for (int j = 0, m = min(n, 2 * i); j < m; ++j) f[j] = x[j];
-    for (int j = 0; j < i; ++j) g[j] = res[j];
-    f = atcoder::convolution(f, g);
-    f.resize(2 * i);
-    for (int j = 0; j < i; ++j) f[j] = 0;
-    f = atcoder::convolution(f, g);
-    for (int j = i, m = min(2 * i, n); j < m; ++j) res[j] = -f[j];
-  }
-  return DenseFPS<T, DMAX>(std::move(res));
-}
-
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> derivative(const DenseFPS<T, DMAX> &x) {
-  std::vector<T> res(x.size() - 1);
+template <typename FPS>
+FPS derivative(const FPS &x) {
+  std::vector<typename FPS::T> res(x.size() - 1);
   for (int i = 1; i < x.size(); ++i) {
     res[i - 1] = x[i] * i;
   }
-  return DenseFPS(std::move(res));
+  return FPS(std::move(res));
 }
 
-template <typename T, int DMAX>
-DenseFPS<T, DMAX> integral(const DenseFPS<T, DMAX> &x, const T &c) {
-  std::vector<T> res(x.size() + 1);
+template <typename FPS>
+FPS integral(const FPS &x, const typename FPS::T &c) {
+  std::vector<typename FPS::T> res(x.size() + 1);
   res[0] = c;
   for (int i = 1; i <= x.size(); ++i) {
     res[i] = x[i - 1] / i;
   }
-  return DenseFPS(std::move(res));
+  return FPS(std::move(res));
 }
-}  // namespace fps
