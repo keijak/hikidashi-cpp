@@ -350,7 +350,7 @@ DenseFPS<T, DMAX> mul_ntt(const DenseFPS<T, DMAX> &x,
   return DenseFPS<T, DMAX>(std::move(res));
 }
 
-// Polynomial multiplication by NTT + Garner (arbitrary mod).
+// Polynomial multiplication by NTT + Garner (arbitrary mod). (MAYBE BUG)
 // T: modint
 template <typename T, int DMAX>
 DenseFPS<T, DMAX> mul_mod(const DenseFPS<T, DMAX> &x,
