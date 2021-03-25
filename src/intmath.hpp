@@ -90,7 +90,7 @@ std::optional<std::array<i64, 2>> linear_diophantine(i64 a, i64 b, i64 c) {
   return std::array{x, y};
 }
 
-// Discrete logarithm.
+// Discrete logarithm (Baby-step Giant-step algorithm).
 // Returns the smallest x that satisfies a^x ≡ b (mod m).
 // m is assumed to be a prime number.
 std::optional<int> log_mod(i64 a, i64 b, const int m) {
