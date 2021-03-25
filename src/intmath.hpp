@@ -3,6 +3,8 @@
 #include <bits/stdc++.h>
 using i64 = long long;
 
+#include <atcoder/math>
+
 // Returns ceil(x / y).
 i64 ceildiv(i64 x, i64 y) {
   if (y <= 0) {
@@ -86,4 +88,33 @@ std::optional<std::array<i64, 2>> linear_diophantine(i64 a, i64 b, i64 c) {
   y += m * a;
   assert(0 <= x and x < b);
   return std::array{x, y};
+}
+
+// Discrete logarithm.
+// Returns the smallest x that satisfies a^x ≡ b (mod m).
+// m is assumed to be a prime number.
+std::optional<int> log_mod(i64 a, i64 b, const int m) {
+  const int L = ceilsqrt(m);  // block size
+  a %= m, b %= m;
+
+  // {a^0 => 0, a^1 => 1, ...}
+  std::map<int, int> baby;
+  {
+    int rem = 1;
+    for (long long r = 0; r < L; ++r) {
+      if (not baby.count(rem)) baby[rem] = r;
+      (rem *= a) %= m;
+    }
+  }
+
+  // Giant step: a^{-L}
+  int step = atcoder::pow_mod(atcoder::inv_mod(a, m), L, m);
+  int giant = b;
+  for (int q = 0; q < L; ++q) {
+    if (auto it = baby.find(giant); it != baby.end()) {
+      return q * L + it->second;
+    }
+    (giant *= step) %= m;
+  }
+  return std::nullopt;
 }
