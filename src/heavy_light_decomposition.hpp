@@ -1,6 +1,8 @@
 #include <functional>
+#include <map>
 #include <optional>
 #include <vector>
+using i64 = long long;
 
 // Heavy-Light Decomposition
 struct HLD {
@@ -86,11 +88,11 @@ struct HLD {
 
   // Distance (= number of edges) of the path between two nodes.
   int distance(NodeID u, NodeID v) const {
-    int dist = 0;
+    int cost = 0;
     for (auto [l, r] : edge_ranges_on_path(u, v)) {
-      dist += r - l;
+      cost += r - l;
     }
-    return dist;
+    return cost;
   }
 
  private:
@@ -121,3 +123,27 @@ struct HLD {
     }
   }
 };
+
+// Returns the cumulative sum array of edge costs (indexed by Ord).
+std::vector<i64> cost_cumsum(
+    const HLD &hld, int u, int v,
+    const std::map<std::pair<int, int>, i64> &edge_cost) {
+  const int n = hld.n;
+  std::vector<i64> cost(n), acc(n + 1);  // indexed by Ord.
+  // Iterate over the NodeID space.
+  for (int v = 0; v < n; ++v) {
+    // Calculate the cost from v to parent[v].
+    auto p = hld.parent[v];
+    if (not p.has_value()) continue;
+    auto it = edge_cost.find(std::pair{std::min(v, *p), std::max(v, *p)});
+    if (it == edge_cost.end()) continue;
+    const i64 cost_to_parent = it->second;
+    const int ord = hld.node_to_ord[v];
+    cost[ord] = cost_to_parent;
+  }
+  // Iterate over the Ord space.
+  for (int i = 0; i < n; ++i) {
+    acc[i + 1] = acc[i] + cost[i];
+  }
+  return acc;
+}
