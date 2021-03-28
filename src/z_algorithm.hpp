@@ -1,9 +1,12 @@
+#include <string_view>
+#include <vector>
+
 // Z-algorithm
 // Returns the Z array of the given string.
 // Z[i] := the longest common prefix length between S[0:] and S[i:].
-vector<int> ZArray(string_view s) {
-  int n = s.size();
-  vector<int> Z(n);
+std::vector<int> ZArray(std::string_view s) {
+  const int n = s.size();
+  std::vector<int> Z(n);
   Z[0] = n;
   int i = 1, j = 0;
   while (i < n) {

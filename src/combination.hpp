@@ -47,7 +47,7 @@ std::vector<std::vector<T>> comb_table(int n) {
 }
 
 // nCk where n can be large but min(k, n-k) is small.
-template <typename T>
+template <typename T = Mint>
 T comb(i64 n, i64 k) {
   if (k < 0 or k > n) return 0;
   if (k > n - k) k = n - k;
