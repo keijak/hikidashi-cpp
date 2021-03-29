@@ -2,18 +2,18 @@
 
 template <typename T>
 struct Compress {
-  std::vector<T> vec;
+  std::vector<T> values;
 
-  explicit Compress(std::vector<T> v) : vec(v) {
-    std::sort(vec.begin(), vec.end());
-    vec.erase(std::unique(vec.begin(), vec.end()), vec.end());
+  explicit Compress(std::vector<T> v) : values(v) {
+    std::sort(values.begin(), values.end());
+    values.erase(std::unique(values.begin(), values.end()), values.end());
   }
 
-  int size() const { return vec.size(); }
+  int size() const { return values.size(); }
 
   int index(T x) const {
-    return lower_bound(vec.begin(), vec.end(), x) - vec.begin();
+    return lower_bound(values.begin(), values.end(), x) - values.begin();
   }
 
-  const T &value(int i) const { return vec[i]; }
+  const T &value(int i) const { return values[i]; }
 };
