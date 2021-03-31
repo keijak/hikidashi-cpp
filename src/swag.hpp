@@ -1,44 +1,49 @@
-struct SwagQueue {
-  std::vector<std::pair<i64, i64>> s1, s2;
+#include <stack>
 
-  int size() { return s1.size() + s2.size(); }
+template <typename Monoid>
+struct SWAGQueue {
+  using T = typename Monoid::T;
 
-  bool isEmpty() { return size() == 0; }
+  struct Node {
+    T val, agg;
+    Node(T val, T agg) : val(std::move(val)), agg(std::move(agg)) {}
+  };
+  std::stack<Node> front_stack, back_stack;
 
-  long long getMax() {
-    if (isEmpty()) {
-      return std::numeric_limits<long long>::min();
-    }
-    if (!s1.empty() && !s2.empty()) {
-      return std::max(s1.back().second, s2.back().second);
-    }
-    if (!s1.empty()) {
-      return s1.back().second;
-    }
-    return s2.back().second;
-  }
+  SWAGQueue() = default;
 
-  void push(long long val) {
-    if (s2.empty()) {
-      s2.push_back(std::pair(val, val));
+  bool empty() const { return front_stack.empty() and back_stack.empty(); }
+
+  size_t size() const { return front_stack.size() + back_stack.size(); }
+
+  // push_back
+  void enqueue(const T &x) {
+    if (back_stack.empty()) {
+      back_stack.emplace(x, x);
     } else {
-      s2.push_back(std::pair(val, std::max(val, s2.back().second)));
+      back_stack.emplace(x, Monoid::op(back_stack.top().agg, x));
     }
   }
 
-  void pop() {
-    if (s1.empty()) {
-      while (!s2.empty()) {
-        if (s1.empty()) {
-          s1.push_back(std::pair(s2.back().first, s2.back().first));
-        } else {
-          s1.push_back(std::pair(s2.back().first,
-                                 std::max(s2.back().first, s1.back().second)));
-        }
-        s2.pop_back();
+  // pop_front
+  void dequeue() {
+    assert(!empty());
+    if (front_stack.empty()) {
+      front_stack.emplace(back_stack.top().val, back_stack.top().val);
+      back_stack.pop();
+      while (!back_stack.empty()) {
+        T agg = Monoid::op(back_stack.top().val, front_stack.top().agg);
+        front_stack.emplace(back_stack.top().val, std::move(agg));
+        back_stack.pop();
       }
     }
-    assert(!s1.empty());
-    s1.pop_back();
+    front_stack.pop();
+  }
+
+  T fold() const {
+    if (empty()) return Monoid::id();
+    if (front_stack.empty()) return back_stack.top().agg;
+    if (back_stack.empty()) return front_stack.top().agg;
+    return Monoid::op(front_stack.top().agg, back_stack.top().agg);
   }
 };
