@@ -19,5 +19,5 @@ std::pair<int, std::pair<int, int>> tree_diameter(
 
   const auto& [_, u] = farthest(farthest, 0, -1, 0);
   const auto& [distance, v] = farthest(farthest, u, -1, 0);
-  return std::pair{distance, std::pair(u, v)};
+  return std::pair{distance, std::pair{u, v}};
 }
