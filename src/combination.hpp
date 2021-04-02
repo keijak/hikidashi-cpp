@@ -48,11 +48,11 @@ std::vector<std::vector<T>> comb_table(int n) {
 
 // nCk where n can be large but min(k, n-k) is small.
 template <typename T = Mint>
-T comb(i64 n, i64 k) {
+T comb(long long n, long long k) {
   if (k < 0 or k > n) return 0;
   if (k > n - k) k = n - k;
   T nume = 1, deno = 1;
-  for (i64 i = 0; i < k; ++i) {
+  for (int i = 0; i < k; ++i) {
     nume *= T(n - i);
     deno *= T(i + 1);
   }
