@@ -94,8 +94,8 @@ T montmort_number(const Factorials<T>& fs, int n) {
 }
 
 // Bell Number B(n, k)
-// Number of ways of grouping n distinguishable balls into k indistinguishable
-// boxes.
+// Number of ways of grouping n distinguishable balls into k or less
+// indistinguishable boxes.
 template <typename T>
 T bell_number(const Factorials<T>& fs, int n, int k) {
   if (n == 0) return 1;
