@@ -20,13 +20,29 @@ struct Factorials {
     if (k < 0 || k > n) return 0;
     return fact[n] * ifact[k] * ifact[n - k];
   }
-
-  // // Permutation (nPk)
-  // T P(int n, int k) const {
-  //   if (k < 0 || k > n) return 0;
-  //   return fact[n] * ifact[n - k];
-  // }
 };
+
+// Permutation (nPk)
+template <class T>
+T permutation(const Factorials<T>& fs, int n, int k) {
+  if (k < 0 || k > n) return 0;
+  return fs.fact[n] * fs.ifact[n - k];
+}
+
+// Total number of complete permutations of size n.
+template <class T>
+T montmort_number(const Factorials<T>& fs, int n) {
+  T res = 0;
+  for (int k = 2; k <= n; ++k) {
+    if (k % 2 == 0) {
+      res += fs.ifact[k];
+    } else {
+      res -= fs.ifact[k];
+    }
+  }
+  res *= fs.fact[n];
+  return res;
+}
 
 // C[n][k] = nCk
 // Cretates a combination matrix using Pascal's triangle.
@@ -70,7 +86,7 @@ Mint factorial(int x) {
 
 // Catalan Number
 template <typename T>
-T catalan(const Factorials<T> &fs, int k) {
+T catalan(const Factorials<T>& fs, int k) {
   auto ret = fs.C(2 * k, k);
   if (k > 0) ret -= fs.C(2 * k, k - 1);
   return ret;
