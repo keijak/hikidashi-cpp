@@ -1,4 +1,4 @@
-#include <vector>
+#include <bits/stdc++.h>
 
 struct UnionFind {
   int n;
