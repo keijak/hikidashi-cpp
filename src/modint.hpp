@@ -1,8 +1,10 @@
+#include <bits/stdc++.h>
+
 template <unsigned M>
 struct ModInt {
   constexpr ModInt(long long val = 0) : _v(0) {
     if (val < 0) {
-      long long k = (abs(val) + M - 1) / M;
+      long long k = (std::abs(val) + M - 1) / M;
       val += k * M;
     }
     assert(val >= 0);
@@ -98,7 +100,7 @@ struct ModInt {
   }
 
  private:
-  // Etended Euclidean algorithm.
+  // Extended Euclidean algorithm.
   // Returns [g, x, y] where g = a*x + b*y = GCD(a, b).
   static constexpr std::array<long long, 3> ext_gcd(int a, int b) {
     if (b == 0) return {a, 1, 0};
