@@ -1,3 +1,6 @@
+#include <bits/stdc++.h>
+
+// range-apply point-get.
 template <typename Monoid>
 struct DualSegTree {
   using T = typename Monoid::T;
