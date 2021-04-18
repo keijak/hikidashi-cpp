@@ -12,7 +12,7 @@ using namespace std;
 // - query: O(log N)
 // - build: O(N log N)
 // - space: O(N log N)
-struct DoublingLCA {
+struct DoublingAncestor {
   using G = vector<vector<int>>;
 
   const int n;  // number of nodes
@@ -20,7 +20,7 @@ struct DoublingLCA {
   vector<vector<int>> upper;  // 2^k upper node
   vector<int> depth;
 
-  explicit DoublingLCA(G g, int root = 0)
+  explicit DoublingAncestor(G g, int root = 0)
       : n(g.size()), adj(move(g)), upper(K, vector<int>(n, -1)), depth(n) {
     depth[root] = 0;
     dfs(0, -1);
@@ -44,7 +44,7 @@ struct DoublingLCA {
       }
     }
     if (u == v) return u;
-    for (int k = K - 1; k >= 0; k--) {
+    for (int k = K - 1; k >= 0; --k) {
       if (upper[k][u] != upper[k][v]) {
         u = upper[k][u];
         v = upper[k][v];
@@ -54,6 +54,18 @@ struct DoublingLCA {
   }
 
   int parent(int v) const { return upper[0][v]; }
+
+  // k-th ancestor of v.
+  // - The parent is the 1st ancestor.
+  // - The parent's parent is the 2nd ancestor.
+  int ancestor(int v, int k) const {
+    for (int i = K - 1; i >= 0; --i) {
+      if (k & (1 << i)) {
+        v = upper[i][v];
+      }
+    }
+    return v;
+  }
 
   // Returns the distance (number of edges) between two nodes.
   int distance(int u, int v) const {
