@@ -32,7 +32,7 @@ struct EulerTour {
     for (auto u : g[v]) {
       if (u == p) continue;
       dfs(u, v);
-      tour.emplace_back(depth[v], v);
+      // tour.emplace_back(depth[v], v);
     }
     end[v] = int(tour.size());
   }

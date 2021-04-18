@@ -36,7 +36,8 @@ struct ModInt {
     return result;
   }
 
-  constexpr ModInt operator-() const { return ModInt(-_v); }
+  constexpr ModInt operator-() const { return ModInt(umod() - _v); }
+
   constexpr ModInt &operator+=(const ModInt &a) {
     if ((_v += a._v) >= M) _v -= M;
     return *this;
@@ -112,8 +113,9 @@ struct ModInt {
 
   unsigned _v;  // raw value
 };
-const unsigned MOD = int(1e9) + 7;
-using Mint = ModInt<MOD>;
+// const unsigned MOD = int(1e9) + 7;
+// const unsigned MOD = 998244353;
+// using Mint = ModInt<MOD>;
 
 // Runtime MOD:
 //   unsigned MOD = 998244353;  // modifiable.

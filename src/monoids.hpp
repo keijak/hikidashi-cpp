@@ -1,3 +1,5 @@
+#include <bits/stdc++.h>
+
 struct Min {
   using T = long long;
   static T op(const T &x, const T &y) { return std::min(x, y); }
