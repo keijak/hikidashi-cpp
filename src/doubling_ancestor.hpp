@@ -4,6 +4,7 @@
 // - euler_tour_technique.hpp
 // - heavy_light_decomposition.hpp
 
+#include <cassert>
 #include <utility>
 #include <vector>
 using namespace std;
@@ -40,6 +41,21 @@ struct DoublingAncestor {
     }
   }
 
+  int parent(int v) const { return upper[0][v]; }
+
+  // Returns i-th ancestor of v.
+  // - parent is the 1st ancestor.
+  // - `upper[k][v]`is the (2^k)-th ancestor.
+  int ancestor(int v, int i) const {
+    assert(i < (1 << K));
+    for (int k = K - 1; k >= 0; --k) {
+      if (i & (1 << k)) {
+        v = upper[k][v];
+      }
+    }
+    return v;
+  }
+
   // Returns the node ID of the lowest common ancestor.
   int lca(int u, int v) const {
     if (depth[u] > depth[v]) swap(u, v);
@@ -63,20 +79,6 @@ struct DoublingAncestor {
 
     // Now both nodes are direct children of the LCA.
     return parent(u);
-  }
-
-  int parent(int v) const { return upper[0][v]; }
-
-  // k-th ancestor of v.
-  // - The parent is the 1st ancestor.
-  // - The parent's parent is the 2nd ancestor.
-  int ancestor(int v, int k) const {
-    for (int i = K - 1; i >= 0; --i) {
-      if (k & (1 << i)) {
-        v = upper[i][v];
-      }
-    }
-    return v;
   }
 
   // Returns the distance (number of edges) between two nodes.
