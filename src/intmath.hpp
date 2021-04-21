@@ -38,7 +38,8 @@ i64 floordiv(i64 x, i64 y) {
 i64 floormod(i64 x, i64 y) {
   assert(y > 0);
   auto r = x % y;
-  return (r < 0) ? (r + y) : r;
+  if (r < 0) r += y;
+  return r;
 }
 
 // Returns floor(sqrt(x)).
