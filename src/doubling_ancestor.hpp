@@ -14,6 +14,7 @@ using namespace std;
 // - space: O(N log N)
 struct DoublingAncestor {
   using G = vector<vector<int>>;
+  static const int K = 30;  // max upper lookup (2^K)
 
   const int n;  // number of nodes
   G adj;
@@ -23,8 +24,12 @@ struct DoublingAncestor {
   explicit DoublingAncestor(G g, int root = 0)
       : n(g.size()), adj(move(g)), upper(K, vector<int>(n, -1)), depth(n) {
     depth[root] = 0;
+
+    // Build `depth` and `upper[0]`.
     dfs(0, -1);
-    for (int k = 0; k + 1 < K; k++) {
+
+    // Build `upper[k]` for k > 0.
+    for (int k = 0; k + 1 < K; ++k) {
       for (int v = 0; v < n; ++v) {
         if (upper[k][v] < 0) {
           upper[k + 1][v] = -1;
@@ -38,19 +43,26 @@ struct DoublingAncestor {
   // Returns the node ID of the lowest common ancestor.
   int lca(int u, int v) const {
     if (depth[u] > depth[v]) swap(u, v);
-    for (int k = 0; k < K; k++) {
-      if ((depth[v] - depth[u]) & (1 << k)) {
+    int ddiff = depth[v] - depth[u];
+
+    // Move up `v` so both nodes have the same depth.
+    for (int k = K - 1; k >= 0; --k) {
+      if (ddiff & (1 << k)) {
         v = upper[k][v];
       }
     }
     if (u == v) return u;
+
+    // Move up both nodes but still keep them below the LCA.
     for (int k = K - 1; k >= 0; --k) {
       if (upper[k][u] != upper[k][v]) {
         u = upper[k][u];
         v = upper[k][v];
       }
     }
-    return upper[0][u];
+
+    // Now both nodes are direct children of the LCA.
+    return parent(u);
   }
 
   int parent(int v) const { return upper[0][v]; }
@@ -82,6 +94,4 @@ struct DoublingAncestor {
       dfs(u, v);
     }
   }
-
-  static const int K = 30;  // max upper lookup (2^K)
 };
