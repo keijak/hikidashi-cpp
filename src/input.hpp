@@ -1,6 +1,6 @@
 // Usage:
 //   int n = input;
-//   unsigned x = (unsigned)(input) | 1;
+//   unsigned x = (unsigned)(input) << 1;
 
 #include <cctype>
 #include <cstdio>
