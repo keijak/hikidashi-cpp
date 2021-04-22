@@ -13,7 +13,7 @@ using namespace std;
 // - query: O(log N)
 // - build: O(N log N)
 // - space: O(N log N)
-struct DoublingAncestor {
+struct AncestorBinaryLifting {
   using G = vector<vector<int>>;
   static const int K = 30;  // max upper lookup (2^K)
 
@@ -22,7 +22,7 @@ struct DoublingAncestor {
   vector<vector<int>> upper;  // 2^k upper node
   vector<int> depth;
 
-  explicit DoublingAncestor(G g, int root = 0)
+  explicit AncestorBinaryLifting(G g, int root = 0)
       : n(g.size()), adj(move(g)), upper(K, vector<int>(n, -1)), depth(n) {
     depth[root] = 0;
 
