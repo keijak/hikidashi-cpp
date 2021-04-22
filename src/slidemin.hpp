@@ -1,5 +1,7 @@
+#include <bits/stdc++.h>
+
 template <class T, class Container = std::vector<T>,
-          class Compare = std::less<typename Container::value_type>>
+          class Compare = std::greater<typename Container::value_type>>
 struct SlideMinQueue {
   Container vals;
   Compare compare;              // comparison funcation.
@@ -11,14 +13,11 @@ struct SlideMinQueue {
   explicit SlideMinQueue(Container v)
       : vals(std::move(v)), compare(), left(0), right(0) {}
 
-  SlideMinQueue(const SlideMinQueue &) = default;
-  SlideMinQueue &operator=(const SlideMinQueue &) = default;
-  SlideMinQueue(SlideMinQueue &&) = default;
-  SlideMinQueue &operator=(SlideMinQueue &&) = default;
-
   // Shifts the window to the right.
   // Sets `left` to `l`, and `right` to `r`.
   void slide(int l, int r) {
+    l = std::max(l, 0);
+    r = std::min(r, (int)vals.size());
     assert(l >= left);
     assert(r >= right);
     pop_left(l);
@@ -30,9 +29,10 @@ struct SlideMinQueue {
   }
 
   // Returns the minimum value in [left, right).
-  std::optional<T> fold() const {
+  std::optional<std::pair<T, int>> fold() const {
     if (empty()) return std::nullopt;
-    return vals[index_queue.front()];
+    int i = index_queue.front();
+    return std::pair{vals[i], i};
   }
 
   bool empty() const { return index_queue.empty(); }
@@ -40,8 +40,7 @@ struct SlideMinQueue {
  private:
   // Enqueues the i-th value.
   void push_right(int i) {
-    while (!index_queue.empty() &&
-           !compare(vals[index_queue.back()], vals[i])) {
+    while (!index_queue.empty() && compare(vals[index_queue.back()], vals[i])) {
       index_queue.pop_back();
     }
     index_queue.emplace_back(i);
@@ -56,4 +55,4 @@ struct SlideMinQueue {
 };
 
 template <class T, class Container = std::vector<T>>
-using SlideMaxQueue = SlideMinQueue<T, Container, std::greater<T>>;
+using SlideMaxQueue = SlideMinQueue<T, Container, std::less<T>>;

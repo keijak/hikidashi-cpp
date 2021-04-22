@@ -2,6 +2,10 @@
 //   int n = input;
 //   unsigned x = (unsigned)(input) << 1;
 
+#pragma GCC target("avx2")
+#pragma GCC optimize("O3")
+#pragma GCC optimize("unroll-loops")
+
 #include <cctype>
 #include <cstdio>
 #include <type_traits>

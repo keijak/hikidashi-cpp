@@ -16,8 +16,7 @@ struct SWAGQueue {
 
   size_t size() const { return front_stack.size() + back_stack.size(); }
 
-  // push_back
-  void enqueue(const T &x) {
+  void push_back(const T &x) {
     if (back_stack.empty()) {
       back_stack.emplace(x, x);
     } else {
@@ -25,8 +24,7 @@ struct SWAGQueue {
     }
   }
 
-  // pop_front
-  void dequeue() {
+  void pop_front() {
     assert(!empty());
     if (front_stack.empty()) {
       front_stack.emplace(back_stack.top().val, back_stack.top().val);
