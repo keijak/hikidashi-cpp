@@ -25,7 +25,9 @@ struct Input {
         ch = getchar_unlocked();
       }
     }
-    for (; isdigit(ch); ch = getchar_unlocked()) ret = (ret * 10) + (ch - '0');
+    for (; isdigit(ch); ch = getchar_unlocked()) {
+      ret = (ret * 10) + (ch - '0');
+    }
     ungetc(ch, stdin);
     if constexpr (std::is_unsigned<T>::value) {
       return ret;
