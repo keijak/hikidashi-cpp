@@ -7,13 +7,13 @@
 #include <type_traits>
 
 struct Input {
-  operator int() { return read_int<int>(); }
-  operator long long() { return read_int<long long>(); }
-  operator unsigned() { return read_int<unsigned>(); }
+  inline operator int() { return read_int<int>(); }
+  inline operator long long() { return read_int<long long>(); }
+  inline operator unsigned() { return read_int<unsigned>(); }
 
  private:
   template <typename T>
-  T read_int() {
+  static T read_int() {
     T ret = 0, sgn = 1;
     int ch = getchar_unlocked();
     while (isspace(ch)) {
