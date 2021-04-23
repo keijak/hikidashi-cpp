@@ -1,7 +1,3 @@
-#include <bits/stdc++.h>
-
-// Binary lifting over a functional graph.
-//
 // A functional graph is a directed graph in which each vertex has outdegree
 // one, and can therefore be specified by a function mapping {0,...,n-1} onto
 // itself.
@@ -45,7 +41,7 @@ struct FunctionalGraph {
   }
 
   // Starting from `start`, `steps` times goes forward and accumulates values.
-  T go(int start, long long steps) const {
+  T transition(int start, long long steps) const {
     // steps >= 2^kMaxBits is not supported.
     assert(steps < (1LL << kMaxBits));
     T res = Monoid::id();
