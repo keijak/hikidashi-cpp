@@ -1,21 +1,23 @@
+#include <vector>
+
 template <class T>
 struct Matrix {
   using Row = std::vector<T>;
-  std::vector<Row> A;
+  std::vector<Row> data;
 
   Matrix() {}
-  Matrix(int n, int m) : A(n, Row(m, 0)) {}
-  explicit Matrix(int n) : A(n, Row(n, 0)){};
-  explicit Matrix(std::vector<Row> a) : A(std::move(a)) {}
-  Matrix(std::initializer_list<Row> a) : A(std::move(a)) {}
+  Matrix(int n, int m) : data(n, Row(m, 0)) {}
+  explicit Matrix(int n) : data(n, Row(n, 0)){};
+  explicit Matrix(std::vector<Row> a) : data(std::move(a)) {}
+  Matrix(std::initializer_list<Row> a) : data(std::move(a)) {}
 
-  inline int height() const { return (int)(A.size()); }
+  inline int height() const { return (int)(data.size()); }
 
-  inline int width() const { return (int)(A[0].size()); }
+  inline int width() const { return (int)(data[0].size()); }
 
-  inline const Row &operator[](int k) const { return A[k]; }
+  inline const Row &operator[](int k) const { return data[k]; }
 
-  inline Row &operator[](int k) { return A[k]; }
+  inline Row &operator[](int k) { return data[k]; }
 
   static Matrix I(int n) {
     Matrix mat(n);
@@ -71,7 +73,7 @@ struct Matrix {
       for (int j = 0; j < m; j++)
         for (int k = 0; k < p; k++)
           C[i][j] = (C[i][j] + (*this)[i][k] * B[k][j]);
-    std::swap(A, C);
+    std::swap(data, C);
     return *this;
   }
 
@@ -82,7 +84,7 @@ struct Matrix {
       *this *= *this;
       k >>= 1LL;
     }
-    A.swap(B.A);
+    data.swap(B.data);
     return *this;
   }
 
