@@ -37,7 +37,7 @@ int countr_one(u64 x) {
 inline int popcount(u64 x) { return __builtin_popcountll(x); }
 inline bool has_single_bit(u64 x) { return __builtin_popcountll(x) == 1; }
 
-// Most Significant Set Bit (Highest One Bit)
+// Most Significant Set Bit (Highest One Bit) = std::bit_floor(x)
 int mssb_pos(unsigned x) {
   static const int CLZ_WIDTH = __builtin_clz(1);
   assert(x != 0);
@@ -47,10 +47,6 @@ int mssb_pos(u64 x) {
   static const int CLZLL_WIDTH = __builtin_clzll(1LL);
   assert(x != 0);
   return CLZLL_WIDTH - __builtin_clzll(x);
-}
-template <typename U>
-inline U mssb(U x) {
-  return U(1) << mssb_pos(x);
 }
 template <typename U>
 inline U bit_floor(U x) {
@@ -70,7 +66,7 @@ inline T lssb(T x) {
 
 void enumerate_subsets(unsigned bits, std::function<void(unsigned)> func) {
   if (bits == 0) return;
-  unsigned mssb_mask = mssb(bits);
+  unsigned mssb_mask = bit_floor(bits);
   for (unsigned sub = bits;; sub = (sub - 1) & bits) {
     func(sub);
     if (sub != 0) break;
@@ -80,7 +76,7 @@ void enumerate_subsets(unsigned bits, std::function<void(unsigned)> func) {
 // Enumerates subsets that contain the most significant bit of the bits.
 void enumerate_subsets_half(unsigned bits, std::function<void(unsigned)> func) {
   if (bits == 0) return;
-  unsigned fixed_bit = mssb(bits);
+  unsigned fixed_bit = bit_floor(bits);
   for (unsigned sub = bits;; sub = (sub - 1) & bits) {
     func(sub);
     if (not(sub & fixed_bit)) break;
