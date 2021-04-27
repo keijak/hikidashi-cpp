@@ -32,9 +32,12 @@ struct Kitamasa {
       res[n - 1] = a_[n - 1];
       return res;
     }
+    // Doubling.
     if (n & 1) {
+      // f(n-1) => f(n)
       return next(nth_coeff(n - 1));
     } else {
+      // f(n/2) => f(n)
       const int h = n / 2;
       std::vector<T> s = nth_coeff(h);
       std::vector<T> t = s;
