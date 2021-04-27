@@ -15,6 +15,7 @@ struct Kitamasa {
   explicit Kitamasa(std::vector<T> a, std::vector<T> c)
       : k(a.size()), a_(a), coeff_(std::move(c)) {}
 
+  // n: 1-indexed.
   T nth(long long n) const {
     auto x = nth_coeff(n);
     T res = 0;
@@ -25,7 +26,6 @@ struct Kitamasa {
   }
 
  private:
-  // n: 1-indexed.
   std::vector<T> nth_coeff(long long n) const {
     if (n <= k) {
       std::vector<T> res(k, 0);
