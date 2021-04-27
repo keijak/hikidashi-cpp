@@ -38,7 +38,7 @@ struct Kitamasa {
       return next(nth_coeff(n - 1));
     } else {
       // f(n/2) => f(n)
-      const int h = n / 2;
+      const auto h = n / 2;
       std::vector<T> s = nth_coeff(h);
       std::vector<T> t = s;
       std::vector<T> res(k, 0);
