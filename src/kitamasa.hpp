@@ -9,7 +9,7 @@ struct Kitamasa {
   const std::vector<T> a_;
 
   // Coefficients of the recurrence.
-  //   a[k+1] = coeff[1]*a[1] + coeff[2]*a[2] + ... + coeff[k]*a[k].
+  //   a[n] = coeff[1]*a[n-1] + coeff[2]*a[n-2] + ... + coeff[k]*a[n-k].
   const std::vector<T> coeff_;
 
   explicit Kitamasa(std::vector<T> a, std::vector<T> c)
@@ -29,7 +29,7 @@ struct Kitamasa {
   std::vector<T> nth_coeff(long long n) const {
     if (n <= k) {
       std::vector<T> res(k, 0);
-      res[n - 1] = a_[n - 1];
+      res[n - 1] = 1;
       return res;
     }
     // Doubling.
@@ -57,7 +57,7 @@ struct Kitamasa {
       res[i] = x[i - 1];
     }
     for (int i = 0; i < k; ++i) {
-      res[i] += x[k - 1] * coeff_[i];
+      res[i] += x[k - 1] * coeff_[k - 1 - i];
     }
     return res;
   }
