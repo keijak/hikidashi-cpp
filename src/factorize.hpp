@@ -44,6 +44,39 @@ std::vector<bool> prime_sieve(int n) {
   return is_prime;
 }
 
+// Returns a prime table of the segment [L, H).
+// (table[x-L] != 0) ⇔ x is a prime number.
+std::vector<i64> segment_sieve(i64 L, i64 H) {
+  static const int SQRTN = 1 << 16;  // upper bound of sqrt(H)
+  static int p[SQRTN], lookup = 0;
+  if (!lookup) {
+    for (int i = 2; i < SQRTN; ++i) p[i] = i;
+    for (int i = 2; i * i < SQRTN; ++i)
+      if (p[i])
+        for (int j = i * i; j < SQRTN; j += i) p[j] = 0;
+    std::remove(p, p + SQRTN, 0);
+    lookup = 1;
+  }
+  std::vector<i64> table(H - L);
+  for (i64 i = L; i < H; ++i) {
+    table[i - L] = i;
+  }
+  for (int i = 0; i64(p[i]) * p[i] < H; ++i) {  // O( \sqrt(H) )
+    i64 j;
+    if (p[i] >= L) {
+      j = i64(p[i]) * p[i];
+    } else if (L % p[i] == 0) {
+      j = L;
+    } else {
+      j = L - (L % p[i]) + p[i];
+    }
+    for (; j < H; j += p[i]) {
+      table[j - L] = 0;
+    }
+  }
+  return table;
+}
+
 // Returns a vector that maps x to x's smallest prime factor (> 1).
 // O(n log log n)
 std::vector<int> sieve_smallest_prime_factors(int n) {
