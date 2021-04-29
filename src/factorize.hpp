@@ -47,8 +47,9 @@ std::vector<bool> prime_sieve(int n) {
 // Returns a prime table of the segment [L, H).
 // (table[x-L] != 0) ⇔ x is a prime number.
 std::vector<i64> segment_sieve(i64 L, i64 H) {
-  static const int SQRTN = 1 << 16;  // upper bound of sqrt(H)
+  static const i64 SQRTN = 1 << 16;  // upper bound of sqrt(H)
   static int p[SQRTN], lookup = 0;
+  assert(H <= SQRTN * SQRTN);
   if (!lookup) {
     for (int i = 2; i < SQRTN; ++i) p[i] = i;
     for (int i = 2; i * i < SQRTN; ++i)
