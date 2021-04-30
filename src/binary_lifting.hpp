@@ -4,7 +4,6 @@
 // one, and can therefore be specified by a function mapping {0,...,n-1} onto
 // itself.
 // https://mathworld.wolfram.com/FunctionalGraph.html
-
 struct SimpleFunctionalGraph {
  private:
   static const int kMaxBits = 60;
@@ -28,8 +27,8 @@ struct SimpleFunctionalGraph {
 
   // Builds the transition table.
   void build() {
-    for (int d = 0; d + 1 < kMaxBits; d++) {
-      for (int i = 0; i < size; i++) {
+    for (int d = 0; d + 1 < kMaxBits; ++d) {
+      for (int i = 0; i < size; ++i) {
         if (int p = next_pos[d][i]; p != -1) {
           next_pos[d + 1][i] = next_pos[d][p];
         }
@@ -46,12 +45,24 @@ struct SimpleFunctionalGraph {
     assert(steps < (1LL << kMaxBits));
 
     int i = start;
-    for (int d = kMaxBits - 1; d >= 0; d--) {
+    for (int d = kMaxBits - 1; d >= 0; --d) {
       if ((steps >> d) & 1) {
         i = next_pos[d][i];
       }
     }
     return i;
+  }
+
+  long long min_steps(int start, std::function<bool(int)> pred) const {
+    long long max_false = 0;
+    int i = start;
+    for (int d = kMaxBits - 1; d >= 0; --d) {
+      int j = next_pos[d][i];
+      if (pred(j)) continue;
+      max_false += 1LL << d;
+      i = j;
+    }
+    return max_false + 1;
   }
 };
 
@@ -88,8 +99,8 @@ struct FunctionalGraph {
 
   // Builds transition tables.
   void build() {
-    for (int d = 0; d + 1 < kMaxBits; d++) {
-      for (int i = 0; i < size; i++) {
+    for (int d = 0; d + 1 < kMaxBits; ++d) {
+      for (int i = 0; i < size; ++i) {
         if (int p = next_pos[d][i]; p != -1) {
           next_pos[d + 1][i] = next_pos[d][p];
           acc_value[d + 1][i] = Monoid::op(acc_value[d][i], acc_value[d][p]);
@@ -107,12 +118,28 @@ struct FunctionalGraph {
 
     T res = Monoid::id();
     int i = start;
-    for (int d = kMaxBits - 1; d >= 0; d--) {
+    for (int d = kMaxBits - 1; d >= 0; --d) {
       if ((steps >> d) & 1) {
         res = Monoid::op(res, acc_value[d][i]);
         i = next_pos[d][i];
       }
     }
     return {res, i};
+  }
+
+  long long min_steps(int start,
+                      std::function<bool(const T&, int)> pred) const {
+    long long max_false = 0;
+    T val = Monoid::id();
+    int i = start;
+    for (int d = kMaxBits - 1; d >= 0; --d) {
+      T tmp = Monoid::op(val, acc_value[d][i]);
+      int j = next_pos[d][i];
+      if (pred(tmp, j)) continue;
+      max_false += 1LL << d;
+      val = std::move(tmp);
+      i = j;
+    }
+    return max_false + 1;
   }
 };
