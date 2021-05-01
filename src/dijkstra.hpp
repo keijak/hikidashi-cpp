@@ -23,7 +23,7 @@ struct State {
 bool operator>(const State &x, const State &y) { return x.cost > y.cost; }
 
 // Returns min distance from the source node to each node (if exists).
-auto search(const vector<vector<Edge>> &g, int source) {
+auto search(const vector<vector<Edge>> &g, int source, int goal) {
   const int n = g.size();
   vector mincost(n, BIG);
   MinHeap<State> que;
@@ -39,15 +39,14 @@ auto search(const vector<vector<Edge>> &g, int source) {
   while (not que.empty()) {
     State cur = move(que.top());
     que.pop();
-    if (cur.cost != mincost[cur.node]) {
-      continue;
-    }
+    if (cur.cost != mincost[cur.node]) continue;
+    if (cur.node == goal) break;
     for (const auto &e : g[cur.node]) {
-      i64 new_cost = cur.cost + e.cost;
+      auto new_cost = cur.cost + e.cost;
       push(new_cost, e.to);
     }
   }
-  return mincost;
+  return mincost[goal];
 }
 
 struct GridState {
@@ -59,7 +58,8 @@ bool operator>(const GridState &x, const GridState &y) {
   return x.cost > y.cost;
 }
 
-auto grid_search(const vector<string> &g, int source_r, int source_c) {
+auto grid_search(const vector<string> &g, int source_r, int source_c,
+                 int goal_r, int goal_c) {
   const int H = g.size();
   const int W = g[0].size();
   array<int, 4> dx = {0, 1, 0, -1}, dy = {1, 0, -1, 0};
@@ -77,17 +77,16 @@ auto grid_search(const vector<string> &g, int source_r, int source_c) {
   while (not que.empty()) {
     GridState cur = move(que.top());
     que.pop();
-    if (cur.cost != mincost[cur.r][cur.c]) {
-      continue;
-    }
+    if (cur.cost != mincost[cur.r][cur.c]) continue;
+    if (cur.r == goal_r and cur.c == goal_c) break;
     assert(g[cur.r][cur.c] == '.');
     for (int i = 0; i < 4; ++i) {
       int nr = cur.r + dx[i];
       int nc = cur.c + dy[i];
       // Note: If the cost delta is always 0 or 1, BFS should be enough.
-      i64 new_cost = cur.cost + 1;
+      auto new_cost = cur.cost + 1;
       push(new_cost, nr, nc);
     }
   }
-  return mincost;
+  return mincost[goal_r][goal_c];
 }
