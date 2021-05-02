@@ -83,7 +83,7 @@ std::vector<i64> segment_sieve(i64 L, i64 H) {
 std::vector<int> sieve_smallest_prime_factors(int n) {
   std::vector<int> res(n + 1);
   for (int i = 1; i <= n; ++i) res[i] = i;
-  for (int i = 4; i <= n; i += 2) res[i] = 2;
+  for (int i = 2; i <= n; i += 2) res[i] = 2;
   for (int i = 3; i * i <= n; i += 2) {
     if (res[i] != i) continue;
     for (int j = i * i; j <= n; j += i) {
@@ -99,7 +99,7 @@ std::vector<std::pair<int, int>> quick_factorize(int n,
   assert(0 < n and n < int(spf.size()));
   std::vector<std::pair<int, int>> res;
   for (;;) {
-    int p = spf[n];
+    const int p = spf[n];
     if (p == 1) break;
     int count = 0;
     do {
