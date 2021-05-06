@@ -8,7 +8,7 @@ const int BIG_COST = 1e8;
 template <typename T>
 struct ProjectSelection {
  private:
-  // Assign Color 1 to kSource and Color 0 to kSink.
+  // Assign true to kSource and false to kSink.
   const int kSource, kSink;
   const int n_;  // number of initial nodes
   int m_;        // number of additional nodes
