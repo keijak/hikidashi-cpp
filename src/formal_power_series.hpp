@@ -13,12 +13,13 @@ struct NaiveMult {
 
   static std::vector<T> multiply(const std::vector<T> &x,
                                  const std::vector<T> &y) {
-    const int n = std::min(x.size() + y.size() - 1, DMAX + 1);
+    const int n = std::min<int>(x.size() + y.size() - 1, DMAX + 1);
+    const int mi = std::min<int>(x.size(), n);
     std::vector<T> res(n);
-    for (int i = 0; i < x.size(); ++i) {
-      for (int j = 0; j < y.size(); ++j) {
+    for (int i = 0; i < mi; ++i) {
+      for (int j = 0; j < int(y.size()); ++j) {
         if (i + j >= n) break;
-        res[i + j] += x.coeff_[i] * y.coeff_[j];
+        res[i + j] += x[i] * y[j];
       }
     }
     return res;
@@ -29,8 +30,8 @@ struct NaiveMult {
     res[0] = x[0].inv();
     for (int i = 1; i <= DMAX; ++i) {
       T s = 0;
-      const int mi = std::min(i + 1, x.size());
-      for (int j = 1; j < mi; ++j) {
+      const int mj = std::min<int>(i + 1, x.size());
+      for (int j = 1; j < mj; ++j) {
         s += x[j] * res[i - j];
       }
       res[i] = -res[0] * s;
@@ -48,7 +49,7 @@ struct NTTMult {
   static std::vector<T> multiply(const std::vector<T> &x,
                                  const std::vector<T> &y) {
     static_assert(T::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
-    std::vector<T> res = atcoder::convolution(x.coeff_, y.coeff_);
+    std::vector<T> res = atcoder::convolution(x, y);
     if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
     return res;
   }
@@ -61,7 +62,7 @@ struct NTTMult {
     res[0] = x[0].inv();
     for (int i = 1; i < n; i <<= 1) {
       std::vector<T> f(2 * i), g(2 * i);
-      for (int j = 0, m = std::min(n, 2 * i); j < m; ++j) {
+      for (int j = 0, m = std::min(2 * i, n); j < m; ++j) {
         f[j] = x[j];
       }
       for (int j = 0; j < i; ++j) {
