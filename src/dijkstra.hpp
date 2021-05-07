@@ -81,10 +81,10 @@ auto grid_search(const vector<string> &g, int source_r, int source_c,
     if (cur.r == goal_r and cur.c == goal_c) break;
     assert(g[cur.r][cur.c] == '.');
     for (int i = 0; i < 4; ++i) {
-      int nr = cur.r + dx[i];
-      int nc = cur.c + dy[i];
+      const int nr = cur.r + dx[i];
+      const int nc = cur.c + dy[i];
       // Note: If the cost delta is always 0 or 1, BFS should be enough.
-      auto new_cost = cur.cost + 1;
+      const auto new_cost = cur.cost + 1;
       push(new_cost, nr, nc);
     }
   }

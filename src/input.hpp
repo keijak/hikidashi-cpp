@@ -29,7 +29,7 @@ struct Input {
         ch = getchar_unlocked();
       }
     }
-    for (; isdigit(ch); ch = getchar_unlocked()) {
+    for (; ('0' <= ch) & (ch <= '9'); ch = getchar_unlocked()) {
       ret = (ret * 10) + (ch - '0');
     }
     ungetc(ch, stdin);
