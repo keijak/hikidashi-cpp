@@ -1,3 +1,4 @@
+#include <cassert>
 #include <functional>
 #include <map>
 #include <optional>
@@ -11,11 +12,11 @@ struct HLD {
   // half-open intervals of preorder indices of nodes.
   using IntervalVec = std::vector<std::pair<int, int>>;
 
-  int n;                                      // number of nodes in the tree
-  NodeID root;                                // root of the tree
-  G child;                                    // children node ids
-  std::vector<std::optional<NodeID>> parent;  // parent node id (or -1)
-  std::vector<int> subsize;                   // subtree size
+  int n;                       // number of nodes in the tree
+  NodeID root;                 // root of the tree
+  G child;                     // children node ids
+  std::vector<NodeID> parent;  // parent node id (or -1 on the root node)
+  std::vector<int> subsize;    // subtree size
   // "ord" is preorder index in DFS traversal. [0, n)
   std::vector<int> node_to_ord;     // node id to preorder index
   std::vector<NodeID> ord_to_node;  // preorder index to node id
@@ -42,8 +43,8 @@ struct HLD {
       if (node_to_ord[u] > node_to_ord[v]) std::swap(u, v);
       NodeID crv = comp_root[v];
       if (comp_root[u] == crv) return u;
-      assert(parent[crv].has_value());
-      v = parent[crv].value();
+      assert(parent[crv] != -1);
+      v = parent[crv];
     }
   }
 
@@ -59,8 +60,8 @@ struct HLD {
       res.emplace_back(std::max(node_to_ord[crv], node_to_ord[u]),
                        node_to_ord[v] + 1);
       if (comp_root[u] == crv) break;
-      assert(parent[crv].has_value());
-      v = parent[crv].value();
+      assert(parent[crv] != -1);
+      v = parent[crv];
     }
     return res;
   }
@@ -80,8 +81,8 @@ struct HLD {
         break;
       }
       res.emplace_back(node_to_ord[crv], node_to_ord[v] + 1);
-      assert(parent[crv].has_value());
-      v = parent[crv].value();
+      assert(parent[crv] != -1);
+      v = parent[crv];
     }
     return res;
   }
@@ -99,8 +100,8 @@ struct HLD {
   // Fills `parent` and `subsize` and drops parent node ids from `child`.
   void dfs_subsize(NodeID v) {
     auto &edges = child[v];
-    if (parent[v].has_value()) {
-      auto it = std::find(edges.begin(), edges.end(), parent[v].value());
+    if (parent[v] != -1) {
+      auto it = std::find(edges.begin(), edges.end(), parent[v]);
       if (it != edges.end()) edges.erase(it);
     }
     for (NodeID &u : edges) {
@@ -125,17 +126,16 @@ struct HLD {
 };
 
 // Returns the cumulative sum array of edge costs (indexed by Ord).
-std::vector<i64> cost_cumsum(
-    const HLD &hld, int u, int v,
-    const std::map<std::pair<int, int>, i64> &edge_cost) {
+std::vector<i64> edge_cost_cumsum(
+    const HLD &hld, const std::map<std::pair<int, int>, i64> &edge_cost) {
   const int n = hld.n;
   std::vector<i64> cost(n), acc(n + 1);  // indexed by Ord.
   // Iterate over the NodeID space.
   for (int v = 0; v < n; ++v) {
     // Calculate the cost from v to parent[v].
     auto p = hld.parent[v];
-    if (not p.has_value()) continue;
-    auto it = edge_cost.find(std::pair{std::min(v, *p), std::max(v, *p)});
+    if (p == -1) continue;
+    auto it = edge_cost.find(std::pair{std::min(v, p), std::max(v, p)});
     if (it == edge_cost.end()) continue;
     const i64 cost_to_parent = it->second;
     const int ord = hld.node_to_ord[v];
