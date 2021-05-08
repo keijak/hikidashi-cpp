@@ -26,8 +26,7 @@ struct ProjectSelection {
   explicit ProjectSelection(int n)
       : kSource(n), kSink(n + 1), n_(n), m_(0), bonus_(0) {}
 
-  // Returns minimum cost.
-  // To get maximum revenue: -min_cost().
+  // Returns the minimum cost.
   T min_cost() const {
     atcoder::mf_graph<T> g(n_ + m_ + 2);
     for (const Edge &e : edges_) {
@@ -36,15 +35,18 @@ struct ProjectSelection {
     return g.flow(kSource, kSink) - bonus_;
   }
 
+  // Returns the maximum gain.
+  T max_gain() const { return -min_cost(); }
+
   // === constraint API ===
 
   void constraint(int x, int y, T cost) {
     if (x >= 0 and y < 0) {
       assert(cost >= 0);
-      if_X_and_notY_then_lose(x, ~y, cost);
+      if_X_and_notY_then_cost(x, ~y, cost);
     } else if (x < 0 and y >= 0) {
       assert(cost >= 0);
-      if_X_and_notY_then_lose(y, ~x, cost);
+      if_X_and_notY_then_cost(y, ~x, cost);
     } else if (x >= 0 and y >= 0) {
       assert(cost <= 0);
       if_all_of_X_then_gain({x, y}, -cost);
@@ -59,13 +61,13 @@ struct ProjectSelection {
   void constraint(int x, T cost) {
     if (x >= 0) {
       if (cost >= 0) {
-        if_X_then_lose(x, cost);
+        if_X_then_cost(x, cost);
       } else {
         if_X_then_gain(x, -cost);
       }
     } else {
       if (cost >= 0) {
-        if_notX_then_lose(~x, cost);
+        if_notX_then_cost(~x, cost);
       } else {
         if_notX_then_gain(~x, cost);
       }
@@ -75,61 +77,61 @@ struct ProjectSelection {
   // === if-then API ===
 
   // {X=1, Y=0} => cost
-  void if_X_and_notY_then_lose(int x, int y, T cost) {
+  void if_X_and_notY_then_cost(int x, int y, T cost) {
     edges_.push_back(Edge{x, y, cost});
   }
 
   // {X=1} => cost
-  void if_X_then_lose(int x, T cost) {
-    if_X_and_notY_then_lose(x, kSink, cost);
+  void if_X_then_cost(int x, T cost) {
+    if_X_and_notY_then_cost(x, kSink, cost);
   }
 
   // {X=0} => cost
-  void if_notX_then_lose(int x, T cost) {
-    if_X_and_notY_then_lose(kSource, x, cost);
+  void if_notX_then_cost(int x, T cost) {
+    if_X_and_notY_then_cost(kSource, x, cost);
   }
 
-  // {X=1} => revenue
-  void if_X_then_gain(int x, T revenue) {
-    bonus_ += revenue;
-    if_notX_then_lose(x, revenue);
+  // {X=1} => gain
+  void if_X_then_gain(int x, T gain) {
+    bonus_ += gain;
+    if_notX_then_cost(x, gain);
   }
 
-  // {X=0} => revenue
-  void if_notX_then_gain(int x, T revenue) {
-    bonus_ += revenue;
-    if_X_then_lose(x, revenue);
+  // {X=0} => gain
+  void if_notX_then_gain(int x, T gain) {
+    bonus_ += gain;
+    if_X_then_cost(x, gain);
   }
 
-  // {Xi=1 forall i} => revenue
-  void if_all_of_X_then_gain(std::vector<int> x, T revenue) {
+  // {Xi=1 forall i} => gain
+  void if_all_of_X_then_gain(const std::vector<int> &xs, T gain) {
     const int y = n_ + 2 + m_++;
-    bonus_ += revenue;
-    if_X_and_notY_then_lose(kSource, y, revenue);
-    for (const auto &v : x) {
-      if_X_and_notY_then_lose(y, v, BIG_COST);
+    bonus_ += gain;
+    if_X_and_notY_then_cost(kSource, y, gain);
+    for (const auto &x : xs) {
+      if_X_and_notY_then_cost(y, x, BIG_COST);
     }
   }
 
-  // {Xi=0 forall i} => revenue
-  void if_none_of_X_then_gain(std::vector<int> x, T revenue) {
+  // {Xi=0 forall i} => gain
+  void if_none_of_X_then_gain(const std::vector<int> &xs, T gain) {
     const int y = n_ + 2 + m_++;
-    bonus_ += revenue;
-    if_X_and_notY_then_lose(y, kSink, revenue);
-    for (const auto &v : x) {
-      if_X_and_notY_then_lose(v, y, BIG_COST);
+    bonus_ += gain;
+    if_X_and_notY_then_cost(y, kSink, gain);
+    for (const auto &x : xs) {
+      if_X_and_notY_then_cost(x, y, BIG_COST);
     }
   }
 
-  // {X=0,Y=0} or {X=1,Y=1} => revenue
-  void if_X_equal_Y_then_gain(int x, int y, T revenue) {
-    if_all_of_X_then_gain({x, y}, revenue);
-    if_none_of_X_then_gain({x, y}, revenue);
+  // {X=0,Y=0} or {X=1,Y=1} => gain
+  void if_X_equal_Y_then_gain(int x, int y, T gain) {
+    if_all_of_X_then_gain({x, y}, gain);
+    if_none_of_X_then_gain({x, y}, gain);
   }
 
   // {X=0,Y=1} or {X=1,Y=0} => cost
-  void if_X_not_equal_Y_then_lose(int x, int y, T cost) {
-    if_X_and_notY_then_lose(x, y, cost);
-    if_X_and_notY_then_lose(y, x, cost);
+  void if_X_not_equal_Y_then_cost(int x, int y, T cost) {
+    if_X_and_notY_then_cost(x, y, cost);
+    if_X_and_notY_then_cost(y, x, cost);
   }
 };
