@@ -83,7 +83,7 @@ struct NTTMult {
 };
 
 template <int DMAX>
-struct LLMult {
+struct IntMult {
   using value_type = long long;
   static constexpr int dmax() { return DMAX; }
 
@@ -232,7 +232,7 @@ struct DenseFPS {
     return x * DenseFPS(Mult::invert(y.coeff_));
   }
 
-  DenseFPS pow(i64 t) {
+  DenseFPS pow(i64 t) const {
     assert(t >= 0);
     DenseFPS res = {1};
     DenseFPS base = *this;
@@ -241,6 +241,20 @@ struct DenseFPS {
       base *= base;
       t >>= 1;
     }
+    return res;
+  }
+
+  // Divides by (1 - x).
+  void cumsum_inplace() {
+    for (int i = 1; i < size(); ++i) {
+      coeff_[i] += coeff_[i - 1];
+    }
+  }
+
+  // Divides by (1 - x).
+  DenseFPS cumsum() const {
+    DenseFPS res = *this;
+    res.cumsum_inplace();
     return res;
   }
 };
