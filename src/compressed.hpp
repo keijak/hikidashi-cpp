@@ -1,10 +1,10 @@
 #include <bits/stdc++.h>
 
 template <typename T>
-struct Compressor {
+struct Compressed {
   std::vector<T> values;
 
-  explicit Compressor(std::vector<T> v) : values(v) {
+  explicit Compressed(std::vector<T> v) : values(v) {
     std::sort(values.begin(), values.end());
     values.erase(std::unique(values.begin(), values.end()), values.end());
   }
