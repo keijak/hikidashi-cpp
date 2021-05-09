@@ -1,41 +1,31 @@
 // Integer math operations that take negative numbers into account.
 
 #include <bits/stdc++.h>
-using i64 = long long;
 
 #include <atcoder/math>
 
+using i64 = long long;
+
 // Returns ceil(x / y).
-i64 ceildiv(i64 x, i64 y) {
-  if (y <= 0) {
-    assert(y != 0);
-    y *= -1;
-    x *= -1;
-  }
-  if (x >= 0) {
-    return (x + y - 1) / y;
-  } else {
-    return -((-x) / y);
-  }
+template <class T>
+T ceil_div(T x, T y) {
+  assert(y != 0);
+  if (y < 0) x = -x, y = -y;
+  return (x >= 0) ? ((x + y - 1) / y) : (x / y);
 }
 
 // Returns floor(x / y).
-i64 floordiv(i64 x, i64 y) {
-  if (y <= 0) {
-    assert(y != 0);
-    y *= -1;
-    x *= -1;
-  }
-  if (x >= 0) {
-    return x / y;
-  } else {
-    return -((-x + y - 1) / y);
-  }
+template <class T>
+T floor_div(T x, T y) {
+  assert(y != 0);
+  if (y < 0) x = -x, y = -y;
+  return (x >= 0) ? (x / y) : ((x - y + 1) / y);
 }
 
 // Returns x mod y.
 // Guarantees 0 <= r < y (even when x is negative).
-i64 floormod(i64 x, i64 y) {
+template <class T>
+T floor_mod(T x, T y) {
   assert(y > 0);
   auto r = x % y;
   if (r < 0) r += y;
@@ -43,7 +33,7 @@ i64 floormod(i64 x, i64 y) {
 }
 
 // Returns floor(sqrt(x)).
-i64 floorsqrt(i64 x) {
+i64 floor_sqrt(i64 x) {
   assert(x >= 0);
   if (x <= 1) return x;
   i64 r = std::floor(sqrtl((long double)x));
@@ -53,7 +43,7 @@ i64 floorsqrt(i64 x) {
 }
 
 // Returns ceil(sqrt(x)).
-i64 ceilsqrt(i64 x) {
+i64 ceil_sqrt(i64 x) {
   assert(x >= 0);
   if (x <= 1) return x;
   i64 r = std::ceil(sqrtl((long double)x));
@@ -84,7 +74,7 @@ std::optional<std::array<i64, 2>> linear_diophantine(i64 a, i64 b, i64 c) {
   if (c % g != 0) return std::nullopt;
   a /= g, b /= g, c /= g;
   x *= c, y *= c;
-  auto m = floordiv(x, b);
+  auto m = floor_div(x, b);
   x -= m * b;
   y += m * a;
   assert(0 <= x and x < b);
@@ -95,7 +85,7 @@ std::optional<std::array<i64, 2>> linear_diophantine(i64 a, i64 b, i64 c) {
 // Returns the smallest x that satisfies a^x ≡ b (mod m).
 // m is assumed to be a prime number.
 std::optional<int> log_mod(i64 a, i64 b, const int m) {
-  const int L = ceilsqrt(m);  // block size
+  const int L = ceil_sqrt(m);  // block size
   a %= m, b %= m;
 
   // {a^0 => 0, a^1 => 1, ...}
