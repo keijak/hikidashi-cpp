@@ -20,6 +20,8 @@ struct DualSegTree {
     return res;
   }
 
+  void set(int i, T val) { apply(i, i + 1, val); }
+
   // Applies a value to [l,r) range.
   void apply(int l, int r, T val) {
     l += size_;
