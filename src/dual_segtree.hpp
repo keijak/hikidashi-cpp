@@ -36,16 +36,16 @@ struct DualSegTree {
     }
   }
 
+  friend std::ostream &operator<<(std::ostream &os, const DualSegTree &st) {
+    os << "[";
+    for (int i = 0; i < st.size(); ++i) {
+      if (i != 0) os << ", ";
+      os << st[i];
+    }
+    return os << "]";
+  }
+
  private:
   int size_;
   std::vector<T> data_;
 };
-template <typename T>
-std::ostream &operator<<(std::ostream &os, const DualSegTree<T> &st) {
-  os << "[";
-  for (int i = 0; i < st.size(); ++i) {
-    if (i != 0) os << ", ";
-    os << st[i];
-  }
-  return os << "]";
-}
