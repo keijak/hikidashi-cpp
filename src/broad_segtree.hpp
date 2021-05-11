@@ -19,7 +19,7 @@ struct BroadSegTree {
   inline i64 n() const { return n_; }
   inline i64 offset() const { return offset_; }
 
-  explicit BroadSegTree(int n) : n_(n) {
+  explicit BroadSegTree(i64 n) : n_(n) {
     offset_ = 1;
     while (offset_ < n_) offset_ <<= 1;
 
@@ -90,12 +90,15 @@ struct BroadSegTree {
   }
 
   friend std::ostream &operator<<(std::ostream &os, const BroadSegTree &st) {
-    static const int kMaxOutput = 1e7;
+    static const int kMaxOutput = 100;
     os << "[";
-    for (int i = 0; i < std::min<i64>(st.n(), kMaxOutput); ++i) {
+    for (i64 i = 0; i < std::min<i64>(st.n(), kMaxOutput); ++i) {
       if (i != 0) os << ", ";
       const auto &x = st[i];
       os << x;
+    }
+    if (st.n() > kMaxOutput) {
+      os << ", ...";
     }
     return os << "]";
   }

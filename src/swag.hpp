@@ -14,7 +14,7 @@ struct SWAGQueue {
 
   bool empty() const { return front_stack.empty() and back_stack.empty(); }
 
-  size_t size() const { return front_stack.size() + back_stack.size(); }
+  int size() const { return front_stack.size() + back_stack.size(); }
 
   void push_back(const T &x) {
     if (back_stack.empty()) {
