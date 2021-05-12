@@ -1,3 +1,6 @@
+#include <bits/stdc++.h>
+using i64 = long long;
+
 struct Edge {
   int to;
   i64 len;
@@ -10,14 +13,14 @@ class ReRooting {
   using EV = typename Task::EdgeValue;
 
   Task task;
-  int n;                   // number of nodes
-  vector<vector<Edge>> g;  // graph (tree)
-  vector<NV> sub;          // values for each subtree rooted at i
-  vector<NV> full;         // values for each entire tree rooted at i
-  int base_root;           // base root node where we start DFS
+  int n;                             // number of nodes
+  std::vector<std::vector<Edge>> g;  // graph (tree)
+  std::vector<NV> sub;               // values for each subtree rooted at i
+  std::vector<NV> full;              // values for each entire tree rooted at i
+  int base_root;                     // base root node where we start DFS
 
  public:
-  explicit ReRooting(Task task, vector<vector<Edge>> g, int r = 0)
+  explicit ReRooting(Task task, std::vector<std::vector<Edge>> g, int r = 0)
       : task(move(task)),
         n((int)g.size()),
         g(move(g)),
@@ -25,7 +28,7 @@ class ReRooting {
         full(n),
         base_root(r) {}
 
-  const vector<NV> &run() {
+  const std::vector<NV> &run() {
     pull_up(base_root, -1);
     push_down(base_root, -1, task.id());
     return full;
@@ -37,15 +40,15 @@ class ReRooting {
     for (auto &e : g[v]) {
       int u = e.to;
       if (u == par) continue;
-      i64 sub = pull_up(u, v);
-      res = task.merge(res, task.add_edge(sub, e));
+      auto sub = pull_up(u, v);
+      res = task.merge(res, task.add_edge(std::move(sub), e));
     }
     return (sub[v] = task.add_node(res, v));
   }
 
   void push_down(int v, int par, NV upper_sub) {
     int m = g[v].size();
-    vector<EV> cuml(m + 1, task.id()), cumr(m + 1, task.id());
+    std::vector<EV> cuml(m + 1, task.id()), cumr(m + 1, task.id());
 
     for (int i = 0; i < m; ++i) {
       auto &e = g[v][i];
@@ -82,18 +85,33 @@ class ReRooting {
 // Examples
 
 struct EDPC_V {
-  using T = Mint;
+  using Mint = int;
+  using NodeValue = Mint;
+  using EdgeValue = Mint;
 
-  static T id() { return 1; }
-  static T add_node(T val, int node) { return val + 1; }
-  static T op(const T &x, const T &y) { return x * y; }
+  EdgeValue id() const { return 1; }
+
+  NodeValue add_node(EdgeValue val, int node) const { return val + 1; }
+
+  EdgeValue add_edge(NodeValue val, const Edge &edge) const { return val; }
+
+  EdgeValue merge(const EdgeValue &x, const EdgeValue &y) const {
+    return x * y;
+  }
 };
 
 struct ABC160 {
+  using Mint = int;
   struct T {
     int size;
     Mint value;
   };
+  using NodeValue = T;
+  using EdgeValue = T;
+
+  const Factorials<Mint> &fs;
+
+  explicit ABC160(const Factorials<Mint> &fs) : fs(fs) {}
 
   static T op(const T &x, const T &y) {
     int sz = x.size + y.size;
@@ -111,9 +129,9 @@ struct FairNut {
   using NodeValue = i64;
   using EdgeValue = i64;
 
-  vector<i64> w;
+  std::vector<i64> w;
 
-  explicit FairNut(vector<i64> w) : w(move(w)) {}
+  explicit FairNut(std::vector<i64> w) : w(move(w)) {}
 
   EdgeValue id() const { return 0LL; }
 
