@@ -106,7 +106,20 @@ struct ProjectSelection {
     if_X_then_cost(x, gain);
   }
 
-  // {Xi=1 forall i} => gain
+  // {X=0,Y=1} or {X=1,Y=0} => cost
+  void if_X_not_equal_Y_then_cost(int x, int y, T cost) {
+    if_X_and_notY_then_cost(x, y, cost);
+    if_X_and_notY_then_cost(y, x, cost);
+  }
+
+  // {X=0,Y=0} or {X=1,Y=1} => gain
+  void if_X_equal_Y_then_gain(int x, int y, T gain) {
+    bonus_ += gain;
+    if_X_and_notY_then_cost(x, y, gain);
+    if_X_and_notY_then_cost(y, x, gain);
+  }
+
+  // {X[i]=1 forall i} => gain
   void if_all_of_X_then_gain(const std::vector<int> &xs, T gain) {
     const int y = n_ + 2 + m_++;
     bonus_ += gain;
@@ -116,7 +129,7 @@ struct ProjectSelection {
     }
   }
 
-  // {Xi=0 forall i} => gain
+  // {X[i]=0 forall i} => gain
   void if_none_of_X_then_gain(const std::vector<int> &xs, T gain) {
     const int y = n_ + 2 + m_++;
     bonus_ += gain;
@@ -124,17 +137,5 @@ struct ProjectSelection {
     for (const auto &x : xs) {
       if_X_and_notY_then_cost(x, y, BIG_COST);
     }
-  }
-
-  // {X=0,Y=0} or {X=1,Y=1} => gain
-  void if_X_equal_Y_then_gain(int x, int y, T gain) {
-    if_all_of_X_then_gain({x, y}, gain);
-    if_none_of_X_then_gain({x, y}, gain);
-  }
-
-  // {X=0,Y=1} or {X=1,Y=0} => cost
-  void if_X_not_equal_Y_then_cost(int x, int y, T cost) {
-    if_X_and_notY_then_cost(x, y, cost);
-    if_X_and_notY_then_cost(y, x, cost);
   }
 };
