@@ -2,6 +2,9 @@
 
 #include <atcoder/maxflow>
 
+// For each node v, make sure:
+// - sum(cost(*, v)) < BIG_COST
+// - sum(cost(v, *)) < BIG_COST
 const int BIG_COST = 1e8;
 
 // T: flow capacity type (i32/i64)
