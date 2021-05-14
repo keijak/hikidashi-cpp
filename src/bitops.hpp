@@ -2,43 +2,42 @@
 
 #include <cassert>
 #include <functional>
+using u32 = unsigned;
 using u64 = unsigned long long;
 
 // Compatible with C++20 <bit>.
-const int UINT_WIDTH = __builtin_clz(1U) + 1;
-unsigned bit_width(unsigned x) {
-  return (x == 0) ? 0 : UINT_WIDTH - __builtin_clz(x);
-}
-int countl_zero(unsigned x) { return (x == 0) ? UINT_WIDTH : __builtin_clz(x); }
-int countr_zero(unsigned x) { return (x == 0) ? UINT_WIDTH : __builtin_ctz(x); }
-int countl_one(unsigned x) {
+const int U32_WIDTH = __builtin_clz(1U) + 1;
+int bit_width(u32 x) { return (x == 0) ? 0 : U32_WIDTH - __builtin_clz(x); }
+int countl_zero(u32 x) { return (x == 0) ? U32_WIDTH : __builtin_clz(x); }
+int countr_zero(u32 x) { return (x == 0) ? U32_WIDTH : __builtin_ctz(x); }
+int countl_one(u32 x) {
   x = ~x;
-  return (x == 0) ? UINT_WIDTH : __builtin_clz(x);
+  return (x == 0) ? U32_WIDTH : __builtin_clz(x);
 }
-int countr_one(unsigned x) {
+int countr_one(u32 x) {
   x = ~x;
-  return (x == 0) ? UINT_WIDTH : __builtin_ctz(x);
+  return (x == 0) ? U32_WIDTH : __builtin_ctz(x);
 }
-inline int popcount(unsigned x) { return __builtin_popcount(x); }
-inline bool has_single_bit(unsigned x) { return __builtin_popcount(x) == 1; }
+inline int popcount(u32 x) { return __builtin_popcount(x); }
+inline bool has_single_bit(u32 x) { return __builtin_popcount(x) == 1; }
 
-const int ULL_WIDTH = __builtin_clzll(1ULL) + 1;
-int bit_width(u64 x) { return (x == 0) ? 0 : ULL_WIDTH - __builtin_clzll(x); }
-int countl_zero(u64 x) { return (x == 0) ? ULL_WIDTH : __builtin_clzll(x); }
-int countr_zero(u64 x) { return (x == 0) ? ULL_WIDTH : __builtin_ctzll(x); }
+const int U64_WIDTH = __builtin_clzll(1ULL) + 1;
+int bit_width(u64 x) { return (x == 0) ? 0 : U64_WIDTH - __builtin_clzll(x); }
+int countl_zero(u64 x) { return (x == 0) ? U64_WIDTH : __builtin_clzll(x); }
+int countr_zero(u64 x) { return (x == 0) ? U64_WIDTH : __builtin_ctzll(x); }
 int countl_one(u64 x) {
   x = ~x;
-  return (x == 0) ? ULL_WIDTH : __builtin_clzll(x);
+  return (x == 0) ? U64_WIDTH : __builtin_clzll(x);
 }
 int countr_one(u64 x) {
   x = ~x;
-  return (x == 0) ? ULL_WIDTH : __builtin_ctzll(x);
+  return (x == 0) ? U64_WIDTH : __builtin_ctzll(x);
 }
 inline int popcount(u64 x) { return __builtin_popcountll(x); }
 inline bool has_single_bit(u64 x) { return __builtin_popcountll(x) == 1; }
 
 // Most Significant Set Bit (Highest One Bit) = std::bit_floor(x)
-int mssb_pos(unsigned x) {
+int mssb_pos(u32 x) {
   static const int CLZ_WIDTH = __builtin_clz(1);
   assert(x != 0);
   return CLZ_WIDTH - __builtin_clz(x);
@@ -64,7 +63,7 @@ inline T lssb(T x) {
   return (x & -x);
 }
 
-void enumerate_subsets(unsigned bits, std::function<void(unsigned)> func) {
+void enumerate_subsets(u32 bits, std::function<void(unsigned)> func) {
   if (bits == 0) return;
   unsigned mssb_mask = bit_floor(bits);
   for (unsigned sub = bits;; sub = (sub - 1) & bits) {

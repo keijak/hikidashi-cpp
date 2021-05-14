@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 using Mint = double;
 
+// mod: prime
 template <class T = Mint>
 struct Factorials {
   // factorials and inverse factorials.
@@ -8,16 +9,62 @@ struct Factorials {
 
   // n: max cached value.
   Factorials(int n) : fact(n + 1), ifact(n + 1) {
-    assert(n > 0 and n < T::mod());
+    assert(n >= 0);
+    assert(n < T::mod());
     fact[0] = 1;
-    for (int i = 1; i <= n; ++i) fact[i] = fact[i - 1] * i;
+    for (int i = 1; i <= n; ++i) {
+      fact[i] = fact[i - 1] * i;
+    }
     ifact[n] = fact[n].inv();
-    for (int i = n; i >= 1; --i) ifact[i - 1] = ifact[i] * i;
+    for (int i = n; i >= 1; --i) {
+      ifact[i - 1] = ifact[i] * i;
+    }
   }
 
   // Combination (nCk)
   T C(int n, int k) const {
     if (k < 0 || k > n) return 0;
+    return fact[n] * ifact[k] * ifact[n - k];
+  }
+};
+
+// mod: prime
+template <class T = Mint>
+struct FactorialsSmallMod {
+  // factorials and inverse factorials.
+  std::vector<T> fact, ifact;
+  std::vector<int> mcount;  // How many MOD factors the factorial includes.
+
+  // n: max cached value. can be greater than the mod.
+  FactorialsSmallMod(int n) : fact(n + 1), ifact(n + 1), mcount(n + 1) {
+    assert(n >= 0);
+    fact[0] = 1;
+    for (int i = 1; i <= n; ++i) {
+      int x = i;
+      int count = 0;
+      while (x % Mint::mod() == 0) {
+        x /= Mint::mod();
+        ++count;
+      }
+      fact[i] = fact[i - 1] * x;
+      mcount[i] = mcount[i - 1] + count;
+    }
+    ifact[n] = fact[n].inv();
+    for (int i = n; i >= 1; --i) {
+      int x = i;
+      while (x % Mint::mod() == 0) {
+        x /= Mint::mod();
+      }
+      ifact[i - 1] = ifact[i] * x;
+    }
+  }
+
+  // Combination (nCk)
+  T C(int n, int k) const {
+    if (k < 0 || k > n) return 0;
+    int p = mcount[n] - mcount[k] - mcount[n - k];
+    if (p > 0) return 0;
+    assert(p == 0);
     return fact[n] * ifact[k] * ifact[n - k];
   }
 };
