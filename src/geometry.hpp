@@ -261,37 +261,34 @@ P minEnclosingCircle(const VP& ps) {
 }
 
 // Convex Hull by Monotone Chain
-// Populates the upper hull and the lower hull separately.
-void scan_convex_hull(const vector<P>& ps, vector<P>& upper, vector<P>& lower) {
+// Populates the lower hull and the upper hull separately.
+void scan_convex_hull(const vector<P>& ps, vector<P>& lower, vector<P>& upper) {
   for (int i = 0; i < (int)ps.size(); ++i) {
-    auto ax = ps[i].real(), ay = ps[i].imag();
-    P now{ax, ay};
-    while (upper.size() >= 2) {
-      P& p2 = upper[upper.size() - 2];
-      P v1 = upper.back() - p2;
-      P v2 = now - p2;
-      if (cross(v1, v2) > EPS) {
-        break;
-      }
-      upper.pop_back();
-    }
-    upper.push_back(move(now));
-  }
-  for (int i = ps.size() - 1; i >= 0; --i) {
     auto ax = ps[i].real(), ay = ps[i].imag();
     P now{ax, ay};
     while (lower.size() >= 2) {
       P& p2 = lower[lower.size() - 2];
       P v1 = lower.back() - p2;
       P v2 = now - p2;
-      if (cross(v1, v2) > EPS) {
-        break;
-      }
+      if (cross(v1, v2) > EPS) break;
       lower.pop_back();
     }
     lower.push_back(move(now));
   }
-  reverse(lower.begin(), lower.end());
+  for (int i = ps.size() - 1; i >= 0; --i) {
+    auto ax = ps[i].real(), ay = ps[i].imag();
+    P now{ax, ay};
+    while (upper.size() >= 2) {
+      P& p2 = upper[upper.size() - 2];
+      P v1 = upper.back() - p2;
+      P v2 = now - p2;
+      if (cross(v1, v2) > EPS) break;
+
+      upper.pop_back();
+    }
+    upper.push_back(move(now));
+  }
+  reverse(upper.begin(), upper.end());
 }
 
 template <typename T>  // T: int, double, etc.

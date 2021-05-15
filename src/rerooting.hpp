@@ -7,7 +7,7 @@ struct Edge {
 };
 
 template <typename Task>
-class ReRooting {
+class Rerooting {
  private:
   using NV = typename Task::NodeValue;
   using EV = typename Task::EdgeValue;
@@ -20,7 +20,7 @@ class ReRooting {
   int base_root;                     // base root node where we start DFS
 
  public:
-  explicit ReRooting(Task task, std::vector<std::vector<Edge>> g, int r = 0)
+  explicit Rerooting(Task task, std::vector<std::vector<Edge>> g, int r = 0)
       : task(move(task)),
         n((int)g.size()),
         g(move(g)),
@@ -77,71 +77,115 @@ class ReRooting {
       int u = e.to;
       if (u == par) continue;
       NV next_upper_sub = task.add_node(task.merge(cuml[i], cumr[i + 1]), v);
-      push_down(u, v, next_upper_sub);
+      push_down(u, v, std::move(next_upper_sub));
     }
   }
 };
 
-// Examples
+template <typename Task>
+class InplaceRerooting {
+ private:
+  using NV = typename Task::NodeValue;
+  using EV = typename Task::EdgeValue;
 
-struct EDPC_V {
-  using Mint = int;
-  using NodeValue = Mint;
-  using EdgeValue = Mint;
+  Task task;
+  int n;                             // number of nodes
+  std::vector<std::vector<Edge>> g;  // graph (tree)
+  std::vector<NV> sub;               // values for each subtree rooted at i
+  std::vector<NV> full;              // values for each entire tree rooted at i
+  int base_root;                     // base root node where we start DFS
 
-  EdgeValue id() const { return 1; }
+ public:
+  explicit InplaceRerooting(Task task, std::vector<std::vector<Edge>> g,
+                            int r = 0)
+      : task(move(task)),
+        n((int)g.size()),
+        g(move(g)),
+        sub(n),
+        full(n),
+        base_root(r) {}
 
-  NodeValue add_node(EdgeValue val, int node) const { return val + 1; }
+  const std::vector<NV> &run() {
+    pull_up(base_root, -1);
+    push_down(base_root, -1, task.id());
+    return full;
+  }
 
-  EdgeValue add_edge(NodeValue val, const Edge &edge) const { return val; }
+ private:
+  NV pull_up(int v, int par) {
+    EV res = task.id();
+    for (auto &e : g[v]) {
+      int u = e.to;
+      if (u == par) continue;
+      auto sub = task.add_edge(pull_up(u, v), e);
+      task.merge_inplace(res, std::move(sub));
+    }
+    return (sub[v] = task.add_node(res, v));
+  }
 
-  EdgeValue merge(const EdgeValue &x, const EdgeValue &y) const {
-    return x * y;
+  void push_down(int v, int par, NV upper_sub) {
+    int m = g[v].size();
+    EV agg = task.id();
+
+    for (int i = 0; i < m; ++i) {
+      auto &e = g[v][i];
+      int u = e.to;
+      if (u == par) {
+        task.merge_inplace(agg, task.add_edge(upper_sub, e));
+      } else {
+        task.merge_inplace(agg, task.add_edge(sub[u], e));
+      }
+    }
+    full[v] = task.add_node(agg, v);
+
+    for (int i = 0; i < m; ++i) {
+      auto &e = g[v][i];
+      int u = e.to;
+      if (u == par) continue;
+      EV edge_value = task.add_edge(sub[u], e);
+      task.subtract_inplace(agg, edge_value);
+      NV next_upper_sub = task.add_node(agg, v);
+      push_down(u, v, std::move(next_upper_sub));
+      task.merge_inplace(agg, std::move(edge_value));
+    }
   }
 };
 
-struct ABC160 {
-  using Mint = int;
-  struct T {
-    int size;
-    Mint value;
-  };
-  using NodeValue = T;
-  using EdgeValue = T;
+// https://atcoder.jp/contests/abc201/tasks/abc201_e
+struct InplaceTask {
+  static constexpr int M = 60;
+  using Mint = double;
+  using Table = std::array<Mint, M * 2>;  // copy is expensive
+  using NodeValue = Table;
+  using EdgeValue = Table;
 
-  const Factorials<Mint> &fs;
+  EdgeValue id() const { return Table{0}; }
 
-  explicit ABC160(const Factorials<Mint> &fs) : fs(fs) {}
+  NodeValue add_node(EdgeValue val, int node) const { return std::move(val); }
 
-  static T op(const T &x, const T &y) {
-    int sz = x.size + y.size;
-    Mint val = x.value * y.value * fs.C(sz, y.size);
-    return {sz, val};
+  EdgeValue add_edge(const NodeValue &val, const Edge &edge) const {
+    auto res = Table{};
+    for (int i = 0; i < M; ++i) {
+      if (edge.len >> i & 1) {
+        res[2 * i] = val[i * 2 + 1];
+        res[2 * i + 1] = val[i * 2] + 1;
+      } else {
+        res[i * 2] = val[i * 2] + 1;
+        res[i * 2 + 1] = val[i * 2 + 1];
+      }
+    }
+    return res;
   }
 
-  static T id() { return {0, 1}; }
-
-  static T add_node(T val, int node) { return {val.size + 1, val.value}; }
-};
-
-// https://codeforces.com/contest/1084/problem/D
-struct FairNut {
-  using NodeValue = i64;
-  using EdgeValue = i64;
-
-  std::vector<i64> w;
-
-  explicit FairNut(std::vector<i64> w) : w(move(w)) {}
-
-  EdgeValue id() const { return 0LL; }
-
-  NodeValue add_node(EdgeValue val, int node) const { return val + w[node]; }
-
-  EdgeValue add_edge(NodeValue val, const Edge &edge) const {
-    return std::max(val - edge.len, 0LL);
+  void merge_inplace(EdgeValue &agg, const EdgeValue &x) const {
+    for (int i = 0; i < M * 2; ++i) {
+      agg[i] += x[i];
+    }
   }
 
-  EdgeValue merge(const EdgeValue &x, const EdgeValue &y) const {
-    return std::max(x, y);
+  void subtract_inplace(EdgeValue &agg, const EdgeValue &x) const {
+    for (int i = 0; i < M * 2; ++i) {
+      agg[i] -= x[i];
+    }
   }
 };
