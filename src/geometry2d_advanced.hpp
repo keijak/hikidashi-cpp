@@ -255,7 +255,7 @@ VP convexHull(VP ps) {  // 元の点集合がソートされていいならVP&�
   VP ch(2 * n);
   for (int i = 0; i < n; ch[k++] = ps[i++])  // lower-hull
     while (k >= 2 && ccw(ch[k - 2], ch[k - 1], ps[i]) <= 0)
-      --k;  // 余計な点も含むなら == -1 とする
+      --k;  // 余計な点も含むなら ccw() == -1 とする
   for (int i = n - 2, t = k + 1; i >= 0; ch[k++] = ps[i--])  // upper-hull
     while (k >= t && ccw(ch[k - 2], ch[k - 1], ps[i]) <= 0) --k;
   ch.resize(k - 1);
