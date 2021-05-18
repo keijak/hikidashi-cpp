@@ -17,6 +17,7 @@ struct Kitamasa {
 
   // n: 1-indexed.
   T nth(long long n) const {
+    assert(n >= 1);
     auto x = nth_coeff(n);
     T res = 0;
     for (int i = 0; i < k; ++i) {
@@ -26,6 +27,7 @@ struct Kitamasa {
   }
 
  private:
+  // n: 1-indexed.
   std::vector<T> nth_coeff(long long n) const {
     if (n <= k) {
       std::vector<T> res(k, 0);
@@ -38,7 +40,7 @@ struct Kitamasa {
       return next(nth_coeff(n - 1));
     } else {
       // f(n/2) => f(n)
-      std::vector<T> s = nth_coeff(n / 2);
+      std::vector<T> s = nth_coeff(n >> 1);
       std::vector<T> t = s;
       std::vector<T> res(k, 0);
       for (int i = 0; i < k; ++i) {
