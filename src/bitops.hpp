@@ -49,6 +49,7 @@ int mssb_pos(u64 x) {
 }
 template <typename U>
 inline U bit_floor(U x) {
+  if (x == U(0)) return 0;
   return U(1) << mssb_pos(x);
 }
 template <typename U>
