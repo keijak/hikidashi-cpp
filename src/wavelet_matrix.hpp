@@ -1,180 +1,226 @@
+#include <algorithm>
+#include <limits>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
-struct FullyIndexableDictionary {
-  int len, blk;
-  std::vector<unsigned> bit;
-  std::vector<int> sum;
+struct SuccinctBitVector {
+  int size_;
+  int blocks_;
+  std::vector<unsigned> bit_, sum_;
 
-  FullyIndexableDictionary() {}
-  FullyIndexableDictionary(int len)
-      : len(len), blk((len + 31) >> 5), bit(blk, 0), sum(blk, 0) {}
+  SuccinctBitVector() : size_(0), blocks_(0){};
 
-  void set(int k) { bit[k >> 5] |= 1u << (k & 31); }
+  explicit SuccinctBitVector(int size) {
+    size_ = size;
+    blocks_ = (size_ + 31) >> 5;
+    bit_.assign(blocks_, 0U);
+    sum_.assign(blocks_, 0U);
+  }
+
+  void set(int k) { bit_[k >> 5] |= 1U << (k & 31); }
 
   void build() {
-    sum[0] = 0;
-    for (int i = 1; i < blk; i++)
-      sum[i] = sum[i - 1] + __builtin_popcount(bit[i - 1]);
-  }
-
-  bool operator[](int k) const { return bool((bit[k >> 5] >> (k & 31)) & 1); }
-
-  int rank(int k) {
-    return sum[k >> 5] +
-           __builtin_popcount(bit[k >> 5] & ((1u << (k & 31)) - 1));
-  }
-
-  int rank(bool v, int k) { return (v ? rank(k) : k - rank(k)); }
-
-  int select(bool v, int k) {
-    if (k < 0 or rank(v, len) <= k) return -1;
-    int l = 0, r = len;
-    while (l + 1 < r) {
-      int m = (l + r) >> 1;
-      if (rank(v, m) >= k + 1)
-        r = m;
-      else
-        l = m;
+    sum_[0] = 0U;
+    for (int i = 1; i < blocks_; i++) {
+      sum_[i] = sum_[i - 1] + __builtin_popcount(bit_[i - 1]);
     }
-    return r - 1;
   }
 
-  int select(bool v, int i, int l) { return select(v, i + rank(v, l)); }
+  // O(1)
+  bool operator[](int k) const { return (bit_[k >> 5] >> (k & 31)) & 1; }
+
+  // O(1)
+  int rank(int k) const {
+    return (sum_[k >> 5] +
+            __builtin_popcount(bit_[k >> 5] & ((1U << (k & 31)) - 1)));
+  }
+
+  // O(1)
+  int rank(bool val, int k) const { return (val ? rank(k) : k - rank(k)); }
+
+  // O(log(n))
+  int select(bool val, int k) const {
+    if (k < 0 || rank(val, size_) <= k) return (-1);
+    int low = 0, high = size_;
+    while (high - low > 1) {
+      int mid = (low + high) >> 1;
+      if (rank(val, mid) >= k + 1)
+        high = mid;
+      else
+        low = mid;
+    }
+    return (high - 1);
+  }
+
+  // O(log(n))
+  int select(bool val, int i, int l) const {
+    return select(val, i + rank(val, l));
+  }
 };
 
-template <class T, int MAXLOG>
+template <class T, int MAXLOG = std::numeric_limits<T>::digits>
 struct WaveletMatrix {
-  int len;
-  FullyIndexableDictionary mat[MAXLOG];
-  int zs[MAXLOG], buff1[MAXLOG], buff2[MAXLOG];
-  static const T npos = -1;
+  static_assert(std::is_unsigned<T>::value, "Requires unsigned type");
+  int size_;
+  SuccinctBitVector matrix[MAXLOG];
+  int mid[MAXLOG];
 
-  WaveletMatrix(std::vector<T> data) {
-    len = data.size();
-    std::vector<T> ls(len), rs(len);
-    for (int dep = 0; dep < MAXLOG; dep++) {
-      mat[dep] = FullyIndexableDictionary(len + 1);
-      int p = 0, q = 0;
-      for (int i = 0; i < len; i++) {
-        bool k = (data[i] >> (MAXLOG - (dep + 1))) & 1;
-        if (k)
-          rs[q++] = data[i], mat[dep].set(i);
-        else
-          ls[p++] = data[i];
+  WaveletMatrix() = default;
+
+  explicit WaveletMatrix(std::vector<T> v) : size_(v.size()) {
+    std::vector<T> l(size_), r(size_);
+    for (int level = MAXLOG - 1; level >= 0; level--) {
+      matrix[level] = SuccinctBitVector(size_ + 1);
+      int left = 0, right = 0;
+      for (int i = 0; i < size_; i++) {
+        if (((v[i] >> level) & 1)) {
+          matrix[level].set(i);
+          r[right++] = v[i];
+        } else {
+          l[left++] = v[i];
+        }
       }
-      zs[dep] = p;
-      mat[dep].build();
-      swap(ls, data);
-      for (int i = 0; i < q; i++) data[p + i] = rs[i];
+      mid[level] = left;
+      matrix[level].build();
+      v.swap(l);
+      for (int i = 0; i < right; i++) {
+        v[left + i] = r[i];
+      }
     }
   }
 
-  T access(int k) {
-    T res = 0;
-    for (int dep = 0; dep < MAXLOG; dep++) {
-      bool bit = mat[dep][k];
-      res = (res << 1) | bit;
-      k = mat[dep].rank(bit, k) + zs[dep] * dep;
+  inline int size() const { return size_; }
+
+  // access(i): the value at i (0-indexed).
+  T operator[](int i) const {
+    T ret = 0;
+    for (int level = MAXLOG - 1; level >= 0; level--) {
+      bool f = matrix[level][i];
+      if (f) ret |= T(1) << level;
+      i = matrix[level].rank(f, i) + mid[level] * f;
     }
-    return res;
+    return ret;
   }
 
-  // return the number of v in [0,k)
-  int rank(T v, int k) {
-    int l = 0, r = k;
-    for (int dep = 0; dep < MAXLOG; dep++) {
-      buff1[dep] = l;
-      buff2[dep] = r;
-      bool bit = (v >> (MAXLOG - (dep + 1))) & 1;
-      l = mat[dep].rank(bit, l) + zs[dep] * bit;
-      r = mat[dep].rank(bit, r) + zs[dep] * bit;
+  // count i s.t. (0 <= i < r) && v[i] == x
+  int rank(const T &x, int r) {
+    int l = 0;
+    for (int level = MAXLOG - 1; level >= 0; level--) {
+      std::tie(l, r) = succ((x >> level) & 1, l, r, level);
     }
     return r - l;
   }
 
-  // return the position of k-th v
-  int select(T v, int k) {
-    rank(v, len);
-    for (int dep = MAXLOG - 1; dep >= 0; dep--) {
-      bool bit = (v >> (MAXLOG - (dep + 1))) & 1;
-      k = mat[dep].select(bit, k, buff1[dep]);
-      if (k >= buff2[dep] or k < 0) return -1;
-      k -= buff1[dep];
-    }
-    return k;
-  }
-
-  int select(T v, int k, int l) { return select(v, k + rank(v, l)); }
-
-  // return k-th largest value in [l,r)
-  T quantile(int l, int r, int k) {
-    if (r - l <= k or k < 0) return -1;
-    T res = 0;
-    for (int dep = 0; dep < MAXLOG; dep++) {
-      int p = mat[dep].rank(1, l);
-      int q = mat[dep].rank(1, r);
-      if (q - p > k) {
-        l = p + zs[dep];
-        r = q + zs[dep];
-        res |= T(1) << (MAXLOG - (dep + 1));
-      } else {
-        k -= (q - p);
-        l -= p;
-        r -= q;
+  // k-th(0-indexed) smallest number in v[l,r)
+  T kth_smallest(int l, int r, int k) const {
+    assert(0 <= k && k < r - l);
+    T ret = 0;
+    for (int level = MAXLOG - 1; level >= 0; level--) {
+      int cnt = matrix[level].rank(false, r) - matrix[level].rank(false, l);
+      bool f = cnt <= k;
+      if (f) {
+        ret |= T(1) << level;
+        k -= cnt;
       }
+      std::tie(l, r) = succ(f, l, r, level);
     }
-    return res;
+    return ret;
   }
 
-  T rquantile(int l, int r, int k) { return quantile(l, r, r - l - k - 1); }
-
-  int freq_dfs(int d, int l, int r, T val, T a, T b) {
-    if (l == r) return 0;
-    if (d == MAXLOG) return (a <= val and val < b) ? r - l : 0;
-    T nv = T(1) << (MAXLOG - d - 1) | val;
-    T nnv = ((T(1) << (MAXLOG - d - 1)) - 1) | nv;
-    if (nnv < a or b <= val) return 0;
-    if (a <= val and nnv < b) return r - l;
-    int lc = mat[d].rank(1, l), rc = mat[d].rank(1, r);
-    return freq_dfs(d + 1, l - lc, r - rc, val, a, b) +
-           freq_dfs(d + 1, lc + zs[d], rc + zs[d], nv, a, b);
+  // k-th(0-indexed) largest number in v[l,r)
+  T kth_largest(int l, int r, int k) const {
+    return kth_smallest(l, r, r - l - k - 1);
   }
 
-  // return number of points in [left, right) * [lower, upper)
-  int rangefreq(int left, int right, T lower, T upper) {
-    return freq_dfs(0, left, right, 0, lower, upper);
-  }
-
-  std::pair<int, int> ll(int l, int r, T v) {
-    int res = 0;
-    for (int dep = 0; dep < MAXLOG; dep++) {
-      buff1[dep] = l;
-      buff2[dep] = r;
-      bool bit = (v >> (MAXLOG - (dep + 1))) & 1;
-      if (bit) res += r - l + mat[dep].rank(bit, l) - mat[dep].rank(bit, r);
-      l = mat[dep].rank(bit, l) + zs[dep] * bit;
-      r = mat[dep].rank(bit, r) + zs[dep] * bit;
+  // count i s.t. (l <= i < r) && (v[i] < upper)
+  int range_freq(int l, int r, T upper) const {
+    int ret = 0;
+    for (int level = MAXLOG - 1; level >= 0; level--) {
+      bool f = ((upper >> level) & 1);
+      if (f) ret += matrix[level].rank(false, r) - matrix[level].rank(false, l);
+      std::tie(l, r) = succ(f, l, r, level);
     }
-    return std::pair(res, r - l);
+    return ret;
   }
 
-  int lt(int l, int r, T v) {
-    auto p = ll(l, r, v);
-    return p.first;
+  // count i s.t. (l <= i < r) && (lower <= v[i] < upper)
+  int range_freq(int l, int r, T lower, T upper) const {
+    return range_freq(l, r, upper) - range_freq(l, r, lower);
   }
 
-  int le(int l, int r, T v) {
-    auto p = ll(l, r, v);
-    return p.first + p.second;
+  // max v[i] s.t. (l <= i < r) && (v[i] < upper)
+  T prev_value(int l, int r, T upper) const {
+    int cnt = range_freq(l, r, upper);
+    return cnt == 0 ? T(-1) : kth_smallest(l, r, cnt - 1);
   }
 
-  T succ(int l, int r, T v) {
-    int k = le(l, r, v);
-    return k == r - l ? npos : rquantile(l, r, k);
+  // min v[i] s.t. (l <= i < r) && (lower <= v[i])
+  T next_value(int l, int r, T lower) const {
+    int cnt = range_freq(l, r, lower);
+    return cnt == r - l ? T(-1) : kth_smallest(l, r, cnt);
   }
 
-  T pred(int l, int r, T v) {
-    int k = lt(l, r, v);
-    return k ? rquantile(l, r, k - 1) : npos;
+ private:
+  std::pair<int, int> succ(bool f, int l, int r, int level) const {
+    return {matrix[level].rank(f, l) + mid[level] * f,
+            matrix[level].rank(f, r) + mid[level] * f};
+  }
+};
+
+// T: can be large nubmers or negative numbers
+template <typename T>
+struct CompressedWaveletMatrix {
+  std::vector<T> values;
+  WaveletMatrix<size_t> indices;
+
+  explicit CompressedWaveletMatrix(const std::vector<T> &v) : values(v) {
+    std::sort(values.begin(), values.end());
+    values.erase(std::unique(values.begin(), values.end()), values.end());
+    std::vector<size_t> t(v.size());
+    for (size_t i = 0; i < v.size(); i++) {
+      t[i] = index(v[i]);
+    }
+    indices = WaveletMatrix<size_t>(t);
+  }
+
+  T operator[](int k) const { return values[indices[k]]; }
+
+  int rank(const T &x, int r) const {
+    auto pos = index(x);
+    if (pos == values.size() || values[pos] != x) return 0;
+    return indices.rank(pos, r);
+  }
+
+  T kth_smallest(int l, int r, int k) const {
+    return values[indices.kth_smallest(l, r, k)];
+  }
+
+  T kth_largest(int l, int r, int k) const {
+    return values[indices.kth_largest(l, r, k)];
+  }
+
+  int range_freq(int l, int r, T upper) const {
+    return indices.range_freq(l, r, index(upper));
+  }
+
+  int range_freq(int l, int r, T lower, T upper) const {
+    return indices.range_freq(l, r, index(lower), index(upper));
+  }
+
+  T prev_value(int l, int r, T upper) const {
+    auto ret = indices.prev_value(l, r, index(upper));
+    return ret == -1 ? T(-1) : values[ret];
+  }
+
+  T next_value(int l, int r, T lower) const {
+    auto ret = indices.next_value(l, r, index(lower));
+    return ret == -1 ? T(-1) : values[ret];
+  }
+
+ private:
+  // value -> index
+  size_t index(const T &x) const {
+    return std::lower_bound(values.begin(), values.end(), x) - values.begin();
   }
 };
