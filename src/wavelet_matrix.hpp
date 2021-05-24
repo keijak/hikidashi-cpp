@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <limits>
 #include <type_traits>
 #include <utility>
@@ -11,12 +12,11 @@ struct SuccinctBitVector {
 
   SuccinctBitVector() : size_(0), blocks_(0){};
 
-  explicit SuccinctBitVector(int size) {
-    size_ = size;
-    blocks_ = (size_ + 31) >> 5;
-    bit_.assign(blocks_, 0U);
-    sum_.assign(blocks_, 0U);
-  }
+  explicit SuccinctBitVector(int size)
+      : size_(size),
+        blocks_((size_ + 31) >> 5),
+        bit_(blocks_, 0U),
+        sum_(blocks_, 0U) {}
 
   void set(int k) { bit_[k >> 5] |= 1U << (k & 31); }
 
@@ -63,8 +63,8 @@ template <class T, int MAXLOG = std::numeric_limits<T>::digits>
 struct WaveletMatrix {
   static_assert(std::is_unsigned<T>::value, "Requires unsigned type");
   int size_;
-  SuccinctBitVector matrix[MAXLOG];
-  int mid[MAXLOG];
+  std::array<SuccinctBitVector, MAXLOG> matrix;
+  std::array<int, MAXLOG> mid;
 
   WaveletMatrix() = default;
 
@@ -104,7 +104,7 @@ struct WaveletMatrix {
   }
 
   // count i s.t. (0 <= i < r) && v[i] == x
-  int rank(const T &x, int r) {
+  int rank(const T &x, int r) const {
     int l = 0;
     for (int level = MAXLOG - 1; level >= 0; level--) {
       std::tie(l, r) = succ((x >> level) & 1, l, r, level);
@@ -169,19 +169,22 @@ struct WaveletMatrix {
 };
 
 // T: can be large nubmers or negative numbers
-template <typename T>
+// Number of unique values must be less than 2^MAXLOG.
+template <typename T, int MAXLOG = 28>
 struct CompressedWaveletMatrix {
   std::vector<T> values;
-  WaveletMatrix<size_t> indices;
+  WaveletMatrix<size_t, MAXLOG> indices;
 
   explicit CompressedWaveletMatrix(const std::vector<T> &v) : values(v) {
     std::sort(values.begin(), values.end());
     values.erase(std::unique(values.begin(), values.end()), values.end());
+    assert(values.size() < (1ULL << MAXLOG));
+
     std::vector<size_t> t(v.size());
     for (size_t i = 0; i < v.size(); i++) {
       t[i] = index(v[i]);
     }
-    indices = WaveletMatrix<size_t>(t);
+    indices = WaveletMatrix<size_t, MAXLOG>(t);
   }
 
   T operator[](int k) const { return values[indices[k]]; }
