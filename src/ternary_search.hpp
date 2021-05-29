@@ -2,7 +2,11 @@
 using i64 = long long;
 
 // Ternary search over an integer interval.
-// Finds x in [low, high) s.t. func(x) is minimal.
+// Finds x in [low, high) s.t. f(x) is minimal.
+//
+// Note: If the input range size is 1 (e.g. [1, 2)), this function returns the
+// result without evaluating `f(x)` at all. To get the minimal value instead of
+// the argmin, memoise `f` and call `f(result)`.
 template <class T, class Compare = std::less<T>,
           class F = std::function<T(i64)>>
 i64 find_min_ternary_search(i64 low, i64 high, F f) {
