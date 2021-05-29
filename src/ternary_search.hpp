@@ -3,13 +3,16 @@ using i64 = long long;
 
 // Ternary search over an integer interval.
 // Finds x in [low, high) s.t. func(x) is minimal.
-i64 find_min_ternary_search(i64 low, i64 high, function<i64(i64)> func) {
+template <class T, class Compare = std::less<T>,
+          class F = std::function<T(i64)>>
+i64 find_min_ternary_search(i64 low, i64 high, F f) {
+  Compare compare;
   --low;  // Make it an open interval: (low, high).
   i64 l = low, r = high;
   while (r - l > 2) {
     i64 ll = (l + l + r) / 3;
     i64 rr = (l + r + r) / 3;
-    if (func(ll) < func(rr)) {
+    if (compare(f(ll), f(rr))) {
       r = rr;
     } else {
       l = ll;
@@ -21,7 +24,10 @@ i64 find_min_ternary_search(i64 low, i64 high, function<i64(i64)> func) {
 // Golden Section Search over an integer interval.
 // Finds x in [low, high) s.t. func(x) is minimal.
 // Unlike ternary search, `f(x)` is not required to be convex.
-i64 find_min_golden_section_search(i64 low, i64 high, function<i64(i64)> f) {
+template <class T, class Compare = std::less<T>,
+          class F = std::function<T(i64)>>
+i64 find_min_golden_section_search(i64 low, i64 high, F f) {
+  Compare compare;
   --low;             // Make it an open interval: (low, high).
   i64 l = 1, r = 1;  // Left and right offsets from `low`.
   while (l + r < high - low) {
@@ -32,7 +38,7 @@ i64 find_min_golden_section_search(i64 low, i64 high, function<i64(i64)> f) {
   while (l < r) {
     r -= l;
     std::swap(l, r);
-    if (lval < rval) {
+    if (compare(lval, rval)) {
       rval = std::move(lval);
       lval = f(low + l);
     } else {
