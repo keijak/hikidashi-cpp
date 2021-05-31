@@ -6,7 +6,7 @@
 // Supports a broad range of indices without compression.
 
 template <typename Monoid>
-struct BroadSegTree {
+struct SparseSegTree {
   using T = typename Monoid::T;
   using i64 = long long;
 
@@ -19,7 +19,7 @@ struct BroadSegTree {
   inline i64 n() const { return n_; }
   inline i64 offset() const { return offset_; }
 
-  explicit BroadSegTree(i64 n) : n_(n) {
+  explicit SparseSegTree(i64 n) : n_(n) {
     offset_ = 1;
     while (offset_ < n_) offset_ <<= 1;
 
@@ -89,7 +89,7 @@ struct BroadSegTree {
     }
   }
 
-  friend std::ostream &operator<<(std::ostream &os, const BroadSegTree &st) {
+  friend std::ostream &operator<<(std::ostream &os, const SparseSegTree &st) {
     static const int kMaxOutput = 100;
     os << "[";
     for (i64 i = 0; i < std::min<i64>(st.n(), kMaxOutput); ++i) {
