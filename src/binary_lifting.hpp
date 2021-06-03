@@ -4,6 +4,8 @@
 // one, and can therefore be specified by a function mapping {0,...,n-1} onto
 // itself.
 // https://mathworld.wolfram.com/FunctionalGraph.html
+
+// Computes node transition only.
 struct SimpleFunctionalGraph {
  private:
   static const int kMaxBits = 60;
@@ -12,25 +14,25 @@ struct SimpleFunctionalGraph {
   int size;
 
   // next_pos[d][i] := starting from i, what's the position after 2^d steps.
-  std::vector<std::vector<int>> next_pos;
+  std::vector<std::vector<std::optional<int>>> next_pos;
 
   bool build_done_;
 
  public:
   explicit SimpleFunctionalGraph(int n)
       : size(n),
-        next_pos(kMaxBits, std::vector<int>(n, -1)),
+        next_pos(kMaxBits, std::vector<std::optional<int>>(n)),
         build_done_(false) {}
 
-  // Sets next position of node `u`.
-  void set_next(int u, int v) { next_pos[0][u] = v; }
+  // Sets `j` as the next position of node `i`.
+  void set_next(int i, int j) { next_pos[0][i] = j; }
 
   // Builds the transition table.
   void build() {
     for (int d = 0; d + 1 < kMaxBits; ++d) {
       for (int i = 0; i < size; ++i) {
-        if (int p = next_pos[d][i]; p != -1) {
-          next_pos[d + 1][i] = next_pos[d][p];
+        if (const auto &p = next_pos[d][i]; p.has_value()) {
+          next_pos[d + 1][i] = next_pos[d][p.value()];
         }
       }
     }
@@ -47,7 +49,7 @@ struct SimpleFunctionalGraph {
     int i = start;
     for (int d = kMaxBits - 1; d >= 0; --d) {
       if ((steps >> d) & 1) {
-        i = next_pos[d][i];
+        i = next_pos[d][i].value();
       }
     }
     return i;
@@ -57,7 +59,7 @@ struct SimpleFunctionalGraph {
     long long max_false = 0;
     int i = start;
     for (int d = kMaxBits - 1; d >= 0; --d) {
-      int j = next_pos[d][i];
+      const int j = next_pos[d][i].value();
       if (pred(j)) continue;
       max_false += 1LL << d;
       i = j;
@@ -66,8 +68,9 @@ struct SimpleFunctionalGraph {
   }
 };
 
+// Computes node transition and aggregates values along transition.
 template <typename Monoid>
-struct FunctionalGraph {
+struct AggFunctionalGraph {
  private:
   using T = typename Monoid::T;
   static const int kMaxBits = 60;
@@ -80,30 +83,31 @@ struct FunctionalGraph {
   std::vector<std::vector<T>> acc_value;
 
   // next_pos[d][i] := starting from i, what's the position after 2^d steps.
-  std::vector<std::vector<int>> next_pos;
+  std::vector<std::vector<std::optional<int>>> next_pos;
 
   bool build_done_;
 
  public:
-  explicit FunctionalGraph(int n)
+  explicit AggFunctionalGraph(int n)
       : size(n),
         acc_value(kMaxBits, std::vector<T>(n, Monoid::id())),
-        next_pos(kMaxBits, std::vector<int>(n, -1)),
+        next_pos(kMaxBits, std::vector<std::optional<int>>(n)),
         build_done_(false) {}
 
   // Sets value `x` at node `i`.
   void set_value(int i, T x) { acc_value[0][i] = x; }
 
-  // Sets next position of node `i`.
-  void set_next(int i, int pos) { next_pos[0][i] = pos; }
+  // Sets `j` as the next position of node `i`.
+  void set_next(int i, int j) { next_pos[0][i] = j; }
 
   // Builds transition tables.
   void build() {
     for (int d = 0; d + 1 < kMaxBits; ++d) {
       for (int i = 0; i < size; ++i) {
-        if (int p = next_pos[d][i]; p != -1) {
-          next_pos[d + 1][i] = next_pos[d][p];
-          acc_value[d + 1][i] = Monoid::op(acc_value[d][i], acc_value[d][p]);
+        if (const auto &p = next_pos[d][i]; p.has_value()) {
+          next_pos[d + 1][i] = next_pos[d][p.value()];
+          acc_value[d + 1][i] =
+              Monoid::op(acc_value[d][i], acc_value[d][p.value()]);
         }
       }
     }
@@ -121,20 +125,20 @@ struct FunctionalGraph {
     for (int d = kMaxBits - 1; d >= 0; --d) {
       if ((steps >> d) & 1) {
         res = Monoid::op(res, acc_value[d][i]);
-        i = next_pos[d][i];
+        i = next_pos[d][i].value();
       }
     }
     return {res, i};
   }
 
   long long min_steps(int start,
-                      std::function<bool(const T&, int)> pred) const {
+                      std::function<bool(const T &, int)> pred) const {
     long long max_false = 0;
     T val = Monoid::id();
     int i = start;
     for (int d = kMaxBits - 1; d >= 0; --d) {
       T tmp = Monoid::op(val, acc_value[d][i]);
-      int j = next_pos[d][i];
+      const int j = next_pos[d][i].value();
       if (pred(tmp, j)) continue;
       max_false += 1LL << d;
       val = std::move(tmp);
