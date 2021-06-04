@@ -111,6 +111,35 @@ std::vector<std::pair<int, int>> quick_factorize(int n,
   return res;
 }
 
+template <typename T>
+T divisor_count(int n, const std::vector<int>& spf) {
+  assert(0 < n and n < int(spf.size()));
+  T res = 1;
+  for (;;) {
+    const int p = spf[n];
+    if (p == 1) break;
+    int count = 0;
+    do {
+      n /= p;
+      ++count;
+    } while (n % p == 0);
+    res *= (1 + count);
+  }
+  return res;
+}
+
+// Returns a table of divisor counts.
+std::vector<int> divisor_count_table(int n) {
+  std::vector<int> counts(n + 1, 1);
+  counts[0] = 0;
+  for (int i = 2; i * i <= n; ++i) {
+    for (int j = i * i; j <= n; j += i) {
+      ++counts[j];
+    }
+  }
+  return counts;
+}
+
 // Returns all prime numbers smaller than or equal to n.
 std::vector<int> primes_upto(int n) {
   std::vector<int> res;
