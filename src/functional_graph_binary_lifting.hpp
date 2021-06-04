@@ -59,10 +59,11 @@ struct SimpleFunctionalGraph {
     long long max_false = 0;
     int i = start;
     for (int d = kMaxBits - 1; d >= 0; --d) {
-      const int j = next_pos[d][i].value();
-      if (pred(j)) continue;
+      auto j = next_pos[d][i];
+      if (not j.has_value()) continue;
+      if (pred(j.value())) continue;
       max_false += 1LL << d;
-      i = j;
+      i = j.value();
     }
     return max_false + 1;
   }
@@ -138,11 +139,12 @@ struct AggFunctionalGraph {
     int i = start;
     for (int d = kMaxBits - 1; d >= 0; --d) {
       T tmp = Monoid::op(val, acc_value[d][i]);
-      const int j = next_pos[d][i].value();
-      if (pred(tmp, j)) continue;
+      auto j = next_pos[d][i];
+      if (not j.has_value()) continue;
+      if (pred(tmp, j.value())) continue;
       max_false += 1LL << d;
       val = std::move(tmp);
-      i = j;
+      i = j.value();
     }
     return max_false + 1;
   }

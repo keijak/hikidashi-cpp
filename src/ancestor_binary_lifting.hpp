@@ -5,6 +5,8 @@
 // - heavy_light_decomposition.hpp
 
 #include <cassert>
+#include <functional>
+#include <optional>
 #include <utility>
 #include <vector>
 using namespace std;
@@ -15,45 +17,48 @@ using namespace std;
 // - space: O(N log N)
 struct AncestorBinaryLifting {
   using G = vector<vector<int>>;
-  static const int K = 30;  // max upper lookup (2^K)
+  static const int kMaxBits = 30;  // max upper lookup (2^kMaxBits)
 
   const int n;  // number of nodes
   G adj;
-  vector<vector<int>> upper;  // 2^k upper node
+  vector<vector<optional<int>>> upper;  // 2^k upper node
   vector<int> depth;
 
   explicit AncestorBinaryLifting(G g, int root = 0)
-      : n(g.size()), adj(move(g)), upper(K, vector<int>(n, -1)), depth(n) {
+      : n(g.size()),
+        adj(move(g)),
+        upper(kMaxBits, vector<optional<int>>(n)),
+        depth(n) {
     depth[root] = 0;
 
     // Build `depth` and `upper[0]`.
     dfs(0, -1);
 
     // Build `upper[k]` for k > 0.
-    for (int k = 0; k + 1 < K; ++k) {
+    for (int k = 0; k + 1 < kMaxBits; ++k) {
       for (int v = 0; v < n; ++v) {
-        if (upper[k][v] < 0) {
-          upper[k + 1][v] = -1;
-        } else {
-          upper[k + 1][v] = upper[k][upper[k][v]];
+        if (upper[k][v].has_value()) {
+          upper[k + 1][v] = upper[k][upper[k][v].value()];
         }
       }
     }
   }
 
-  int parent(int v) const { return upper[0][v]; }
+  optional<int> parent(int v) const { return upper[0][v]; }
 
   // Returns i-th ancestor of v.
   // - parent is the 1st ancestor.
   // - `upper[k][v]`is the (2^k)-th ancestor.
-  int ancestor(int v, int i) const {
-    assert(i < (1 << K));
-    for (int k = K - 1; k >= 0; --k) {
+  optional<int> ancestor(int v, int i) const {
+    assert(i < (1 << kMaxBits));
+    int x = v;
+    for (int k = kMaxBits - 1; k >= 0; --k) {
       if (i & (1 << k)) {
-        v = upper[k][v];
+        if (not upper[k][x].has_value()) return nullopt;
+        x = upper[k][x].value();
       }
     }
-    return v;
+    return x;
   }
 
   // Returns the node ID of the lowest common ancestor.
@@ -62,29 +67,44 @@ struct AncestorBinaryLifting {
     int ddiff = depth[v] - depth[u];
 
     // Move up `v` so both nodes have the same depth.
-    for (int k = K - 1; k >= 0; --k) {
+    for (int k = kMaxBits - 1; k >= 0; --k) {
       if (ddiff & (1 << k)) {
-        v = upper[k][v];
+        v = upper[k][v].value();
       }
     }
     if (u == v) return u;
 
     // Move up both nodes but still keep them below the LCA.
-    for (int k = K - 1; k >= 0; --k) {
+    for (int k = kMaxBits - 1; k >= 0; --k) {
       if (upper[k][u] != upper[k][v]) {
-        u = upper[k][u];
-        v = upper[k][v];
+        u = upper[k][u].value();
+        v = upper[k][v].value();
       }
     }
 
     // Now both nodes are direct children of the LCA.
-    return parent(u);
+    return parent(u).value();
   }
 
   // Returns the distance (number of edges) between two nodes.
   int distance(int u, int v) const {
     int p = lca(u, v);
     return (depth[u] - depth[p]) + (depth[v] - depth[p]);
+  }
+
+  // Returns the minimum number of steps to reach an ancestor
+  // that satisfies `pred(a)`.
+  int min_steps(int start, std::function<bool(int)> pred) const {
+    int max_false = 0;
+    int v = start;
+    for (int d = kMaxBits - 1; d >= 0; --d) {
+      auto u = upper[d][v];
+      if (not u.has_value()) continue;
+      if (pred(u.value())) continue;
+      max_false += 1 << d;
+      v = u.value();
+    }
+    return max_false + 1;
   }
 
  private:
