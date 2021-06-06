@@ -14,7 +14,7 @@ std::set<T> &operator|=(std::set<T> &s, std::set<T> &&t) {
     s.merge(t);
   } else {
     t.merge(s);
-    s = std::move(t);
+    s.swap(t);
   }
   return s;
 }
@@ -48,7 +48,7 @@ std::set<T> &operator&=(std::set<T> &s, std::set<T> &&t) {
   } else {
     const std::set<T> &c(s);
     t &= c;
-    s = std::move(t);
+    s.swap(t);
   }
   return s;
 }
