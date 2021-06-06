@@ -37,7 +37,7 @@ auto search(const vector<vector<Edge>> &g, int source, int goal) {
   assert(push(0LL, source));
 
   while (not que.empty()) {
-    State cur = move(que.top());
+    State cur = que.top();
     que.pop();
     if (cur.cost != mincost[cur.node]) continue;
     if (cur.node == goal) break;
@@ -75,7 +75,7 @@ auto grid_search(const vector<string> &g, int source_r, int source_c,
   assert(push(0LL, source_r, source_c));
 
   while (not que.empty()) {
-    GridState cur = move(que.top());
+    GridState cur = que.top();
     que.pop();
     if (cur.cost != mincost[cur.r][cur.c]) continue;
     if (cur.r == goal_r and cur.c == goal_c) break;

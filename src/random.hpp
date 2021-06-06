@@ -18,16 +18,19 @@ void shuffle_example(vector<int>& v) {
 }
 
 bool trial_loop() {
-  const auto start = chrono::system_clock::now();
-  const unsigned time_limit_check_mask = 127;  // check per 128 trials
+  const auto start_time = chrono::system_clock::now();
+  const unsigned time_limit_check_mask = 31;  // check per 32 trials
+  const unsigned time_limit_ms = 1800;
   for (unsigned trial = 0;; ++trial) {
     if ((trial & time_limit_check_mask) == 0) {
       const auto now = chrono::system_clock::now();
       const auto dur_ms =
-          chrono::duration_cast<chrono::milliseconds>(now - start);
-      if (dur_ms.count() >= 1900) return false;
+          chrono::duration_cast<chrono::milliseconds>(now - start_time);
+      if (dur_ms.count() >= time_limit_ms) break;
     }
-    // ...
-    return true;
+    //
+    // Compute here.
+    //
   }
+  return false;
 }
