@@ -6,6 +6,20 @@
 
 using i64 = long long;
 
+template <class T>
+T saturating_mul(T x, T y) {
+  T res;
+  if (__builtin_mul_overflow(x, y, &res)) {
+    return res;
+  }
+  const bool negative = (x < T(0)) ^ (y < T(0));
+  if (negative) {
+    return std::numeric_limits<T>::lowest();
+  } else {
+    return std::numeric_limits<T>::max();
+  }
+}
+
 // Returns ceil(x / y).
 template <class T>
 T ceil_div(T x, T y) {
