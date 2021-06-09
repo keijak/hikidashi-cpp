@@ -55,7 +55,9 @@ struct SimpleFunctionalGraph {
     return i;
   }
 
-  long long min_steps(int start, std::function<bool(int)> pred) const {
+  template <class F>
+  long long min_steps(int start, F pred) const {
+    static_assert(std::is_invocable_r_v<bool, F, int>);
     long long max_false = 0;
     int i = start;
     for (int d = kMaxBits - 1; d >= 0; --d) {

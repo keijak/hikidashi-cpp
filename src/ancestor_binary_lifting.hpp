@@ -7,6 +7,7 @@
 #include <cassert>
 #include <functional>
 #include <optional>
+#include <type_traits>
 #include <utility>
 #include <vector>
 using namespace std;
@@ -94,7 +95,9 @@ struct AncestorBinaryLifting {
 
   // Returns the minimum number of steps to reach an ancestor
   // that satisfies `pred(a)`.
-  int min_steps(int start, std::function<bool(int)> pred) const {
+  template <class F>
+  int min_steps(int start, F pred) const {
+    static_assert(std::is_invocable_r_v<bool, F, int>);
     int max_false = 0;
     int v = start;
     for (int d = kMaxBits - 1; d >= 0; --d) {
