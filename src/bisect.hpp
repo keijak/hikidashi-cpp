@@ -1,22 +1,23 @@
-int bisect(int ok, int ng, function<bool(int)> pred) {
-  // assert(pred(ok));
-  // assert(!pred(ng));
-  while (abs(ok - ng) > 1) {
-    int mid = (ok + ng) / 2;
+#include <cmath>
+#include <type_traits>
+
+// Binary search.
+// Returns the boundary argument which satisfies pred(x).
+//
+// Usage:
+//   auto opt_x = bisect(ok, ng, [&](int x) -> bool { return ...; });
+template <class I, class F>
+I bisect(I true_x, I false_x, F pred) {
+  static_assert(std::is_integral_v<I>, "I must be integer");
+  static_assert(std::is_invocable_r_v<bool, F, I>, "F must be invocable");
+
+  while (std::abs(true_x - false_x) > I(1)) {
+    I mid = (true_x + false_x) / I(2);
     if (pred(mid)) {
-      ok = mid;
+      true_x = std::move(mid);
     } else {
-      ng = mid;
+      false_x = std::move(mid);
     }
   }
-  return ok;
-}
-
-int bisect_max(int ok, int ng, function<bool(int)> pred) {
-  assert(ok < ng);
-  return bisect(ok, ng, pred);
-}
-int bisect_min(int ok, int ng, function<bool(int)> pred) {
-  assert(ok > ng);
-  return bisect(ok, ng, pred);
+  return true_x;
 }

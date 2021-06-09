@@ -1,3 +1,6 @@
+#include <bits/stdc++.h>
+using namespace std;
+
 // Returns the topogically sorted list of nodes.
 // Nodes with zero indegree come first.
 // Returns nullopt if the input graph is not a DAG.
@@ -9,7 +12,9 @@ optional<vector<int>> topological_sort(const vector<vector<int>> &g) {
   }
   deque<int> q;
   for (int v = 0; v < n; ++v) {
-    if (indeg[v] == 0) q.emplace_back(v);
+    if (indeg[v] == 0) {
+      q.emplace_back(v);
+    }
   }
   vector<int> res;
   while (not q.empty()) {
@@ -17,9 +22,13 @@ optional<vector<int>> topological_sort(const vector<vector<int>> &g) {
     q.pop_front();
     res.push_back(v);
     for (auto u : g[v]) {
-      if (--indeg[u] == 0) q.push_back(u);
+      if (--indeg[u] == 0) {
+        q.push_back(u);
+      }
     }
   }
-  if (int(res.size()) != n) return nullopt;  // not a DAG
+  if (int(res.size()) != n) {
+    return nullopt;  // not a DAG
+  }
   return res;
 }

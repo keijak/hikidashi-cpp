@@ -1,10 +1,14 @@
+#include <cassert>
+#include <iostream>
+#include <type_traits>
+#include <vector>
 
 template <typename LazyMonoid>
 struct LazySegTree {
   using T = typename LazyMonoid::T;
   using F = typename LazyMonoid::F;
 
-  inline int n() const { return n_; }
+  inline int size() const { return n_; }
   inline int offset() const { return offset_; }
 
   explicit LazySegTree(int n)
@@ -102,71 +106,9 @@ struct LazySegTree {
     }
   }
 
-  template <bool (*g)(T)>
-  int max_right(int l) const {
-    return max_right(l, [](T x) { return g(x); });
-  }
-  template <class G>
-  int max_right(int l, G g) const {
-    assert(0 <= l && l <= n_);
-    assert(g(LazyMonoid::id()));
-    if (l == n_) return n_;
-    l += offset_;
-    for (int i = bits_; i >= 1; i--) push(l >> i);
-    T sm = LazyMonoid::id();
-    do {
-      while (l % 2 == 0) l >>= 1;
-      if (!g(LazyMonoid::op(sm, data_[l]))) {
-        while (l < offset_) {
-          push(l);
-          l = (2 * l);
-          if (g(LazyMonoid::op(sm, data_[l]))) {
-            sm = LazyMonoid::op(sm, data_[l]);
-            l++;
-          }
-        }
-        return l - offset_;
-      }
-      sm = LazyMonoid::op(sm, data_[l]);
-      l++;
-    } while ((l & -l) != l);
-    return n_;
-  }
-
-  template <bool (*g)(T)>
-  int min_left(int r) const {
-    return min_left(r, [](T x) { return g(x); });
-  }
-  template <class G>
-  int min_left(int r, G g) const {
-    assert(0 <= r && r <= n_);
-    assert(g(LazyMonoid::id()));
-    if (r == 0) return 0;
-    r += offset_;
-    for (int i = bits_; i >= 1; i--) push((r - 1) >> i);
-    T sm = LazyMonoid::id();
-    do {
-      r--;
-      while (r > 1 && (r % 2)) r >>= 1;
-      if (!g(LazyMonoid::op(data_[r], sm))) {
-        while (r < offset_) {
-          push(r);
-          r = (2 * r + 1);
-          if (g(LazyMonoid::op(data_[r], sm))) {
-            sm = LazyMonoid::op(data_[r], sm);
-            r--;
-          }
-        }
-        return r + 1 - offset_;
-      }
-      sm = LazyMonoid::op(data_[r], sm);
-    } while ((r & -r) != r);
-    return 0;
-  }
-
   friend std::ostream &operator<<(std::ostream &os, const LazySegTree &st) {
     os << "[";
-    for (int i = 0; i < st.n(); ++i) {
+    for (int i = 0; i < st.size(); ++i) {
       if (i != 0) os << ", ";
       const auto &x = st[i];
       os << x;
@@ -174,7 +116,6 @@ struct LazySegTree {
     return os << "]";
   }
 
- private:
   void update(int k) {
     data_[k] = LazyMonoid::op(data_[2 * k], data_[2 * k + 1]);
   }
@@ -192,3 +133,65 @@ struct LazySegTree {
   mutable std::vector<T> data_;
   mutable std::vector<F> lazy_;
 };
+
+template <class M, class F>
+int max_right(const LazySegTree<M> &seg, int l, F pred) {
+  static_assert(std::is_invocable_r_v<bool, F, typename M::T>,
+                "predicate must be invocable on the value type");
+  assert(0 <= l && l <= seg.size());
+  assert(pred(M::id()));
+  if (l == seg.size()) return seg.size();
+  l += seg.offset_;
+  for (int i = seg.bits_; i >= 1; --i) {
+    seg.push(l >> i);
+  }
+  auto sm = M::id();
+  do {
+    while (l % 2 == 0) l >>= 1;
+    if (not pred(M::op(sm, seg.data_[l]))) {
+      while (l < seg.offset_) {
+        seg.push(l);
+        l <<= 1;
+        if (pred(M::op(sm, seg.data_[l]))) {
+          sm = M::op(sm, seg.data_[l]);
+          ++l;
+        }
+      }
+      return l - seg.offset_;
+    }
+    sm = M::op(sm, seg.data_[l]);
+    ++l;
+  } while ((l & -l) != l);
+  return seg.size();
+}
+
+template <class M, class F>
+int min_left(const LazySegTree<M> &seg, int r, F pred) {
+  static_assert(std::is_invocable_r_v<bool, F, typename M::T>,
+                "predicate must be invocable on the value type");
+  assert(0 <= r && r <= seg.n_);
+  assert(pred(M::id()));
+  if (r == 0) return 0;
+  r += seg.offset_;
+  for (int i = seg.bits_; i >= 1; --i) {
+    seg.push((r - 1) >> i);
+  }
+  auto sm = M::id();
+  do {
+    --r;
+    while (r > 1 && (r % 2)) r >>= 1;
+    if (not pred(M::op(seg.data_[r], sm))) {
+      while (r < seg.offset_) {
+        seg.push(r);
+        r = 2 * r + 1;
+        if (pred(M::op(seg.data_[r], sm))) {
+          sm = M::op(seg.data_[r], sm);
+          --r;
+        }
+      }
+      return r + 1 - seg.offset_;
+    }
+    sm = M::op(seg.data_[r], sm);
+  } while ((r & -r) != r);
+  return 0;
+}
