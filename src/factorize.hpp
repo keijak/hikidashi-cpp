@@ -16,6 +16,7 @@ std::vector<i64> divisors(i64 n) {
 
 // Factorizes a number into {prime, count} pairs. O(sqrt(n)).
 std::vector<std::pair<i64, int>> factorize(i64 n) {
+  assert(n > 0);
   std::vector<std::pair<i64, int>> res;
   for (i64 k = 2; k * k <= n; ++k) {
     if (n % k != 0) continue;
