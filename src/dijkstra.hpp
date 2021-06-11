@@ -22,19 +22,19 @@ struct State {
 };
 bool operator>(const State &x, const State &y) { return x.cost > y.cost; }
 
-// Returns min distance from the source node to each node (if exists).
-auto search(const vector<vector<Edge>> &g, int source, int goal) {
+// Returns min distance from the start node to each node (if exists).
+auto search(const vector<vector<Edge>> &g, int start, int goal) {
   const int n = g.size();
   auto mincost = vector(n, BIG);
   MinHeap<State> que;
   auto push = [&](i64 cost, int node) -> bool {
     if (chmin(mincost[node], cost)) {
-      que.push({cost, node});
+      que.push(State{cost, node});
       return true;
     }
     return false;
   };
-  assert(push(0LL, source));
+  assert(push(0LL, start));
 
   while (not que.empty()) {
     State cur = que.top();
@@ -58,8 +58,8 @@ bool operator>(const GridState &x, const GridState &y) {
   return x.cost > y.cost;
 }
 
-auto grid_search(const vector<string> &g, int source_r, int source_c,
-                 int goal_r, int goal_c) {
+auto grid_search(const vector<string> &g, const pair<int, int> &start,
+                 const pair<int, int> &goal) {
   const int H = g.size();
   const int W = g[0].size();
   array<int, 4> dx = {0, 1, 0, -1}, dy = {1, 0, -1, 0};
@@ -69,16 +69,16 @@ auto grid_search(const vector<string> &g, int source_r, int source_c,
     if (r < 0 or r >= H or c < 0 or c >= W) return false;
     if (g[r][c] == '#') return false;
     if (not chmin(mincost[r][c], cost)) return false;
-    que.push({cost, r, c});
+    que.push(GridState{cost, r, c});
     return true;
   };
-  assert(push(0LL, source_r, source_c));
+  assert(push(0LL, start.first, start.second));
 
   while (not que.empty()) {
     GridState cur = que.top();
     que.pop();
     if (cur.cost != mincost[cur.r][cur.c]) continue;
-    if (cur.r == goal_r and cur.c == goal_c) break;
+    if (pair(cur.r, cur.c) == goal) break;
     assert(g[cur.r][cur.c] == '.');
     for (int i = 0; i < 4; ++i) {
       const int nr = cur.r + dx[i];
@@ -88,5 +88,5 @@ auto grid_search(const vector<string> &g, int source_r, int source_c,
       push(new_cost, nr, nc);
     }
   }
-  return mincost[goal_r][goal_c];
+  return mincost[goal.first][goal.second];
 }
