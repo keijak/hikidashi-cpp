@@ -23,4 +23,4 @@ struct Infinity {
     return x != T(y);
   }
 };
-const Infinity<> INF;
+constexpr Infinity<> INF;

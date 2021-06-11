@@ -25,7 +25,7 @@ bool operator>(const State &x, const State &y) { return x.cost > y.cost; }
 // Returns min distance from the source node to each node (if exists).
 auto search(const vector<vector<Edge>> &g, int source, int goal) {
   const int n = g.size();
-  vector mincost(n, BIG);
+  auto mincost = vector(n, BIG);
   MinHeap<State> que;
   auto push = [&](i64 cost, int node) -> bool {
     if (chmin(mincost[node], cost)) {
@@ -63,7 +63,7 @@ auto grid_search(const vector<string> &g, int source_r, int source_c,
   const int H = g.size();
   const int W = g[0].size();
   array<int, 4> dx = {0, 1, 0, -1}, dy = {1, 0, -1, 0};
-  vector mincost(H, vector(W, BIG));
+  auto mincost = vector(H, vector(W, BIG));
   MinHeap<GridState> que;
   auto push = [&](i64 cost, int r, int c) -> bool {
     if (r < 0 or r >= H or c < 0 or c >= W) return false;
