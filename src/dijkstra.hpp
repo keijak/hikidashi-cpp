@@ -62,7 +62,7 @@ auto grid_search(const vector<string> &g, const pair<int, int> &start,
                  const pair<int, int> &goal) {
   const int H = g.size();
   const int W = g[0].size();
-  array<int, 4> dx = {0, 1, 0, -1}, dy = {1, 0, -1, 0};
+  const array<int, 4> dx = {0, 1, 0, -1}, dy = {1, 0, -1, 0};
   auto mincost = vector(H, vector(W, BIG));
   MinHeap<GridState> que;
   auto push = [&](i64 cost, int r, int c) -> bool {
