@@ -8,22 +8,23 @@ struct Query {
 };
 
 struct Task {
-  vector<int> answer;
+  int n;
+  vector<long long> answer;
 
-  explicit Task(int num_queries) : answer(num_queries) {}
+  Task(int N, int Q) : n(N), answer(Q) {}
 
-  void add_left(int l) { add(l); }
-  void add_right(int r) { add(r); }
-  void erase_left(int l) { erase(l); }
-  void erase_right(int r) { erase(r); }
+  void add_left(int l) { add_one(l); }
+  void add_right(int r) { add_one(r); }
+  void erase_left(int l) { erase_one(l); }
+  void erase_right(int r) { erase_one(r); }
 
   // Adds one item at position i.
-  void add(int i) {
+  void add_one(int i) {
     // Update state.
   }
 
   // Erases one item at position i.
-  void erase(int i) {
+  void erase_one(int i) {
     // Update state.
   }
 
@@ -43,7 +44,7 @@ struct Mo {
   void add_query(Query query) { queries.push_back(std::move(query)); }
 
   void solve(Task &task) const {
-    int q = (int)queries.size();
+    int q = queries.size();
     int bs = n / min<int>(n, sqrt(q));
     vector<int> ord(q);
     iota(begin(ord), end(ord), 0);
