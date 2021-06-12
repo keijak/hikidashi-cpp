@@ -43,6 +43,7 @@ struct NaiveMult {
 // T: modint
 template <typename T, int DMAX>
 struct NTTMult {
+  static_assert(atcoder::internal::is_modint<T>::value, "Requires ACL modint.");
   static_assert(T::mod() == 998244353, "Confirm that the mod is NTT-frindly.");
 
   using value_type = T;
