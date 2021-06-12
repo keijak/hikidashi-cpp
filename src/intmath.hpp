@@ -20,32 +20,6 @@ T saturating_mul(T x, T y) {
   }
 }
 
-// Returns ceil(x / y).
-template <class T>
-T ceil_div(T x, T y) {
-  assert(y != 0);
-  if (y < 0) x = -x, y = -y;
-  return (x >= 0) ? ((x + y - 1) / y) : (x / y);
-}
-
-// Returns floor(x / y).
-template <class T>
-T floor_div(T x, T y) {
-  assert(y != 0);
-  if (y < 0) x = -x, y = -y;
-  return (x >= 0) ? (x / y) : ((x - y + 1) / y);
-}
-
-// Returns x mod y.
-// Guarantees 0 <= r < y (even when x is negative).
-template <class T>
-T floor_mod(T x, T y) {
-  assert(y > 0);
-  auto r = x % y;
-  if (r < 0) r += y;
-  return r;
-}
-
 // Returns floor(sqrt(x)).
 i64 floor_sqrt(i64 x) {
   assert(x >= 0);
@@ -64,6 +38,32 @@ i64 ceil_sqrt(i64 x) {
   while (r * r > x) --r;
   while (r * r < x) ++r;
   return r;
+}
+
+// Returns x mod y.
+// Guarantees 0 <= r < y (even when x is negative).
+template <class T>
+T floor_mod(T x, T y) {
+  assert(y > 0);
+  auto r = x % y;
+  if (r < 0) r += y;
+  return r;
+}
+
+// Returns ceil(x / y).
+template <class T>
+T ceil_div(T x, T y) {
+  assert(y != 0);
+  if (y < 0) x = -x, y = -y;
+  return (x >= 0) ? ((x + y - 1) / y) : (x / y);
+}
+
+// Returns floor(x / y).
+template <class T>
+T floor_div(T x, T y) {
+  assert(y != 0);
+  if (y < 0) x = -x, y = -y;
+  return (x >= 0) ? (x / y) : ((x - y + 1) / y);
 }
 
 // Etended Euclidean algorithm.
