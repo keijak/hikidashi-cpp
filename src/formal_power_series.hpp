@@ -43,20 +43,20 @@ struct NaiveMult {
 // T: modint
 template <typename T, int DMAX>
 struct NTTMult {
+  static_assert(T::mod() == 998244353, "Confirm that the mod is NTT-frindly.");
+
   using value_type = T;
   static constexpr int dmax() { return DMAX; }
 
   static std::vector<T> multiply(const std::vector<T> &x,
                                  const std::vector<T> &y) {
-    static_assert(T::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
     std::vector<T> res = atcoder::convolution(x, y);
     if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
     return res;
   }
 
   static std::vector<T> invert(const std::vector<T> &x) {
-    static_assert(T::mod() != 1'000'000'007);  // Must be a NTT-friendly MOD!
-    assert(x[0].val() != 0);                   // must be invertible
+    assert(x[0].val() != 0);  // must be invertible
     const int n = x.size();
     std::vector<T> res(n);
     res[0] = x[0].inv();
