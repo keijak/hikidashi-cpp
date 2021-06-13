@@ -1,119 +1,115 @@
 #include <algorithm>
 #include <limits>
 #include <type_traits>
+#include <vector>
 
-// Li-Chao Tree
-// - Finds min values.
-// - Dynamically creates nodes.
-template <typename T>
-struct SparseLiChaoTree {
-  static_assert(std::is_arithmetic_v<T>, "must be number");
+// Line-like function.
+//
+// Not necessarily a line, but must hold the transcending property:
+// Two curves cross at most once in the specified range.
+template <class T>
+struct Line {
+  T a;
+  T b;
 
-  // Identity value of the Min monoid.
-  static constexpr T min_id = std::numeric_limits<T>::max();
+  Line(T a, T b) : a(std::move(a)), b(std::move(b)) {}
 
-  struct Line {
-    T a, b;
+  T eval(T x) const { return a * x + b; }
 
-    Line(T a, T b) : a(a), b(b) {}
+  static Line constant(T value) { return Line(0, value); }
+};
 
-    inline T eval(T x) const { return a * x + b; }
-  };
+template <class Op>  // Min or Max
+struct LiChaoTree {
+  using T = typename Op::T;
+  static_assert(std::is_arithmetic<T>::value, "must be number");
 
-  struct Node {
-    Line f;
-    Node *l, *r;
-
-    Node(Line f) : f{std::move(f)}, l{nullptr}, r{nullptr} {}
-  };
-
-  Node *root_;
-  T x_low_, x_high_;  // Domain of the lines: x_low <= x <= x_high
-
-  SparseLiChaoTree(T x_low, T x_high)
-      : root_{nullptr}, x_low_{std::move(x_low)}, x_high_{std::move(x_high)} {}
-
-  void add_line(const T &a, const T &b) {
-    Line f(a, b);
-    root_ =
-        add_line(root_, f, x_low_, x_high_, f.eval(x_low_), f.eval(x_high_));
+  // Creates a Li-Chao Tree with query candidates it can answer.
+  explicit LiChaoTree(const std::vector<T> &xs) : n_(0), xs_(xs) {
+    std::sort(xs_.begin(), xs_.end());
+    xs_.erase(std::unique(xs_.begin(), xs_.end()), xs_.end());
+    n_ = (int)xs_.size();
+    lines_.assign(n_ << 1, Line<T>::constant(Op::id()));
   }
 
-  void add_segment(const T &l, const T &r, const T &a, const T &b) {
-    Line f(a, b);
-    root_ = add_segment(root_, f, l, r - 1, x_low_, x_high_, f.eval(x_low_),
-                        f.eval(x_high_));
+  // Adds y = g(x).
+  void add_line(Line<T> g) { update(std::move(g), 0, n_); }
+
+  // Adds y = g(x) in xl <= x < xr.
+  void add_segment(Line<T> g, T xl, T xr) {
+    int l = std::lower_bound(xs_.begin(), xs_.end(), xl) - xs_.begin();
+    int r = std::lower_bound(xs_.begin(), xs_.end(), xr) - xs_.begin();
+    update(std::move(g), l, r);
   }
 
-  // Returns the minimum value at x.
-  T query(const T &x) const { return query(root_, x_low_, x_high_, x); }
+  // Returns the minimum/maximum f(x) at x.
+  T query(T x) const {
+    int i = std::lower_bound(xs_.begin(), xs_.end(), x) - xs_.begin();
+    assert(i != n_ && x == xs_[i]);
+    T y = Op::id();
+    for (i += n_; i > 0; i >>= 1) y = Op::op(y, lines_[i].eval(x));
+    return y;
+  }
 
  private:
-  Node *add_line(Node *t, Line &f, const T &l, const T &r, const T &f_l,
-                 const T &f_r) {
-    if (!t) return new Node(f);
+  void update(Line<T> g, int l, int r) {
+    for (l += n_, r += n_; l < r; l >>= 1, r >>= 1) {
+      if (l & 1) descend(g, l++);
+      if (r & 1) descend(g, --r);
+    }
+  }
 
-    T t_l = t->f.eval(l), t_r = t->f.eval(r);
-
-    if (t_l <= f_l && t_r <= f_r) {
-      return t;
-    } else if (t_l >= f_l && t_r >= f_r) {
-      t->f = f;
-      return t;
-    } else {
-      T m = (l + r) / 2;
-      if (m == r) --m;
-      T t_m = t->f.eval(m), f_m = f.eval(m);
-      if (t_m > f_m) {
-        std::swap(t->f, f);
-        if (f_l >= t_l) {
-          t->l = add_line(t->l, f, l, m, t_l, t_m);
-        } else {
-          t->r = add_line(t->r, f, m + 1, r, t_m + f.a, t_r);
-        }
-      } else {
-        if (t_l >= f_l) {
-          t->l = add_line(t->l, f, l, m, f_l, f_m);
-        } else {
-          t->r = add_line(t->r, f, m + 1, r, f_m + f.a, f_r);
-        }
+  void descend(Line<T> g, int i) {
+    int l = i, r = i + 1;
+    while (l < n_) {
+      l <<= 1;
+      r <<= 1;
+    }
+    while (l < r) {
+      int c = (l + r) >> 1;
+      T xl = xs_[l - n_];
+      T xc = xs_[c - n_];
+      T xr = xs_[r - 1 - n_];
+      Line<T> &f = lines_[i];
+      if (not Op::less(g.eval(xl), f.eval(xl)) and
+          not Op::less(g.eval(xr), f.eval(xr))) {
+        return;
       }
-      return t;
+      if (not Op::less(f.eval(xl), g.eval(xl)) and
+          not Op::less(f.eval(xr), g.eval(xr))) {
+        f = std::move(g);
+        return;
+      }
+      if (Op::less(g.eval(xc), f.eval(xc))) {
+        std::swap(f, g);
+      }
+      if (Op::less(g.eval(xl), f.eval(xl))) {
+        i = (i << 1) | 0;
+        r = c;
+      } else {
+        i = (i << 1) | 1;
+        l = c;
+      }
     }
   }
 
-  Node *add_segment(Node *t, Line &f, const T &a, const T &b, const T &l,
-                    const T &r, const T &f_l, const T &f_r) {
-    if (r < a || b < l) return t;
-    if (a <= l && r <= b) {
-      Line f2{f};
-      return add_line(t, f2, l, r, f_l, f_r);
-    }
-    if (t) {
-      T t_l = t->f.eval(l), t_r = t->f.eval(r);
-      if (t_l <= f_l && t_r <= f_r) return t;
-    } else {
-      t = new Node(Line(0, min_id));
-    }
-    T m = (l + r) / 2;
-    if (m == r) --m;
-    T f_m = f.eval(m);
-    t->l = add_segment(t->l, f, a, b, l, m, f_l, f_m);
-    t->r = add_segment(t->r, f, a, b, m + 1, r, f_m + f.a, f_r);
-    return t;
-  }
-
-  // l <= x <= r
-  T query(const Node *t, const T &l, const T &r, const T &x) const {
-    assert(l <= x and x <= r);
-    if (!t) return min_id;
-    if (l == r) return t->f.eval(x);
-    T m = (l + r) / 2;
-    if (m == r) --m;
-    if (x <= m) {
-      return std::min(t->f.eval(x), query(t->l, l, m, x));
-    } else {
-      return std::min(t->f.eval(x), query(t->r, m + 1, r, x));
-    }
-  }
+  int n_;
+  std::vector<T> xs_;
+  std::vector<Line<T>> lines_;
 };
+
+struct Min {
+  using T = long long;
+  static bool less(const T &x, const T &y) { return x < y; }
+  static T op(const T &x, const T &y) { return std::min(x, y); }
+  static constexpr T id() { return std::numeric_limits<T>::max(); }
+};
+
+struct Max {
+  using T = long long;
+  static bool less(const T &x, const T &y) { return x > y; }
+  static T op(const T &x, const T &y) { return std::max(x, y); }
+  static constexpr T id() { return std::numeric_limits<T>::lowest(); }
+};
+
+using LCT = LiChaoTree<Min>;
