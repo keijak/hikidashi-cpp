@@ -1,7 +1,23 @@
 #include <algorithm>
+#include <cassert>
 #include <limits>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
+
+struct Min {
+  using T = long long;
+  static bool less(const T &x, const T &y) { return x < y; }
+  static T op(const T &x, const T &y) { return std::min(x, y); }
+  static constexpr T id() { return std::numeric_limits<T>::max(); }
+};
+
+struct Max {
+  using T = long long;
+  static bool less(const T &x, const T &y) { return x > y; }
+  static T op(const T &x, const T &y) { return std::max(x, y); }
+  static constexpr T id() { return std::numeric_limits<T>::lowest(); }
+};
 
 // Line-like function.
 //
@@ -98,18 +114,104 @@ struct LiChaoTree {
   std::vector<Line<T>> lines_;
 };
 
-struct Min {
-  using T = long long;
-  static bool less(const T &x, const T &y) { return x < y; }
-  static T op(const T &x, const T &y) { return std::min(x, y); }
-  static constexpr T id() { return std::numeric_limits<T>::max(); }
-};
+// Sparse (dynamic) Li-Chao Tree using gp_hash_table.
 
-struct Max {
-  using T = long long;
-  static bool less(const T &x, const T &y) { return x > y; }
-  static T op(const T &x, const T &y) { return std::max(x, y); }
-  static constexpr T id() { return std::numeric_limits<T>::lowest(); }
-};
+#include <ext/pb_ds/assoc_container.hpp>
 
-using LCT = LiChaoTree<Min>;
+template <class K, class V>
+using gp_hash_table = __gnu_pbds::gp_hash_table<
+    K, V, std::hash<K>, std::equal_to<K>,
+    __gnu_pbds::direct_mask_range_hashing<K>, __gnu_pbds::linear_probe_fn<>,
+    __gnu_pbds::hash_standard_resize_policy<
+        __gnu_pbds::hash_exponential_size_policy<>,
+        __gnu_pbds::hash_load_check_resize_trigger<true>, true>>;
+
+template <class Op>  // Min or Max
+struct SparseLiChaoTree {
+  using Y = typename Op::T;  // y-coordinate
+  using X = long long;       // x-coordinate
+  static_assert(std::is_arithmetic<Y>::value, "must be number");
+  static_assert(std::is_integral<X>::value, "must be integer");
+
+  // Creates a Li-Chao Tree with x-coordinate bounds [x_low, x_high).
+  // Dynamically creates nodes.
+  SparseLiChaoTree(X x_low, X x_high) : x_low_(x_low), n_(x_high - x_low) {
+    assert(x_low <= x_high);
+    offset_ = 1;
+    while (offset_ < n_) offset_ <<= 1;
+    lines_.resize(1 << 20);
+  }
+
+  // Adds y = g(x).
+  void add_line(Line<Y> g) { update(std::move(g), 0, n_); }
+
+  // Adds y = g(x) in xl <= x < xr.
+  void add_segment(Line<Y> g, X xl, X xr) {
+    auto l = xl - x_low_;
+    auto r = xr - x_low_;
+    update(std::move(g), l, r);
+  }
+
+  // Returns the minimum/maximum f(x) at x.
+  Y query(X x) const {
+    assert(x < n_);
+    Y y = Op::id();
+    for (X i = x - x_low_ + offset_; i > 0; i >>= 1) {
+      auto it = lines_.find(i);
+      if (it != lines_.end()) {
+        y = Op::op(y, it->second.eval(x));
+      }
+    }
+    return y;
+  }
+
+ private:
+  void update(Line<Y> g, X l, X r) {
+    for (l += offset_, r += offset_; l < r; l >>= 1, r >>= 1) {
+      if (l & 1) descend(g, l++);
+      if (r & 1) descend(g, --r);
+    }
+  }
+
+  void descend(Line<Y> g, X i) {
+    X l = i, r = i + 1;
+    while (l < offset_) {
+      l <<= 1;
+      r <<= 1;
+    }
+    while (l < r) {
+      auto c = (l + r) >> 1;
+      auto xl = l - offset_ + x_low_;
+      auto xc = c - offset_ + x_low_;
+      auto xr = r - 1 - offset_ + x_low_;
+      auto fit = lines_.find(i);
+      if (fit == lines_.end()) {
+        lines_.insert({i, std::move(g)});
+        return;
+      }
+      Line<Y> &f = fit->second;
+      if (not Op::less(g.eval(xl), f.eval(xl)) and
+          not Op::less(g.eval(xr), f.eval(xr))) {
+        return;
+      }
+      if (not Op::less(f.eval(xl), g.eval(xl)) and
+          not Op::less(f.eval(xr), g.eval(xr))) {
+        f = std::move(g);
+        return;
+      }
+      if (Op::less(g.eval(xc), f.eval(xc))) {
+        std::swap(f, g);
+      }
+      if (Op::less(g.eval(xl), f.eval(xl))) {
+        i = (i << 1) | 0;
+        r = c;
+      } else {
+        i = (i << 1) | 1;
+        l = c;
+      }
+    }
+  }
+
+  X x_low_, n_, offset_;
+  gp_hash_table<X, Line<Y>> lines_;
+};
