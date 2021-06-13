@@ -17,14 +17,14 @@ struct SparseLiChaoTree {
 
     Line(T a, T b) : a(a), b(b) {}
 
-    inline T get(T x) const { return a * x + b; }
+    inline T eval(T x) const { return a * x + b; }
   };
 
   struct Node {
-    Line x;
+    Line f;
     Node *l, *r;
 
-    Node(const Line &x) : x{x}, l{nullptr}, r{nullptr} {}
+    Node(Line f) : f{std::move(f)}, l{nullptr}, r{nullptr} {}
   };
 
   Node *root_;
@@ -33,82 +33,87 @@ struct SparseLiChaoTree {
   SparseLiChaoTree(T x_low, T x_high)
       : root_{nullptr}, x_low_{std::move(x_low)}, x_high_{std::move(x_high)} {}
 
-  Node *add_line(Node *t, Line &x, const T &l, const T &r, const T &x_l,
-                 const T &x_r) {
-    if (!t) return new Node(x);
+  void add_line(const T &a, const T &b) {
+    Line f(a, b);
+    root_ =
+        add_line(root_, f, x_low_, x_high_, f.eval(x_low_), f.eval(x_high_));
+  }
 
-    T t_l = t->x.get(l), t_r = t->x.get(r);
+  void add_segment(const T &l, const T &r, const T &a, const T &b) {
+    Line f(a, b);
+    root_ = add_segment(root_, f, l, r - 1, x_low_, x_high_, f.eval(x_low_),
+                        f.eval(x_high_));
+  }
 
-    if (t_l <= x_l && t_r <= x_r) {
+  // Returns the minimum value at x.
+  T query(const T &x) const { return query(root_, x_low_, x_high_, x); }
+
+ private:
+  Node *add_line(Node *t, Line &f, const T &l, const T &r, const T &f_l,
+                 const T &f_r) {
+    if (!t) return new Node(f);
+
+    T t_l = t->f.eval(l), t_r = t->f.eval(r);
+
+    if (t_l <= f_l && t_r <= f_r) {
       return t;
-    } else if (t_l >= x_l && t_r >= x_r) {
-      t->x = x;
+    } else if (t_l >= f_l && t_r >= f_r) {
+      t->f = f;
       return t;
     } else {
       T m = (l + r) / 2;
       if (m == r) --m;
-      T t_m = t->x.get(m), x_m = x.get(m);
-      if (t_m > x_m) {
-        std::swap(t->x, x);
-        if (x_l >= t_l) {
-          t->l = add_line(t->l, x, l, m, t_l, t_m);
+      T t_m = t->f.eval(m), f_m = f.eval(m);
+      if (t_m > f_m) {
+        std::swap(t->f, f);
+        if (f_l >= t_l) {
+          t->l = add_line(t->l, f, l, m, t_l, t_m);
         } else {
-          t->r = add_line(t->r, x, m + 1, r, t_m + x.a, t_r);
+          t->r = add_line(t->r, f, m + 1, r, t_m + f.a, t_r);
         }
       } else {
-        if (t_l >= x_l) {
-          t->l = add_line(t->l, x, l, m, x_l, x_m);
+        if (t_l >= f_l) {
+          t->l = add_line(t->l, f, l, m, f_l, f_m);
         } else {
-          t->r = add_line(t->r, x, m + 1, r, x_m + x.a, x_r);
+          t->r = add_line(t->r, f, m + 1, r, f_m + f.a, f_r);
         }
       }
       return t;
     }
   }
 
-  void add_line(const T &a, const T &b) {
-    Line x(a, b);
-    root_ = add_line(root_, x, x_low_, x_high_, x.get(x_low_), x.get(x_high_));
-  }
-
-  Node *add_segment(Node *t, Line &x, const T &a, const T &b, const T &l,
-                    const T &r, const T &x_l, const T &x_r) {
+  Node *add_segment(Node *t, Line &f, const T &a, const T &b, const T &l,
+                    const T &r, const T &f_l, const T &f_r) {
     if (r < a || b < l) return t;
     if (a <= l && r <= b) {
-      Line y{x};
-      return add_line(t, y, l, r, x_l, x_r);
+      Line f2{f};
+      return add_line(t, f2, l, r, f_l, f_r);
     }
     if (t) {
-      T t_l = t->x.get(l), t_r = t->x.get(r);
-      if (t_l <= x_l && t_r <= x_r) return t;
+      T t_l = t->f.eval(l), t_r = t->f.eval(r);
+      if (t_l <= f_l && t_r <= f_r) return t;
     } else {
       t = new Node(Line(0, min_id));
     }
     T m = (l + r) / 2;
     if (m == r) --m;
-    T x_m = x.get(m);
-    t->l = add_segment(t->l, x, a, b, l, m, x_l, x_m);
-    t->r = add_segment(t->r, x, a, b, m + 1, r, x_m + x.a, x_r);
+    T f_m = f.eval(m);
+    t->l = add_segment(t->l, f, a, b, l, m, f_l, f_m);
+    t->r = add_segment(t->r, f, a, b, m + 1, r, f_m + f.a, f_r);
     return t;
   }
 
-  void add_segment(const T &l, const T &r, const T &a, const T &b) {
-    Line x(a, b);
-    root_ = add_segment(root_, x, l, r - 1, x_low_, x_high_, x.get(x_low_),
-                        x.get(x_high_));
-  }
-
+  // l <= x <= r
   T query(const Node *t, const T &l, const T &r, const T &x) const {
+    assert(l <= x and x <= r);
     if (!t) return min_id;
-    if (l == r) return t->x.get(x);
+    if (l == r) return t->f.eval(x);
     T m = (l + r) / 2;
     if (m == r) --m;
     if (x <= m) {
-      return std::min(t->x.get(x), query(t->l, l, m, x));
+      return std::min(t->f.eval(x), query(t->l, l, m, x));
     } else {
-      return std::min(t->x.get(x), query(t->r, m + 1, r, x));
+      return std::min(t->f.eval(x), query(t->r, m + 1, r, x));
     }
   }
-
-  T query(const T &x) const { return query(root_, x_low_, x_high_, x); }
 };
