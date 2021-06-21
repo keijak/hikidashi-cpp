@@ -8,12 +8,11 @@ using i64 = long long;
 
 template <class T>
 T saturating_mul(T x, T y) {
+  static_assert(std::is_integral_v<T>);
   T res;
   if (__builtin_mul_overflow(x, y, &res)) {
     return res;
-  }
-  const bool negative = (x < T(0)) ^ (y < T(0));
-  if (negative) {
+  } else if ((x ^ y) < 0) {
     return std::numeric_limits<T>::lowest();
   } else {
     return std::numeric_limits<T>::max();
