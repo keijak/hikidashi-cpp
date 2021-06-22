@@ -30,7 +30,7 @@ class Rerooting {
 
   const std::vector<NV> &run() {
     pull_up(base_root, -1);
-    push_down(base_root, -1, task.id());
+    push_down(base_root, -1, std::nullopt);
     return full;
   }
 
@@ -46,7 +46,7 @@ class Rerooting {
     return (sub[v] = task.add_node(res, v));
   }
 
-  void push_down(int v, int par, NV upper_sub) {
+  void push_down(int v, int par, std::optional<NV> upper_sub) {
     int m = g[v].size();
     std::vector<EV> cuml(m + 1, task.id()), cumr(m + 1, task.id());
 
@@ -54,7 +54,8 @@ class Rerooting {
       auto &e = g[v][i];
       int u = e.to;
       if (u == par) {
-        cuml[i + 1] = task.merge(cuml[i], task.add_edge(upper_sub, e));
+        assert(upper_sub.has_value());
+        cuml[i + 1] = task.merge(cuml[i], task.add_edge(*upper_sub, e));
       } else {
         cuml[i + 1] = task.merge(cuml[i], task.add_edge(sub[u], e));
       }
@@ -64,7 +65,7 @@ class Rerooting {
       auto &e = g[v][i];
       int u = e.to;
       if (u == par) {
-        cumr[i] = task.merge(task.add_edge(upper_sub, e), cumr[i + 1]);
+        cumr[i] = task.merge(task.add_edge(*upper_sub, e), cumr[i + 1]);
       } else {
         cumr[i] = task.merge(task.add_edge(sub[u], e), cumr[i + 1]);
       }
@@ -76,7 +77,8 @@ class Rerooting {
       auto &e = g[v][i];
       int u = e.to;
       if (u == par) continue;
-      NV next_upper_sub = task.add_node(task.merge(cuml[i], cumr[i + 1]), v);
+      std::optional<NV> next_upper_sub{
+          task.add_node(task.merge(cuml[i], cumr[i + 1]), v)};
       push_down(u, v, std::move(next_upper_sub));
     }
   }
@@ -107,7 +109,7 @@ class InplaceRerooting {
 
   const std::vector<NV> &run() {
     pull_up(base_root, -1);
-    push_down(base_root, -1, task.id());
+    push_down(base_root, -1, std::nullopt);
     return full;
   }
 
@@ -123,7 +125,7 @@ class InplaceRerooting {
     return (sub[v] = task.add_node(res, v));
   }
 
-  void push_down(int v, int par, NV upper_sub) {
+  void push_down(int v, int par, std::optional<NV> upper_sub) {
     int m = g[v].size();
     EV agg = task.id();
 
@@ -131,7 +133,8 @@ class InplaceRerooting {
       auto &e = g[v][i];
       int u = e.to;
       if (u == par) {
-        task.merge_inplace(agg, task.add_edge(upper_sub, e));
+        assert(upper_sub.has_value());
+        task.merge_inplace(agg, task.add_edge(std::move(*upper_sub), e));
       } else {
         task.merge_inplace(agg, task.add_edge(sub[u], e));
       }
@@ -144,7 +147,7 @@ class InplaceRerooting {
       if (u == par) continue;
       EV edge_value = task.add_edge(sub[u], e);
       task.subtract_inplace(agg, edge_value);
-      NV next_upper_sub = task.add_node(agg, v);
+      std::optional<NV> next_upper_sub{task.add_node(agg, v)};
       push_down(u, v, std::move(next_upper_sub));
       task.merge_inplace(agg, std::move(edge_value));
     }
