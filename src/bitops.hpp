@@ -6,10 +6,6 @@
 using u64 = unsigned long long;
 
 // Compatible with C++20 <bit>.
-int bit_width(unsigned x) {
-  if (x == 0) return 0;
-  return std::numeric_limits<unsigned>::digits - __builtin_clz(x);
-}
 int countl_zero(unsigned x) {
   if (x == 0) return std::numeric_limits<unsigned>::digits;
   return __builtin_clz(x);
@@ -31,10 +27,6 @@ int countr_one(unsigned x) {
 inline int popcount(unsigned x) { return __builtin_popcount(x); }
 inline bool has_single_bit(unsigned x) { return __builtin_popcount(x) == 1; }
 
-int bit_width(u64 x) {
-  if (x == 0) return 0;
-  return std::numeric_limits<u64>::digits - __builtin_clzll(x);
-}
 int countl_zero(u64 x) {
   if (x == 0) return std::numeric_limits<u64>::digits;
   return __builtin_clzll(x);
@@ -56,21 +48,22 @@ int countr_one(u64 x) {
 inline int popcount(u64 x) { return __builtin_popcountll(x); }
 inline bool has_single_bit(u64 x) { return __builtin_popcountll(x) == 1; }
 
-// Most Significant Set Bit (Highest One Bit) = std::bit_floor(x)
-int mssb_pos(unsigned x) {
-  static const int CLZ_WIDTH = __builtin_clz(1);
-  assert(x != 0);
-  return CLZ_WIDTH - __builtin_clz(x);
-}
-int mssb_pos(u64 x) {
-  static const int CLZLL_WIDTH = __builtin_clzll(1LL);
-  assert(x != 0);
-  return CLZLL_WIDTH - __builtin_clzll(x);
-}
-template <typename U>
-inline U bit_floor(U x) {
+int bit_width(unsigned x) {
   if (x == 0) return 0;
-  return U(1) << mssb_pos(x);
+  return std::numeric_limits<unsigned>::digits - __builtin_clz(x);
+}
+int bit_width(u64 x) {
+  if (x == 0) return 0;
+  return std::numeric_limits<u64>::digits - __builtin_clzll(x);
+}
+
+// Most Significant Set Bit (Highest One Bit) = std::bit_floor(x)
+// - mssb(x) = bit_floor(x)
+// - mssb_pos(x) = bit_width(x) - 1
+template <typename U>
+U bit_floor(U x) {
+  if (x == 0) return 0;
+  return U(1) << (bit_width(x) - 1);
 }
 template <typename U>
 U bit_ceil(U x) {
@@ -79,6 +72,8 @@ U bit_ceil(U x) {
 }
 
 // Least Significant Set Bit (Lowest One Bit)
+// - lssb(x) = (x & -x)
+// - lssb_pos(x) = countr_zero(x)
 template <typename T>
 inline T lssb(T x) {
   return (x & -x);
