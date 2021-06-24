@@ -33,25 +33,25 @@ inline bool has_single_bit(unsigned x) { return __builtin_popcount(x) == 1; }
 
 int bit_width(u64 x) {
   if (x == 0) return 0;
-  return std::numeric_limits<u64>::digits - __builtin_clz(x);
+  return std::numeric_limits<u64>::digits - __builtin_clzll(x);
 }
 int countl_zero(u64 x) {
   if (x == 0) return std::numeric_limits<u64>::digits;
-  return __builtin_clz(x);
+  return __builtin_clzll(x);
 }
 int countr_zero(u64 x) {
   if (x == 0) return std::numeric_limits<u64>::digits;
-  return __builtin_ctz(x);
+  return __builtin_ctzll(x);
 }
 int countl_one(u64 x) {
   x = ~x;
   if (x == 0) return std::numeric_limits<u64>::digits;
-  return __builtin_clz(x);
+  return __builtin_clzll(x);
 }
 int countr_one(u64 x) {
   x = ~x;
   if (x == 0) return std::numeric_limits<u64>::digits;
-  return __builtin_ctz(x);
+  return __builtin_ctzll(x);
 }
 inline int popcount(u64 x) { return __builtin_popcountll(x); }
 inline bool has_single_bit(u64 x) { return __builtin_popcountll(x) == 1; }
