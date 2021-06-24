@@ -57,7 +57,7 @@ int bit_width(u64 x) {
   return std::numeric_limits<u64>::digits - __builtin_clzll(x);
 }
 
-// Most Significant Set Bit (Highest One Bit) = std::bit_floor(x)
+// Most Significant Set Bit (Highest One Bit)
 // - mssb(x) = bit_floor(x)
 // - mssb_pos(x) = bit_width(x) - 1
 template <typename U>
