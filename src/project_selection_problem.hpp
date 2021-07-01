@@ -10,7 +10,7 @@ const int BIG_COST = 1e8;
 // T: flow capacity type (i32/i64)
 template <typename T>
 struct ProjectSelection {
- private:
+ public:
   // Assign true to kSource and false to kSink.
   const int kSource, kSink;
   const int n_;  // number of initial nodes
@@ -25,7 +25,8 @@ struct ProjectSelection {
 
   T bonus_;
 
- public:
+  std::optional<std::vector<bool>> assignment_;
+
   explicit ProjectSelection(int n)
       : kSource(n), kSink(n + 1), n_(n), m_(0), bonus_(0) {}
 
@@ -35,7 +36,9 @@ struct ProjectSelection {
     for (const Edge &e : edges_) {
       g.add_edge(e.from, e.to, e.cost);
     }
-    return g.flow(kSource, kSink) - bonus_;
+    T res = g.flow(kSource, kSink) - bonus_;
+    // assignment_ = g.min_cut(kSource);  // Get the assignment.
+    return res;
   }
 
   // Returns the maximum gain.
