@@ -59,19 +59,19 @@ struct SuccinctBitVector {
   }
 };
 
-template <class T, int MAXLOG = std::numeric_limits<T>::digits>
+template <class T = unsigned, int kBitWidth = std::numeric_limits<T>::digits>
 struct WaveletMatrix {
   static_assert(std::is_unsigned<T>::value, "Requires unsigned type");
 
   int size_;
-  std::array<SuccinctBitVector, MAXLOG> matrix;
-  std::array<int, MAXLOG> mid;
+  std::array<SuccinctBitVector, kBitWidth> matrix;
+  std::array<int, kBitWidth> mid;
 
   WaveletMatrix() = default;
 
   explicit WaveletMatrix(std::vector<T> v) : size_(v.size()) {
     std::vector<T> l(size_), r(size_);
-    for (int level = MAXLOG - 1; level >= 0; --level) {
+    for (int level = kBitWidth - 1; level >= 0; --level) {
       matrix[level] = SuccinctBitVector(size_ + 1);
       int left = 0, right = 0;
       for (int i = 0; i < size_; ++i) {
@@ -96,7 +96,7 @@ struct WaveletMatrix {
   // access(i): the value at i (0-indexed).
   T operator[](int i) const {
     T ret = 0;
-    for (int level = MAXLOG - 1; level >= 0; --level) {
+    for (int level = kBitWidth - 1; level >= 0; --level) {
       bool f = matrix[level][i];
       if (f) ret |= T(1) << level;
       i = matrix[level].rank(f, i) + mid[level] * f;
@@ -107,7 +107,7 @@ struct WaveletMatrix {
   // count i s.t. (0 <= i < r) && v[i] == x
   int rank(const T &x, int r) const {
     int l = 0;
-    for (int level = MAXLOG - 1; level >= 0; --level) {
+    for (int level = kBitWidth - 1; level >= 0; --level) {
       std::tie(l, r) = succ((x >> level) & 1, l, r, level);
     }
     return r - l;
@@ -117,7 +117,7 @@ struct WaveletMatrix {
   T kth_smallest(int l, int r, int k) const {
     assert(0 <= k && k < r - l);
     T ret = 0;
-    for (int level = MAXLOG - 1; level >= 0; --level) {
+    for (int level = kBitWidth - 1; level >= 0; --level) {
       int cnt = matrix[level].rank(false, r) - matrix[level].rank(false, l);
       bool f = cnt <= k;
       if (f) {
@@ -137,7 +137,7 @@ struct WaveletMatrix {
   // count i s.t. (l <= i < r) && (v[i] < upper)
   int range_freq(int l, int r, T upper) const {
     int ret = 0;
-    for (int level = MAXLOG - 1; level >= 0; --level) {
+    for (int level = kBitWidth - 1; level >= 0; --level) {
       bool f = ((upper >> level) & 1);
       if (f) ret += matrix[level].rank(false, r) - matrix[level].rank(false, l);
       std::tie(l, r) = succ(f, l, r, level);
@@ -170,22 +170,22 @@ struct WaveletMatrix {
 };
 
 // T: can be large nubmers or negative numbers
-// Number of unique values must be less than 2^MAXLOG.
-template <typename T, int MAXLOG = 28>
+// Number of unique values must be less than 2^kBitWidth.
+template <typename T, int kBitWidth = 28>
 struct CompressedWaveletMatrix {
   std::vector<T> values;
-  WaveletMatrix<size_t, MAXLOG> indices;
+  WaveletMatrix<size_t, kBitWidth> indices;
 
   explicit CompressedWaveletMatrix(const std::vector<T> &v) : values(v) {
     std::sort(values.begin(), values.end());
     values.erase(std::unique(values.begin(), values.end()), values.end());
-    assert(values.size() < (1ULL << MAXLOG));
+    assert(values.size() < (1ULL << kBitWidth));
 
     std::vector<size_t> t(v.size());
     for (size_t i = 0; i < v.size(); ++i) {
       t[i] = index(v[i]);
     }
-    indices = WaveletMatrix<size_t, MAXLOG>(t);
+    indices = WaveletMatrix<size_t, kBitWidth>(t);
   }
 
   T operator[](int k) const { return values[indices[k]]; }
