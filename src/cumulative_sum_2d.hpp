@@ -2,8 +2,8 @@
 
 template <class T>
 struct CumSum2d {
-  template <class X>
-  using Vec = std::vector<X>;
+  template <class U>
+  using Vec = std::vector<U>;
 
   int n, m;
   Vec<Vec<T>> cum;
@@ -19,8 +19,8 @@ struct CumSum2d {
     }
   }
 
-  // (r0, c0) := top-left point
-  // (r1, c1) := bottom-right point
+  // (r0, c0) := top-left point (inclusive)
+  // (r1, c1) := bottom-right point (exclusive)
   T sum(int r0, int c0, int r1, int c1) const {
     assert(r0 <= r1 and c0 <= c1);
     return cum[r1][c1] - cum[r1][c0] - cum[r0][c1] + cum[r0][c0];
