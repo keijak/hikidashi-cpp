@@ -53,14 +53,14 @@ T floor_mod(T x, T y) {
 template <class T>
 T ceil_div(T x, T y) {
   assert(y != 0);
-  return x / y + (((x ^ y) < 0) and (x % y != 0));
+  return x / y + (((x ^ y) >= 0) and (x % y));
 }
 
 // Returns floor(x / y).
 template <class T>
 T floor_div(T x, T y) {
   assert(y != 0);
-  return x / y - (((x ^ y) < 0) and (x % y != 0));
+  return x / y - (((x ^ y) < 0) and (x % y));
 }
 
 // Etended Euclidean algorithm.
