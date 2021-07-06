@@ -1,4 +1,8 @@
 #include <bits/stdc++.h>
+// Runtime MOD:
+//   unsigned MOD = 998244353;  // modifiable.
+//   template <unsigned& M> struct ModInt { ... };
+//   using Mint = ModInt<MOD>;
 
 template <unsigned M>
 struct ModInt {
@@ -115,9 +119,4 @@ struct ModInt {
 };
 // const unsigned MOD = int(1e9) + 7;
 // const unsigned MOD = 998244353;
-// using Mint = ModInt<MOD>;
-
-// Runtime MOD:
-//   unsigned MOD = 998244353;  // modifiable.
-//   template <unsigned& M> struct ModInt { ... };
-//   using Mint = ModInt<MOD>;
+using Mint = ModInt<MOD>;

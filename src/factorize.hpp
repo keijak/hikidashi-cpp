@@ -14,6 +14,18 @@ std::vector<i64> divisors(i64 n) {
   return res;
 }
 
+// Returns a table of divisor counts of integers <= n.
+std::vector<int> divisor_count_table(int n) {
+  std::vector<int> counts(n + 1, 1);
+  counts[0] = 0;
+  for (int i = 2; i * i <= n; ++i) {
+    for (int j = i * i; j <= n; j += i) {
+      ++counts[j];
+    }
+  }
+  return counts;
+}
+
 // Factorizes a number into {prime, count} pairs. O(sqrt(n)).
 std::vector<std::pair<i64, int>> factorize(i64 n) {
   assert(n > 0);
@@ -94,9 +106,8 @@ std::vector<int> sieve_smallest_prime_factors(int n) {
   return res;
 }
 
-// Quick factorization.
-std::vector<std::pair<int, int>> quick_factorize(int n,
-                                                 const std::vector<int>& spf) {
+// Quick factorization with smallest prime factors.
+std::vector<std::pair<int, int>> factorize(int n, const std::vector<int>& spf) {
   assert(0 < n and n < int(spf.size()));
   std::vector<std::pair<int, int>> res;
   for (;;) {
@@ -112,10 +123,32 @@ std::vector<std::pair<int, int>> quick_factorize(int n,
   return res;
 }
 
-template <typename T>
-T divisor_count(int n, const std::vector<int>& spf) {
+// Enumerates divisors from prime factorization.
+// O(d(n)) -- bound by the number of divisors.
+std::vector<i64> enumerate_divisors(
+    const std::vector<std::pair<i64, int>>& fac) {
+  const int m = fac.size();
+  std::vector<i64> divisors;
+  auto rec = [&](auto& rec, int i, i64 val) -> void {
+    if (i == m) {
+      divisors.push_back(val);
+      return;
+    }
+    const auto& [p, k] = fac[i];
+    rec(rec, i + 1, val);
+    for (int j = 1; j <= k; ++j) {
+      val *= p;
+      rec(rec, i + 1, val);
+    }
+  };
+  rec(rec, 0, 1);
+  return divisors;
+}
+
+// Quick divisor count with smallest prime factors.
+i64 divisor_count(int n, const std::vector<int>& spf) {
   assert(0 < n and n < int(spf.size()));
-  T res = 1;
+  i64 res = 1;
   for (;;) {
     const int p = spf[n];
     if (p == 1) break;
@@ -129,16 +162,23 @@ T divisor_count(int n, const std::vector<int>& spf) {
   return res;
 }
 
-// Returns a table of divisor counts.
-std::vector<int> divisor_count_table(int n) {
-  std::vector<int> counts(n + 1, 1);
-  counts[0] = 0;
-  for (int i = 2; i * i <= n; ++i) {
-    for (int j = i * i; j <= n; j += i) {
-      ++counts[j];
-    }
+// Quick divisor sum with smallest prime factors.
+i64 divisor_sum(int n, const std::vector<int>& spf) {
+  assert(0 < n and n < int(spf.size()));
+  i64 res = 1;
+  for (;;) {
+    const int p = spf[n];
+    if (p == 1) break;
+    int count = 0;
+    i64 power = 1, psum = 1;
+    do {
+      n /= p;
+      power *= p;
+      psum += power;
+    } while (n % p == 0);
+    res *= psum;
   }
-  return counts;
+  return res;
 }
 
 // Returns all prime numbers smaller than or equal to n.
