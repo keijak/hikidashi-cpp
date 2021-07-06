@@ -45,6 +45,31 @@ std::vector<std::pair<i64, int>> factorize(i64 n) {
   return res;
 }
 
+// Enumerates divisors from prime factorization.
+// O(d(n)) -- bound by the number of divisors.
+std::vector<i64> enumerate_divisors(
+    const std::vector<std::pair<i64, int>>& fac) {
+  const int m = fac.size();
+  std::vector<i64> divisors;
+  auto rec = [&](auto& rec, int i, i64 val) -> void {
+    if (i == m) {
+      divisors.push_back(val);
+      return;
+    }
+    const auto& [p, k] = fac[i];
+    rec(rec, i + 1, val);
+    for (int j = 1; j <= k; ++j) {
+      val *= p;
+      rec(rec, i + 1, val);
+    }
+  };
+  rec(rec, 0, 1);
+  return divisors;
+}
+
+// On a large N, often faster than simple `divisors()`.
+std::vector<i64> divisors2(i64 n) { return enumerate_divisors(factorize(n)); }
+
 // Returns a bitset to tell if each number is prime. O(n log log n).
 std::vector<bool> prime_sieve(int n) {
   std::vector<bool> is_prime(n + 1, true);
@@ -121,28 +146,6 @@ std::vector<std::pair<int, int>> factorize(int n, const std::vector<int>& spf) {
     res.emplace_back(p, count);
   }
   return res;
-}
-
-// Enumerates divisors from prime factorization.
-// O(d(n)) -- bound by the number of divisors.
-std::vector<i64> enumerate_divisors(
-    const std::vector<std::pair<i64, int>>& fac) {
-  const int m = fac.size();
-  std::vector<i64> divisors;
-  auto rec = [&](auto& rec, int i, i64 val) -> void {
-    if (i == m) {
-      divisors.push_back(val);
-      return;
-    }
-    const auto& [p, k] = fac[i];
-    rec(rec, i + 1, val);
-    for (int j = 1; j <= k; ++j) {
-      val *= p;
-      rec(rec, i + 1, val);
-    }
-  };
-  rec(rec, 0, 1);
-  return divisors;
 }
 
 // Quick divisor count with smallest prime factors.
