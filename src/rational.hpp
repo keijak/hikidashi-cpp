@@ -100,13 +100,46 @@ struct Rational {
   }
 
  private:
-  static inline T abs_(T x) { return (x < 0) ? -x : x; }
-
-  static BigInt gcd_(BigInt a, BigInt b) {
-    if (b == 0) return a;
-    return gcd_(b, a % b);
+  template <typename U>
+  static inline U abs_(const U &x) {
+    return (x < 0) ? -x : x;
+  }
+  template <typename U>
+  static U gcd_(const U &a, const U &b) {
+    return (b == 0) ? a : gcd_(b, a % b);
   }
 };
 using Rat = Rational<long long>;
 // using Rat = Rational<__int128_t>;
 // using Rat = Rational<multip::checked_int128_t>; // for testing overflow
+
+// Reads a rational number from the input parsing decimal representation.
+// (e.g. "0.2029" => 2029/10000 )
+std::istream &operator>>(std::istream &is, Rat &x) {
+  long long nume = 0, deno = 1;
+  char ch;
+  while (is.get(ch)) {
+    if (not std::isspace(ch)) break;
+  }
+  int sgn = 1;
+  if (ch == '-') {
+    sgn = -1;
+    is.get(ch);
+  }
+  bool in_frac = false;
+  while (true) {
+    if (not std::isdigit(ch)) {
+      is.unget();
+      break;
+    }
+    nume = (nume * 10) + int(ch - '0');
+    if (in_frac) deno *= 10;
+    if (not(is.get(ch))) break;
+    if (ch == '.') {
+      in_frac = true;
+      if (not(is.get(ch))) break;
+    }
+  }
+  x = Rat(nume * sgn, deno);
+  return is;
+}
