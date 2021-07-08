@@ -2,8 +2,6 @@
 
 // #include <boost/multiprecision/cpp_int.hpp>
 // using multip = boost::multiprecision;
-// using multip::abs;
-// using multip::gcd;
 
 template <typename T>
 struct Rational {
@@ -46,8 +44,8 @@ struct Rational {
   operator double() { return (double)(nume) / (double)(deno); }
   operator long double() { return (long double)(nume) / (long double)(deno); }
 
-  Rational operator-() const { return {-nume, deno}; }
   Rational operator+() const { return *this; }
+  Rational operator-() const { return Rational(-nume, deno); }
 
   friend bool operator==(const Rational &x, const Rational &y) {
     return (x.nume == y.nume) and (x.deno == y.deno);
@@ -72,12 +70,12 @@ struct Rational {
     auto zn = (static_cast<BigInt>(x.nume) * (y.deno / g)) +
               (static_cast<BigInt>(y.nume) * (x.deno / g));
     auto zd = static_cast<BigInt>(x.deno / g) * y.deno;
-    return Rational(zn, zd);
+    return Rational(std::move(zn), std::move(zd));
   }
   Rational &operator+=(const Rational &x) { return (*this = *this + x); }
 
   friend Rational operator-(const Rational &x, const Rational &y) {
-    return x + Rational(-y.nume, y.deno);
+    return x + (-y);
   }
   Rational &operator-=(const Rational &x) { return (*this = *this - x); }
 
@@ -103,6 +101,7 @@ struct Rational {
 
  private:
   static inline T abs_(T x) { return (x < 0) ? -x : x; }
+
   static BigInt gcd_(BigInt a, BigInt b) {
     if (b == 0) return a;
     return gcd_(b, a % b);
@@ -110,5 +109,4 @@ struct Rational {
 };
 using Rat = Rational<long long>;
 // using Rat = Rational<__int128_t>;
-// using Rat = Rational<multip::checked_int128_t>; // for testing
-// overflow
+// using Rat = Rational<multip::checked_int128_t>; // for testing overflow
