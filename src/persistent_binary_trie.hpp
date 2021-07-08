@@ -22,13 +22,13 @@ struct PersistentBinaryTrie {
 
   bool empty() const { return size() == 0; }
 
-  PersistentBinaryTrie insert(T val) {
+  PersistentBinaryTrie insert(T val) const {
     return PersistentBinaryTrie(insert_internal(root_, val));
   }
 
   // Removes one element of `val`.
   // At least one `val` must exist in the trie. Check `trie.count(val) > 0`.
-  PersistentBinaryTrie erase_one(T val) {
+  PersistentBinaryTrie erase_one(T val) const {
     return PersistentBinaryTrie(erase_internal(root_, val));
   }
 
@@ -38,8 +38,14 @@ struct PersistentBinaryTrie {
   // Returns the element x in the trie that minimizes `x ^ xor_mask`.
   T min_element(T xor_mask = 0) const { return get_min(root_, xor_mask); }
 
+  // Returns the minimum index i s.t. trie[i] >= val.
+  int lower_bound(T val) const { return count_less(root_, val); }
+
+  // Returns the minimum index i s.t. trie[i] > val.
+  int upper_bound(T val) const { return count_less(root_, val + 1); }
+
  private:
-  NodePtr insert_internal(NodePtr t, T val, int b = kBitWidth - 1) {
+  NodePtr insert_internal(NodePtr t, T val, int b = kBitWidth - 1) const {
     NodePtr res = new Node();
     res->leaf_count = 1;
     if (t != nullptr) {
@@ -53,7 +59,7 @@ struct PersistentBinaryTrie {
     return res;
   }
 
-  NodePtr erase_internal(NodePtr t, T val, int b = kBitWidth - 1) {
+  NodePtr erase_internal(NodePtr t, T val, int b = kBitWidth - 1) const {
     assert(t);
     if (t->leaf_count == 1) {
       return nullptr;
@@ -75,4 +81,12 @@ struct PersistentBinaryTrie {
     f ^= !t->child[f];
     return get_min(t->child[f], xor_mask, b - 1) | (T(f) << b);
   }
+
+  int count_less(NodePtr t, T val, int b = kBitWidth - 1) const {
+    if (!t || b < 0) return 0;
+    bool f = (val >> b) & 1;
+    return (f && t->child[0] ? t->child[0]->leaf_count : 0) +
+           count_less(t->child[f], val, b - 1);
+  }
 };
+using PTrie = PersistentBinaryTrie<>;

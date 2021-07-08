@@ -1,31 +1,38 @@
 #include <bits/stdc++.h>
 
-struct Min {
+struct MinOp {
   using T = long long;
   static T op(const T &x, const T &y) { return std::min(x, y); }
   static constexpr T id() { return std::numeric_limits<T>::max(); }
 };
 
-struct Max {
+struct MaxOp {
   using T = long long;
   static T op(const T &x, const T &y) { return std::max(x, y); }
   static constexpr T id() { return std::numeric_limits<T>::lowest(); }
 };
 
-struct Sum {
+struct SumOp {
   using T = long long;
   static T op(const T &x, const T &y) { return x + y; }
   static constexpr T id() { return 0; }
   static T invert(const T &x) { return -x; }
 };
 
-struct Prod {
+struct ProdOp {
   using T = long long;
   static T op(const T &x, const T &y) { return x * y; }
   static constexpr T id() { return 1; }
 };
 
-struct SumCount {
+struct XorOp {
+  using T = unsigned long long;
+  static T op(const T &x, const T &y) { return x ^ y; }
+  static constexpr T id() { return 0; }
+  static T invert(const T &x) { return x; }
+};
+
+struct SumCountOp {
   struct T {
     long long sum;
     int count;
@@ -37,7 +44,7 @@ struct SumCount {
 };
 
 // Keeps the value with the latest time.
-struct Assign {
+struct AssignOp {
   // Value with a timestamp.
   struct T {
     unsigned time;
@@ -47,7 +54,7 @@ struct Assign {
   static T id() { return {0, 0}; }
 };
 
-struct GCD {
+struct GCDOp {
   using T = long long;
   static T op(const T &x, const T &y) {
     if (x == id()) return y;
@@ -58,7 +65,7 @@ struct GCD {
 };
 
 // 2 smallest items in an interval.
-struct Min2 {
+struct Min2Op {
   using value_type = long long;
   using T = std::array<value_type, 2>;
 
@@ -74,7 +81,7 @@ struct Min2 {
 };
 
 // 2 largest items in an interval.
-struct Max2 {
+struct Max2Op {
   using value_type = long long;
   using T = std::array<value_type, 2>;
 
@@ -89,7 +96,7 @@ struct Max2 {
   }
 };
 
-struct AddMin {
+struct AddMinOp {
   using T = long long;
   using F = long long;
 
@@ -103,7 +110,7 @@ struct AddMin {
   static constexpr F f_id() { return 0; }
 };
 
-struct AddMax {
+struct AddMaxOp {
   using T = long long;
   using F = long long;
 
@@ -117,7 +124,7 @@ struct AddMax {
   static constexpr F f_id() { return 0; }
 };
 
-struct AddSum {
+struct AddSumOp {
   struct T {
     long long sum;
     int width;
@@ -138,7 +145,7 @@ struct AddSum {
   static constexpr F f_id() { return 0; }
 };
 
-struct AssignMin {
+struct AssignMinOp {
   using T = long long;
   using F = std::optional<long long>;
 
@@ -152,7 +159,7 @@ struct AssignMin {
   static constexpr F f_id() { return std::nullopt; }
 };
 
-struct AssignMax {
+struct AssignMaxOp {
   using T = long long;
   using F = std::optional<long long>;
 
@@ -166,7 +173,7 @@ struct AssignMax {
   static constexpr F f_id() { return std::nullopt; }
 };
 
-struct AssignSum {
+struct AssignSumOp {
   struct T {
     long long sum;
     int width;
@@ -187,7 +194,7 @@ struct AssignSum {
   static constexpr F f_id() { return std::nullopt; }
 };
 
-struct MinMin {
+struct MinMinOp {
   using T = long long;
   using F = long long;
 
@@ -201,7 +208,7 @@ struct MinMin {
   static constexpr F f_id() { return std::numeric_limits<T>::max(); }
 };
 
-struct MaxMax {
+struct MaxMaxOp {
   using T = long long;
   using F = long long;
 
