@@ -41,8 +41,8 @@ struct Rational {
   Rational &operator=(const Rational &x) = default;
   Rational &operator=(Rational &&x) = default;
 
-  operator double() { return (double)(nume) / (double)(deno); }
-  operator long double() { return (long double)(nume) / (long double)(deno); }
+  operator double() const { return (double)nume / (double)deno; }
+  operator long double() const { return (long double)nume / (long double)deno; }
 
   Rational operator+() const { return *this; }
   Rational operator-() const { return Rational(-nume, deno); }
