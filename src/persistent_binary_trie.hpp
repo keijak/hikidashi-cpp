@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
 
-template <typename T = unsigned, int kBitWidth = std::numeric_limits<T>::digits>
+template <typename T = unsigned, int kBitWidth = 16>
 struct PersistentBinaryTrie {
   static_assert(std::is_unsigned<T>::value, "Requires unsigned type");
 
@@ -38,11 +38,42 @@ struct PersistentBinaryTrie {
   // Returns the element x in the trie that minimizes `x ^ xor_mask`.
   T min_element(T xor_mask = 0) const { return get_min(root_, xor_mask); }
 
+  // Returns k-th (0-indexed) smallest value.
+  T operator[](int k) const {
+    assert(0 <= k and k < size());
+    return get_internal(root_, k);
+  }
+
+  // Returns k-th (0-indexed) largest value.
+  T kth_largest(int k) const {
+    const int i = size() - k - 1;
+    return (*this)[i];
+  }
+
   // Returns the minimum index i s.t. trie[i] >= val.
   int lower_bound(T val) const { return count_less(root_, val); }
 
   // Returns the minimum index i s.t. trie[i] > val.
   int upper_bound(T val) const { return count_less(root_, val + 1); }
+
+  // Counts the number of elements that are equal to `val`.
+  // Note: BinaryTrie is a multiset.
+  int count(T val) const {
+    if (not root_) return 0;
+    NodePtr t = root_;
+    for (int i = kBitWidth - 1; i >= 0; i--) {
+      t = t->child[val >> i & 1];
+      if (not t) return 0;
+    }
+    return t->leaf_count;
+  }
+
+  std::vector<T> to_vec() const {
+    std::vector<T> res;
+    res.reserve(size());
+    to_vec_internal(root_, T(0), res);
+    return res;
+  }
 
  private:
   NodePtr insert_internal(NodePtr t, T val, int b = kBitWidth - 1) const {
@@ -78,15 +109,37 @@ struct PersistentBinaryTrie {
     assert(t != nullptr);
     if (b < 0) return 0;
     bool f = (xor_mask >> b) & 1;
-    f ^= !t->child[f];
+    f ^= not t->child[f];
     return get_min(t->child[f], xor_mask, b - 1) | (T(f) << b);
   }
 
+  T get_internal(NodePtr t, int k, int b = kBitWidth - 1) const {
+    if (b < 0) return 0;
+    int m = t->child[0] ? t->child[0]->leaf_count : 0;
+    return k < m ? get_internal(t->child[0], k, b - 1)
+                 : get_internal(t->child[1], k - m, b - 1) | (T(1) << b);
+  }
+
   int count_less(NodePtr t, T val, int b = kBitWidth - 1) const {
-    if (!t || b < 0) return 0;
+    if (not t or b < 0) return 0;
     bool f = (val >> b) & 1;
-    return (f && t->child[0] ? t->child[0]->leaf_count : 0) +
+    return (f and t->child[0] ? t->child[0]->leaf_count : 0) +
            count_less(t->child[f], val, b - 1);
   }
+
+  void to_vec_internal(NodePtr t, T val, std::vector<T> &out,
+                       int b = kBitWidth - 1) const {
+    if (not t) return;
+    if (b < 0) {
+      out.push_back(val);
+      return;
+    }
+    if (t->child[0]) {
+      to_vec_internal(t->child[0], val, out, b - 1);
+    }
+    if (t->child[1]) {
+      to_vec_internal(t->child[1], val | (T(1) << b), out, b - 1);
+    }
+  }
 };
-using PTrie = PersistentBinaryTrie<>;
+using Trie = PersistentBinaryTrie<>;

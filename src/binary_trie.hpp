@@ -42,7 +42,7 @@ struct BinaryTrie {
 
   // Returns k-th (0-indexed) smallest value.
   T operator[](int k) const {
-    assert(0 <= k && k < size());
+    assert(0 <= k and k < size());
     return get_internal(root_, k);
   }
 
@@ -68,6 +68,13 @@ struct BinaryTrie {
     if (root_) root_->lazy_mask ^= xor_mask;
   }
 
+  std::vector<T> to_vec() const {
+    std::vector<T> res;
+    res.reserve(size());
+    to_vec_internal(root_, T(0), res);
+    return res;
+  }
+
  private:
   void push_down(NodePtr t, int b) const {
     if (t->lazy_mask == 0) return;
@@ -78,7 +85,7 @@ struct BinaryTrie {
   }
 
   NodePtr insert_internal(NodePtr t, T val, int b = kBitWidth - 1) {
-    if (!t) t = new Node();
+    if (not t) t = new Node();
     t->leaf_count += 1;
     if (b < 0) return t;
     push_down(t, b);
@@ -106,7 +113,7 @@ struct BinaryTrie {
     if (b < 0) return 0;
     push_down(t, b);
     bool f = (xor_mask >> b) & 1;
-    f ^= !t->child[f];
+    f ^= not t->child[f];
     return get_min(t->child[f], xor_mask, b - 1) | (T(f) << b);
   }
 
@@ -119,10 +126,26 @@ struct BinaryTrie {
   }
 
   int count_less(NodePtr t, T val, int b = kBitWidth - 1) const {
-    if (!t || b < 0) return 0;
+    if (not t or b < 0) return 0;
     push_down(t, b);
     bool f = (val >> b) & 1;
-    return (f && t->child[0] ? t->child[0]->leaf_count : 0) +
+    return (f and t->child[0] ? t->child[0]->leaf_count : 0) +
            count_less(t->child[f], val, b - 1);
   }
+
+  void to_vec_internal(NodePtr t, T val, std::vector<T> &out,
+                       int b = kBitWidth - 1) const {
+    if (not t) return;
+    if (b < 0) {
+      out.push_back(val);
+      return;
+    }
+    if (t->child[0]) {
+      to_vec_internal(t->child[0], val, out, b - 1);
+    }
+    if (t->child[1]) {
+      to_vec_internal(t->child[1], val | (T(1) << b), out, b - 1);
+    }
+  }
 };
+using Trie = BinaryTrie<>;
