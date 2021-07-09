@@ -16,7 +16,20 @@ struct BinaryTrie {
   };
   NodePtr root_;  // The root node.
 
-  BinaryTrie() : root_(nullptr) {}
+  struct NodePool {
+    std::vector<NodePtr> nodes_;
+    ~NodePool() {
+      for (NodePtr p : nodes_) delete p;
+    }
+    NodePtr new_node() {
+      nodes_.push_back(new Node);
+      return nodes_.back();
+    }
+  };
+  NodePool *pool_;
+
+  BinaryTrie() : root_(nullptr), pool_(NO_DELETE()) {}
+  BinaryTrie(NodePool &pool) : root_(nullptr), pool_(pool) {}
 
   int size() const { return root_ ? root_->leaf_count : 0; }
 
@@ -76,6 +89,11 @@ struct BinaryTrie {
   }
 
  private:
+  static NodePool *NO_DELETE() {
+    static NodePool kNoDeletePool;
+    return &kNoDeletePool;
+  }
+
   void push_down(NodePtr t, int b) const {
     if (t->lazy_mask == 0) return;
     if ((t->lazy_mask >> b) & 1) std::swap(t->child[0], t->child[1]);
@@ -85,7 +103,7 @@ struct BinaryTrie {
   }
 
   NodePtr insert_internal(NodePtr t, T val, int b = kBitWidth - 1) {
-    if (not t) t = new Node();
+    if (not t) t = pool_->new_node();
     t->leaf_count += 1;
     if (b < 0) return t;
     push_down(t, b);
@@ -97,10 +115,7 @@ struct BinaryTrie {
   NodePtr erase_internal(NodePtr t, T val, int b = kBitWidth - 1) {
     assert(t);
     t->leaf_count -= 1;
-    if (t->leaf_count == 0) {
-      delete t;
-      return nullptr;
-    }
+    if (t->leaf_count == 0) return nullptr;
     if (b < 0) return t;
     push_down(t, b);
     bool f = (val >> b) & 1;
