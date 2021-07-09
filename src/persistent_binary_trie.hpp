@@ -15,21 +15,34 @@ struct PersistentBinaryTrie {
   };
   NodePtr root_;  // The root node.
 
-  PersistentBinaryTrie() : root_(nullptr) {}
-  explicit PersistentBinaryTrie(NodePtr r) : root_(r) {}
+  struct NodePool {
+    std::vector<NodePtr> nodes_;
+    ~NodePool() {
+      for (NodePtr p : nodes_) delete p;
+    }
+    NodePtr new_node() {
+      nodes_.push_back(new Node);
+      return nodes_.back();
+    }
+  };
+  NodePool *pool_;
+
+  PersistentBinaryTrie() : root_(nullptr), pool_(NO_DELETE()) {}
+  explicit PersistentBinaryTrie(NodePool *p) : root_(nullptr), pool_(p) {}
+  PersistentBinaryTrie(NodePtr r, NodePool *p) : root_(r), pool_(p) {}
 
   int size() const { return root_ ? root_->leaf_count : 0; }
 
   bool empty() const { return size() == 0; }
 
   PersistentBinaryTrie insert(T val) const {
-    return PersistentBinaryTrie(insert_internal(root_, val));
+    return PersistentBinaryTrie(insert_internal(root_, val), pool_);
   }
 
   // Removes one element of `val`.
   // At least one `val` must exist in the trie. Check `trie.count(val) > 0`.
   PersistentBinaryTrie erase_one(T val) const {
-    return PersistentBinaryTrie(erase_internal(root_, val));
+    return PersistentBinaryTrie(erase_internal(root_, val), pool_);
   }
 
   // Returns the element x in the trie that maximizes `x ^ xor_mask`.
@@ -76,8 +89,13 @@ struct PersistentBinaryTrie {
   }
 
  private:
+  static NodePool *NO_DELETE() {
+    static NodePool kNoDeletePool;
+    return &kNoDeletePool;
+  }
+
   NodePtr insert_internal(NodePtr t, T val, int b = kBitWidth - 1) const {
-    NodePtr res = new Node();
+    NodePtr res = pool_->new_node();
     res->leaf_count = 1;
     if (t != nullptr) {
       res->leaf_count += t->leaf_count;
@@ -95,7 +113,7 @@ struct PersistentBinaryTrie {
     if (t->leaf_count == 1) {
       return nullptr;
     }
-    NodePtr res = new Node();
+    NodePtr res = pool_->new_node();
     res->leaf_count = t->leaf_count - 1;
     res->child[0] = t->child[0];
     res->child[1] = t->child[1];
