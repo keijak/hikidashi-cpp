@@ -12,51 +12,52 @@
 #include <vector>
 using namespace std;
 
-// Lowest Common Ancestor by Doubling.
+// Lowest Common Ancestor by binary lifting.
 // - query: O(log N)
 // - build: O(N log N)
 // - space: O(N log N)
 struct AncestorBinaryLifting {
   using G = vector<vector<int>>;
-  static const int kMaxBits = 30;  // max upper lookup (2^kMaxBits)
 
-  const int n;  // number of nodes
-  G adj;
-  vector<vector<optional<int>>> upper;  // 2^k upper node
+  const int n;         // number of nodes
+  const int max_bits;  // max upper lookup (2^max_bits)
+  const int root;      // root node
+  const G& adj;
+  vector<vector<int>> upper;  // 2^k upper node
   vector<int> depth;
 
-  explicit AncestorBinaryLifting(G g, int root = 0)
+  explicit AncestorBinaryLifting(const G& g, int root = 0)
       : n(g.size()),
-        adj(move(g)),
-        upper(kMaxBits, vector<optional<int>>(n)),
-        depth(n) {
-    depth[root] = 0;
-
+        max_bits(power2_ceil(n + 1)),
+        root(root),
+        adj(g),
+        upper(max_bits, vector<int>(n)),
+        depth(n, 0) {
     // Build `depth` and `upper[0]`.
-    dfs(0, -1);
+    // The root node's parent is itself.
+    dfs(root, root);
 
     // Build `upper[k]` for k > 0.
-    for (int k = 0; k + 1 < kMaxBits; ++k) {
+    for (int k = 0; k + 1 < max_bits; ++k) {
       for (int v = 0; v < n; ++v) {
-        if (upper[k][v].has_value()) {
-          upper[k + 1][v] = upper[k][upper[k][v].value()];
-        }
+        upper[k + 1][v] = upper[k][upper[k][v]];
       }
     }
   }
 
-  optional<int> parent(int v) const { return upper[0][v]; }
+  // Returns the parent of v.
+  // The root's parent is the root itself.
+  int parent(int v) const { return upper[0][v]; }
 
   // Returns i-th ancestor of v.
-  // - parent is the 1st ancestor.
-  // - `upper[k][v]`is the (2^k)-th ancestor.
-  optional<int> ancestor(int v, int i) const {
-    assert(i < (1 << kMaxBits));
+  // - 0th ancestor is v itself.
+  // - 1st ancestor is the parent.
+  // - (2^k)-th ancestor is `upper[k][v]`.
+  int ancestor(int v, int i) const {
     int x = v;
-    for (int k = kMaxBits - 1; k >= 0; --k) {
+    for (int k = max_bits - 1; k >= 0; --k) {
       if (i & (1 << k)) {
-        if (not upper[k][x].has_value()) return nullopt;
-        x = upper[k][x].value();
+        x = upper[k][x];
       }
     }
     return x;
@@ -65,26 +66,23 @@ struct AncestorBinaryLifting {
   // Returns the node ID of the lowest common ancestor.
   int lca(int u, int v) const {
     if (depth[u] > depth[v]) swap(u, v);
-    int ddiff = depth[v] - depth[u];
 
     // Move up `v` so both nodes have the same depth.
-    for (int k = kMaxBits - 1; k >= 0; --k) {
-      if (ddiff & (1 << k)) {
-        v = upper[k][v].value();
-      }
-    }
+    int ddiff = depth[v] - depth[u];
+    v = ancestor(v, ddiff);
     if (u == v) return u;
 
     // Move up both nodes but still keep them below the LCA.
-    for (int k = kMaxBits - 1; k >= 0; --k) {
+    for (int k = max_bits - 1; k >= 0; --k) {
       if (upper[k][u] != upper[k][v]) {
-        u = upper[k][u].value();
-        v = upper[k][v].value();
+        u = upper[k][u];
+        v = upper[k][v];
       }
     }
-
     // Now both nodes are direct children of the LCA.
-    return parent(u).value();
+    const int pu = parent(u), pv = parent(v);
+    assert(pu == pv);
+    return pu;
   }
 
   // Returns the distance (number of edges) between two nodes.
@@ -93,24 +91,33 @@ struct AncestorBinaryLifting {
     return (depth[u] - depth[p]) + (depth[v] - depth[p]);
   }
 
+  // Binary search.
   // Returns the minimum number of steps to reach an ancestor
   // that satisfies `pred(a)`.
   template <class F>
-  int min_steps(int start, F pred) const {
+  optional<int> min_steps(int start, F pred) const {
     static_assert(std::is_invocable_r_v<bool, F, int>);
+    if (pred(start)) return 0;
+    if (not pred(root)) return nullopt;
     int max_false = 0;
     int v = start;
-    for (int d = kMaxBits - 1; d >= 0; --d) {
+    for (int d = max_bits - 1; d >= 0; --d) {
       auto u = upper[d][v];
-      if (not u.has_value()) continue;
-      if (pred(u.value())) continue;
+      if (pred(u)) continue;
       max_false += 1 << d;
-      v = u.value();
+      v = u;
     }
-    return max_false + 1;
+    int min_true = max_false + 1;
+    return min_true;
   }
 
  private:
+  static int power2_ceil(int n) {
+    int b = 1;
+    while ((1u << b) < (unsigned)n) ++b;
+    return b;
+  }
+
   void dfs(int v, int p) {
     upper[0][v] = p;  // parent
     for (auto u : adj[v]) {

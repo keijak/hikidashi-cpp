@@ -17,19 +17,30 @@ struct BinaryTrie {
   NodePtr root_;  // The root node.
 
   struct NodePool {
-    std::vector<NodePtr> nodes_;
-    ~NodePool() {
-      for (NodePtr p : nodes_) delete p;
+    static constexpr size_t kInitBlockSize = 1u << 12;
+    std::vector<std::unique_ptr<Node[]>> blocks_;
+    size_t bsize_;
+    size_t bi_;
+    size_t ni_;
+
+    NodePool() : bsize_(kInitBlockSize), bi_(0), ni_(0) {
+      blocks_.emplace_back(new Node[kInitBlockSize]);
     }
+
     NodePtr new_node() {
-      nodes_.push_back(new Node);
-      return nodes_.back();
+      if (ni_ == bsize_) {
+        bi_++;
+        ni_ = 0;
+        bsize_ *= 2;
+        blocks_.emplace_back(new Node[bsize_]);
+      }
+      return &blocks_[bi_][ni_++];
     }
   };
   NodePool *pool_;
 
   BinaryTrie() : root_(nullptr), pool_(NO_DELETE()) {}
-  BinaryTrie(NodePool &pool) : root_(nullptr), pool_(pool) {}
+  BinaryTrie(NodePool *pool) : root_(nullptr), pool_(pool) {}
 
   int size() const { return root_ ? root_->leaf_count : 0; }
 
@@ -89,11 +100,6 @@ struct BinaryTrie {
   }
 
  private:
-  static NodePool *NO_DELETE() {
-    static NodePool kNoDeletePool;
-    return &kNoDeletePool;
-  }
-
   void push_down(NodePtr t, int b) const {
     if (t->lazy_mask == 0) return;
     if ((t->lazy_mask >> b) & 1) std::swap(t->child[0], t->child[1]);
@@ -161,6 +167,11 @@ struct BinaryTrie {
     if (t->child[1]) {
       to_vec_internal(t->child[1], val | (T(1) << b), out, b - 1);
     }
+  }
+
+  static NodePool *NO_DELETE() {
+    static NodePool kNoDeletePool;
+    return &kNoDeletePool;
   }
 };
 using Trie = BinaryTrie<>;

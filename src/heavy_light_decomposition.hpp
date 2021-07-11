@@ -6,7 +6,7 @@
 using i64 = long long;
 
 // Heavy-Light Decomposition
-struct HLD {
+struct HLDecomp {
   using NodeID = int;                       // [0, n)
   using G = std::vector<std::vector<int>>;  // undirected graph
   // half-open intervals of preorder indices of nodes.
@@ -22,7 +22,7 @@ struct HLD {
   std::vector<NodeID> ord_to_node;  // preorder index to node id
   std::vector<NodeID> comp_root;    // node id to its heavy path component
 
-  explicit HLD(G g, NodeID root = 0)
+  explicit HLDecomp(G g, NodeID root = 0)
       : n(int(g.size())),
         root(root),
         child(g),
@@ -127,7 +127,7 @@ struct HLD {
 
 // Returns the cumulative sum array of edge costs (indexed by Ord).
 std::vector<i64> edge_cost_cumsum(
-    const HLD &hld, const std::map<std::pair<int, int>, i64> &edge_cost) {
+    const HLDecomp &hld, const std::map<std::pair<int, int>, i64> &edge_cost) {
   const int n = hld.n;
   std::vector<i64> cost(n), acc(n + 1);  // indexed by Ord.
   // Iterate over the NodeID space.
