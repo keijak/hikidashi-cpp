@@ -102,11 +102,6 @@ struct PersistentBinaryTrie {
   }
 
  private:
-  static NodePool *NO_DELETE() {
-    static NodePool kNoDeletePool;
-    return &kNoDeletePool;
-  }
-
   NodePtr insert_internal(NodePtr t, T val, int b = kBitWidth - 1) const {
     NodePtr res = pool_->new_node();
     res->leaf_count = 1;
@@ -171,6 +166,11 @@ struct PersistentBinaryTrie {
     if (t->child[1]) {
       to_vec_internal(t->child[1], val | (T(1) << b), out, b - 1);
     }
+  }
+
+  static NodePool *NO_DELETE() {
+    static NodePool kNoDeletePool;
+    return &kNoDeletePool;
   }
 };
 using Trie = PersistentBinaryTrie<>;
