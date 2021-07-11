@@ -18,6 +18,8 @@ struct BinaryTrie {
 
   struct NodePool {
     static constexpr size_t kInitBlockSize = 1u << 12;
+    static constexpr double kBlockSizeGrowthRate = 1.5;  // Decrease if MLE.
+
     std::vector<std::unique_ptr<Node[]>> blocks_;
     size_t bsize_;
     size_t bi_;
@@ -31,7 +33,7 @@ struct BinaryTrie {
       if (ni_ == bsize_) {
         bi_++;
         ni_ = 0;
-        bsize_ *= 2;
+        bsize_ *= kBlockSizeGrowthRate;
         blocks_.emplace_back(new Node[bsize_]);
       }
       return &blocks_[bi_][ni_++];

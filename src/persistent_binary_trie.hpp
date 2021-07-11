@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
 
-template <typename T = unsigned, int kBitWidth = 16>
+template <typename T = unsigned, int kBitWidth = std::numeric_limits<T>::digits>
 struct PersistentBinaryTrie {
   static_assert(std::is_unsigned<T>::value, "Requires unsigned type");
 
@@ -16,13 +16,26 @@ struct PersistentBinaryTrie {
   NodePtr root_;  // The root node.
 
   struct NodePool {
-    std::vector<NodePtr> nodes_;
-    ~NodePool() {
-      for (NodePtr p : nodes_) delete p;
+    static constexpr size_t kInitBlockSize = 1u << 12;
+    static constexpr double kBlockSizeGrowthRate = 1.5;  // Decrease if MLE.
+
+    std::vector<std::unique_ptr<Node[]>> blocks_;
+    size_t bsize_;
+    size_t bi_;
+    size_t ni_;
+
+    NodePool() : bsize_(kInitBlockSize), bi_(0), ni_(0) {
+      blocks_.emplace_back(new Node[kInitBlockSize]);
     }
+
     NodePtr new_node() {
-      nodes_.push_back(new Node);
-      return nodes_.back();
+      if (ni_ == bsize_) {
+        bi_++;
+        ni_ = 0;
+        bsize_ *= kBlockSizeGrowthRate;
+        blocks_.emplace_back(new Node[bsize_]);
+      }
+      return &blocks_[bi_][ni_++];
     }
   };
   NodePool *pool_;
