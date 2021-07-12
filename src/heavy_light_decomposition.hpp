@@ -7,6 +7,10 @@ using i64 = long long;
 
 // Heavy-Light Decomposition
 struct HLDecomp {
+  // Whether the given adjacency list only contains children or may also contain
+  // parents. If true, skips removing parent from the graph for speedup.
+  static constexpr bool kChildrenOnlyGraph = false;
+
   using NodeID = int;                       // [0, n)
   using G = std::vector<std::vector<int>>;  // undirected graph
   // half-open intervals of preorder indices of nodes.
@@ -97,12 +101,18 @@ struct HLDecomp {
   }
 
  private:
-  // Fills `parent` and `subsize` and drops parent node ids from `child`.
+  // Fills `parent` and `subsize`.
   void dfs_subsize(NodeID v) {
     auto &edges = child[v];
-    if (parent[v] != -1) {
-      auto it = std::find(edges.begin(), edges.end(), parent[v]);
-      if (it != edges.end()) edges.erase(it);
+    if constexpr (not kChildrenOnlyGraph) {
+      if (parent[v] != -1) {
+        // Remove the parent from `child[v]`. Amortized O(N).
+        auto it = std::find(edges.begin(), edges.end(), parent[v]);
+        if (it != edges.end()) {
+          std::swap(*it, edges.back());
+          edges.pop_back();
+        }
+      }
     }
     for (NodeID &u : edges) {
       parent[u] = v;

@@ -49,12 +49,13 @@ tuple<int, int> path_lca(const EulerTour::G &g, int u, int v) {
   EulerTour et(g);
   SparseTable<MinPair> st(et.tour);
 
-  // Usage
-  int ui = et.in[u], vi = et.in[v];
-  if (ui > vi) swap(ui, vi);
-  auto [lca_depth, lca_node] = st.fold(ui, vi + 1);
-  int path_distance = (et.depth[u] - lca_depth) + (et.depth[v] - lca_depth);
-  return {path_distance, lca_node};
+  {  // query
+    int ui = et.in[u], vi = et.in[v];
+    if (ui > vi) swap(ui, vi);
+    auto [lca_depth, lca_node] = st.fold(ui, vi + 1);
+    int path_distance = (et.depth[u] - lca_depth) + (et.depth[v] - lca_depth);
+    return {path_distance, lca_node};
+  }
 }
 
 struct MinInt {
@@ -76,10 +77,12 @@ tuple<int, int> range_lca(const EulerTour::G &g, int l, int r) {
   SparseTable<MinInt> min_st(et.in);
   SparseTable<MaxInt> max_st(et.in);
 
-  int mini = min_st.fold(l, r);
-  int maxi = max_st.fold(l, r);
-  auto [lca_depth, lca_node] = tour_st.fold(mini, maxi + 1);
-  return {lca_node, lca_depth};
+  {  // query
+    int mini = min_st.fold(l, r);
+    int maxi = max_st.fold(l, r);
+    auto [lca_depth, lca_node] = tour_st.fold(mini, maxi + 1);
+    return {lca_node, lca_depth};
+  }
 }
 
 // tour: preorder edge costs.
