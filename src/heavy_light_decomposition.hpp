@@ -93,11 +93,11 @@ struct HLDecomp {
 
   // Distance (= number of edges) of the path between two nodes.
   int distance(NodeID u, NodeID v) const {
-    int cost = 0;
-    for (auto [l, r] : edge_ranges_on_path(u, v)) {
-      cost += r - l;
+    int dist = 0;
+    for (const auto &[l, r] : edge_ranges_on_path(u, v)) {
+      dist += r - l;
     }
-    return cost;
+    return dist;
   }
 
  private:
