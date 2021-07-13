@@ -19,8 +19,8 @@ inline int msb_log(unsigned long long x) {
 // - Query: O(1)
 template <class BetterOp, class mask_t = unsigned>
 struct RMQ {
-  static_assert(std::is_integral<mask_t>::value, "mask_t must be integral");
-  static_assert(std::is_unsigned<mask_t>::value, "mask_t must be unsigned");
+  static_assert(std::is_integral_v<mask_t>, "mask_t must be integral");
+  static_assert(std::is_unsigned_v<mask_t>, "mask_t must be unsigned");
   static_assert(std::is_invocable_r_v<bool, BetterOp, int, int>);
   static constexpr int block_size_ = num_bits<mask_t>;
 
@@ -123,6 +123,6 @@ struct RMQ {
   }
 };
 template <class BetterOp>
-RMQ<BetterOp> create_rmq(int n, BetterOp better) {
+RMQ<BetterOp> make_rmq(int n, BetterOp better) {
   return {n, std::move(better)};
 }

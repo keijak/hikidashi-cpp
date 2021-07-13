@@ -75,44 +75,44 @@ inline U bit_ceil(T x) {
   return bit_floor(U(x - 1)) << 1;
 }
 
-// Most Significant Set Bit (Highest One Bit)
-// - mssb(x) = bit_floor(x)
-// - mssb_pos(x) = bit_width(x) - 1
-inline int mssb_pos(unsigned x) {
+// Most significant bit that is set.
+// - msb(x) = bit_floor(x)
+// - msb_log(x) = bit_width(x) - 1
+inline int msb_log(unsigned x) {
   assert(x != 0);
   return std::numeric_limits<unsigned>::digits - __builtin_clz(x) - 1;
 }
-inline int mssb_pos(u64 x) {
+inline int msb_log(u64 x) {
   assert(x != 0);
   return std::numeric_limits<u64>::digits - __builtin_clzll(x) - 1;
 }
 template <typename T, typename U = std::make_unsigned_t<T>>
-inline U mssb(T x) {
+inline U msb(T x) {
   if (x == 0) return 0;
-  return U(1) << mssb_pos(U(x));
+  return U(1) << msb_log(U(x));
 }
 template <typename T, typename U = std::make_unsigned_t<T>>
-inline U drop_mssb(T x) {
-  return U(x) ^ mssb(U(x));
+inline U drop_msb(T x) {
+  return U(x) ^ msb(U(x));
 }
 
-// Least Significant Set Bit (Lowest One Bit)
-// - lssb(x) = (x & -x)
-// - lssb_pos(x) = countr_zero(x)
-inline int lssb_pos(unsigned x) {
+// Least significant bit that is set.
+// - lsb(x) = (x & -x)
+// - lsb_log(x) = countr_zero(x)
+inline int lsb_log(unsigned x) {
   assert(x != 0);
   return __builtin_ctz(x);
 }
-inline int lssb_pos(u64 x) {
+inline int lsb_log(u64 x) {
   assert(x != 0);
   return __builtin_ctzll(x);
 }
 template <typename T, typename U = std::make_unsigned_t<T>>
-inline U lssb(T x) {
+inline U lsb(T x) {
   return (x & -x);
 }
 template <typename T, typename U = std::make_unsigned_t<T>>
-inline U drop_lssb(T x) {
+inline U drop_lsb(T x) {
   return x & (x - 1);
 }
 
@@ -127,7 +127,7 @@ void enumerate_subsets(unsigned bits, std::function<void(unsigned)> func) {
 // Enumerates subsets that contain the most significant set bit of the bits.
 void enumerate_half_subsets(unsigned bits, std::function<void(unsigned)> func) {
   if (bits == 0) return;
-  const unsigned fixed_bit = mssb(bits);
+  const unsigned fixed_bit = msb(bits);
   for (unsigned sub = bits; sub & fixed_bit; sub = (sub - 1) & bits) {
     func(sub);
   }
