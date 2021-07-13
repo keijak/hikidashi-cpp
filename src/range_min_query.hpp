@@ -6,12 +6,7 @@ constexpr int num_bits = CHAR_BIT * sizeof(T);
 // Log base 2 of the most significant bit which is set.
 inline int msb_log(unsigned x) {
   assert(x != 0);
-  return std::numeric_limits<unsigned>::digits - __builtin_clz(x) - 1;
-}
-inline int msb_log(unsigned long long x) {
-  assert(x != 0);
-  return std::numeric_limits<unsigned long long>::digits - __builtin_clzll(x) -
-         1;
+  return num_bits<unsigned> - __builtin_clz(x) - 1;
 }
 
 // Range Min/Max Query based on Fischer-Heun Structure.
@@ -79,7 +74,7 @@ struct RMQ {
   // Returns the index of the best value in [l, r) (half-open interval).
   inline int fold(int l, int r) const {
     assert(l < r);
-    // We internally use closed interval.
+    // Internally use closed interval.
     return best_index(l, r - 1);
   }
 
@@ -104,24 +99,26 @@ struct RMQ {
   inline int best_index(int l, int r) const {
     l = std::clamp(l, 0, n_ - 1);
     r = std::clamp(r, 0, n_ - 1);
-    const unsigned width = r - l + 1;
+    const int width = r - l + 1;
     if (width <= block_size_) {
       return best_index_small(r, width);
     }
     const int al = best_index_small(std::min(l + block_size_, n_) - 1);
     const int ar = best_index_small(r);
     int ans = better_index(al, ar);
-    l = l / block_size_ + 1;
-    r = r / block_size_ - 1;
-    if (l <= r) {
-      const int k = msb_log(width);
-      const int am =
-          better_index(sparse_table_[k][l], sparse_table_[k][r - (1 << k) + 1]);
+
+    const int bl = l / block_size_ + 1;
+    const int br = r / block_size_ - 1;
+    if (bl <= br) {
+      const int k = msb_log(unsigned(br - bl + 1));
+      const int bl2 = br - (1 << k) + 1;
+      const int am = better_index(sparse_table_[k][bl], sparse_table_[k][bl2]);
       ans = better_index(ans, am);
     }
     return ans;
   }
 };
+
 template <class BetterOp>
 RMQ<BetterOp> make_rmq(int n, BetterOp better) {
   return {n, std::move(better)};
