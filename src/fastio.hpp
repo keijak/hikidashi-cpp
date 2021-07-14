@@ -3,6 +3,7 @@
 #pragma GCC optimize("Ofast")
 #pragma GCC optimize("unroll-loops")
 #pragma GCC optimize("inline")
+#pragma GCC target("avx2")
 
 #include <cctype>
 #include <cstdint>
@@ -12,14 +13,12 @@
 #include <type_traits>
 #include <utility>
 
-#if !HAVE_DECL_FREAD_UNLOCKED
+namespace fastio {
+#ifdef ENABLE_DEBUG
 #define fread_unlocked fread
-#endif
-#if !HAVE_DECL_FWRITE_UNLOCKED
 #define fwrite_unlocked fwrite
 #endif
 
-namespace fastio {
 static constexpr int SZ = 1 << 17;
 char ibuf[SZ], obuf[SZ];
 int pil = 0, pir = 0, por = 0;
