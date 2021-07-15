@@ -1,0 +1,8 @@
+# Ignore everywhere
+a.out
+a.out.dSYM
+
+# clion
+.idea
+.run
+cmake-build-debug
