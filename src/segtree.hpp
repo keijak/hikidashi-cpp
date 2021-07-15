@@ -71,6 +71,7 @@ struct SegTree {
   }
 };
 
+// Fix the left bound, extend the right bound as much as possible.
 template <class M, class F>
 int max_right(const SegTree<M> &seg, int l, F pred) {
   static_assert(std::is_invocable_r_v<bool, F, typename M::T>,
@@ -98,6 +99,7 @@ int max_right(const SegTree<M> &seg, int l, F pred) {
   return seg.size();
 }
 
+// Fix the right bound, extend the left bound as much as possible.
 template <class M, class F>
 int min_left(const SegTree<M> &seg, int r, F pred) {
   static_assert(std::is_invocable_r_v<bool, F, typename M::T>,

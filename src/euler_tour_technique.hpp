@@ -1,3 +1,4 @@
+#include <tuple>
 #include <vector>
 using namespace std;
 using i64 = long long;
@@ -9,78 +10,69 @@ struct EulerTour {
   using G = vector<vector<int>>;
 
   const int n;  // number of nodes
-  G g;
+  const G &g;
 
   // Euler Tour on nodes.
-  vector<pair<int, int>> tour;  // (depth, node id)
   vector<int> in;   // index in the tour on entering the subtree of v
   vector<int> out;  // index in the tour on exiting the subtree of v
   vector<int> depth;
+  vector<int> node_tour;
+  vector<int> depth_tour;
 
-  explicit EulerTour(G g, int root = 0)
-      : n((int)g.size()), g(move(g)), in(n, -1), out(n, -1), depth(n, -1) {
-    tour.reserve(n * 2);
+  explicit EulerTour(const G &g, int root = 0)
+      : n((int)g.size()), g(g), in(n, -1), out(n, -1), depth(n, -1) {
+    node_tour.reserve(n * 2);
+    depth_tour.reserve(n * 2);
     depth[root] = 0;
     dfs(root, -1);
   }
 
  private:
   void dfs(int v, int p) {
-    in[v] = int(tour.size());
-    if (p >= 0) depth[v] = depth[p] + 1;
-    tour.emplace_back(depth[v], v);
+    in[v] = int(node_tour.size());
+    if (p != -1) depth[v] = depth[p] + 1;
+    node_tour.push_back(v);
+    depth_tour.push_back(depth[v]);
     for (auto u : g[v]) {
       if (u == p) continue;
       dfs(u, v);
-      // tour.emplace_back(depth[v], v);
+      // node_tour.push_back(v);
+      // depth_tour.push_back(depth[v]);
     }
-    out[v] = int(tour.size());
+    out[v] = int(node_tour.size());
   }
-};
-
-struct MinPair {
-  using T = pair<int, int>;
-  static T op(const T &x, const T &y) { return std::min(x, y); }
-  static constexpr T id() { return {std::numeric_limits<int>::max(), 0}; }
 };
 
 // Returns the LCA of node u and node v.
-tuple<int, int> path_lca(const EulerTour::G &g, int u, int v) {
+std::tuple<int, int, int> path_lca(const EulerTour::G &g, int u, int v) {
   EulerTour et(g);
-  SparseTable<MinPair> st(et.tour);
-
+  RMQ rmq(et.depth_tour.size(),
+          [&](int i, int j) { return et.depth_tour[i] < et.depth_tour[j]; });
   {  // query
-    int ui = et.in[u], vi = et.in[v];
-    if (ui > vi) swap(ui, vi);
-    auto [lca_depth, lca_node] = st.fold(ui, vi + 1);
+    int l = et.in[u], r = et.in[v];
+    if (l > r) swap(l, r);
+    int lca_ord = rmq.fold(l, r + 1);
+    int lca_node = et.node_tour[lca_ord];
+    int lca_depth = et.depth_tour[lca_ord];
     int path_distance = (et.depth[u] - lca_depth) + (et.depth[v] - lca_depth);
-    return {path_distance, lca_node};
+    return {lca_node, lca_depth, path_distance};
   }
 }
 
-struct MinInt {
-  using T = int;
-  static T op(const T &x, const T &y) { return std::min(x, y); }
-  static constexpr T id() { return std::numeric_limits<T>::max(); }
-};
-
-struct MaxInt {
-  using T = int;
-  static T op(const T &x, const T &y) { return std::max(x, y); }
-  static constexpr T id() { return std::numeric_limits<T>::lowest(); }
-};
-
 // Returns the LCA of all nodes in [l, r).
-tuple<int, int> range_lca(const EulerTour::G &g, int l, int r) {
+pair<int, int> range_lca(const EulerTour::G &g, int l, int r) {
   EulerTour et(g);
-  SparseTable<MinPair> tour_st(et.tour);
-  SparseTable<MinInt> min_st(et.in);
-  SparseTable<MaxInt> max_st(et.in);
-
+  RMQ depth_rmq(et.depth_tour.size(), [&](int i, int j) {
+    return et.depth_tour[i] < et.depth_tour[j];
+  });
+  RMQ min_in(et.in.size(), [&](int i, int j) { return et.in[i] < et.in[j]; });
+  RMQ max_in(et.in.size(), [&](int i, int j) { return et.in[i] > et.in[j]; });
   {  // query
-    int mini = min_st.fold(l, r);
-    int maxi = max_st.fold(l, r);
-    auto [lca_depth, lca_node] = tour_st.fold(mini, maxi + 1);
+    int mini = min_in.fold(l, r);
+    int maxi = max_in.fold(l, r);
+    int lca_ord = depth_rmq.fold(mini, maxi + 1);
+    int lca_node = et.node_tour[lca_ord];
+    int lca_depth = et.depth_tour[lca_ord];
     return {lca_node, lca_depth};
   }
 }

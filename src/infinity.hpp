@@ -15,11 +15,11 @@ struct Infinity {
   }
   constexpr Infinity<sign * -1> operator-() const { return {}; }
   template <typename T>
-  friend bool operator==(const T &x, const Infinity &y) {
+  friend constexpr bool operator==(const T &x, const Infinity &y) {
     return x == T(y);
   }
   template <typename T>
-  friend bool operator!=(const T &x, const Infinity &y) {
+  friend constexpr bool operator!=(const T &x, const Infinity &y) {
     return x != T(y);
   }
 };
