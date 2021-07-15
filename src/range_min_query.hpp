@@ -3,7 +3,7 @@
 template <typename T>
 constexpr int num_bits = CHAR_BIT * sizeof(T);
 
-// Log base 2 of the most significant bit which is set.
+// Log base 2 of the most significant bit that is set to 1.
 inline int msb_log(unsigned x) {
   assert(x != 0);
   return num_bits<unsigned> - __builtin_clz(x) - 1;
@@ -12,6 +12,10 @@ inline int msb_log(unsigned x) {
 // Range Min/Max Query based on Fischer-Heun Structure.
 // - Initialization: O(n)
 // - Query: O(1)
+//
+// Usage:
+//   RMQ rmq(a.size(), [&](int i, int j){ return a[i] < a[j]; });
+//   auto minval = a[rmq.fold(l, r)];
 template <class BetterOp, class mask_t = unsigned>
 struct RMQ {
   static_assert(std::is_integral_v<mask_t>, "mask_t must be integral");
@@ -118,8 +122,3 @@ struct RMQ {
     return ans;
   }
 };
-
-template <class BetterOp>
-RMQ<BetterOp> make_rmq(int n, BetterOp better) {
-  return {n, std::move(better)};
-}
