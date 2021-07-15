@@ -2,6 +2,7 @@
 #include <limits>
 #include <vector>
 
+// Generic Sparse Table on a semilattice operation.
 template <class SemiLattice>
 struct SparseTable {
   using T = typename SemiLattice::T;
