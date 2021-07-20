@@ -79,6 +79,53 @@ struct UpdatableAggUnionFind : public AggUnionFind<Abelian> {
   T get(int v) const { return leaf_data_[v]; }
 };
 
+struct WeightedUnionFind {
+  using i64 = long long;
+  int n_;
+  std::vector<int> parent_;
+  std::vector<int> rank_;
+  std::vector<i64> weight_;  // diff from the parent_ node
+
+  explicit WeightedUnionFind(int n)
+      : n_(n), parent_(n, -1), rank_(n, 0), weight_(n, 0) {
+    std::iota(parent_.begin(), parent_.end(), 0);
+  }
+
+  bool unite(int x, int y, i64 w) {
+    w += weight(x);
+    w -= weight(y);
+    x = find(x), y = find(y);
+    if (x == y) return false;
+    if (rank_[x] < rank_[y]) {
+      std::swap(x, y);
+      w = -w;
+    }
+    if (rank_[x] == rank_[y]) ++rank_[x];
+    parent_[y] = x;
+    weight_[y] = w;
+    return true;
+  }
+
+  int find(int v) {
+    if (parent_[v] == v) return v;
+    int r = find(parent_[v]);
+    weight_[v] += weight_[parent_[v]];
+    return parent_[v] = r;
+  }
+
+  bool same(int x, int y) { return find(x) == find(y); }
+
+  // Returns the relative weight from the component root.
+  i64 weight(int x) {
+    find(x);
+    return weight_[x];
+  }
+
+  // Returns the delta between two nodes.
+  // Assumes x and y are in the same component.
+  i64 diff(int x, int y) { return weight(y) - weight(x); }
+};
+
 // Partially Persistent UnionFind.
 struct UnionFindWithTime {
   int n;
