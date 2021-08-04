@@ -14,15 +14,19 @@ struct SimpleFunctionalGraph {
   int size;
 
   // next_pos[d][i] := starting from i, what's the position after 2^d steps.
-  std::vector<std::vector<std::optional<int>>> next_pos;
+  std::vector<std::vector<int>> next_pos;
 
   bool build_done_;
 
  public:
   explicit SimpleFunctionalGraph(int n)
-      : size(n),
-        next_pos(kMaxBits, std::vector<std::optional<int>>(n)),
-        build_done_(false) {}
+      : size(n), next_pos(kMaxBits, std::vector<int>(n)), build_done_(false) {
+    for (int d = 0; d < kMaxBits; ++d) {
+      for (int i = 0; i < n; ++i) {
+        next_pos[d][i] = i;  // self-loop by default
+      }
+    }
+  }
 
   // Sets `j` as the next position of node `i`.
   void set_next(int i, int j) { next_pos[0][i] = j; }
@@ -31,9 +35,8 @@ struct SimpleFunctionalGraph {
   void build() {
     for (int d = 0; d + 1 < kMaxBits; ++d) {
       for (int i = 0; i < size; ++i) {
-        if (const auto &p = next_pos[d][i]; p.has_value()) {
-          next_pos[d + 1][i] = next_pos[d][p.value()];
-        }
+        int p = next_pos[d][i];
+        next_pos[d + 1][i] = next_pos[d][p];
       }
     }
     build_done_ = true;
@@ -49,7 +52,7 @@ struct SimpleFunctionalGraph {
     int i = start;
     for (int d = kMaxBits - 1; d >= 0; --d) {
       if ((steps >> d) & 1) {
-        i = next_pos[d][i].value();
+        i = next_pos[d][i];
       }
     }
     return i;
@@ -63,10 +66,9 @@ struct SimpleFunctionalGraph {
     int i = start;
     for (int d = kMaxBits - 1; d >= 0; --d) {
       auto j = next_pos[d][i];
-      if (not j.has_value()) continue;
-      if (pred(j.value())) continue;
+      if (pred(j)) continue;
       max_false += 1LL << d;
-      i = j.value();
+      i = j;
     }
     return max_false + 1;
   }
@@ -87,7 +89,7 @@ struct AggFunctionalGraph {
   std::vector<std::vector<T>> acc_value;
 
   // next_pos[d][i] := starting from i, what's the position after 2^d steps.
-  std::vector<std::vector<std::optional<int>>> next_pos;
+  std::vector<std::vector<int>> next_pos;
 
   bool build_done_;
 
@@ -95,8 +97,14 @@ struct AggFunctionalGraph {
   explicit AggFunctionalGraph(int n)
       : size(n),
         acc_value(kMaxBits, std::vector<T>(n, Monoid::id())),
-        next_pos(kMaxBits, std::vector<std::optional<int>>(n)),
-        build_done_(false) {}
+        next_pos(kMaxBits, std::vector<int>(n)),
+        build_done_(false) {
+    for (int d = 0; d < kMaxBits; ++d) {
+      for (int i = 0; i < n; ++i) {
+        next_pos[d][i] = i;  // self-loop by default
+      }
+    }
+  }
 
   // Sets value `x` at node `i`.
   void set_value(int i, T x) { acc_value[0][i] = x; }
@@ -108,11 +116,9 @@ struct AggFunctionalGraph {
   void build() {
     for (int d = 0; d + 1 < kMaxBits; ++d) {
       for (int i = 0; i < size; ++i) {
-        if (const auto &p = next_pos[d][i]; p.has_value()) {
-          next_pos[d + 1][i] = next_pos[d][p.value()];
-          acc_value[d + 1][i] =
-              Monoid::op(acc_value[d][i], acc_value[d][p.value()]);
-        }
+        int p = next_pos[d][i];
+        next_pos[d + 1][i] = next_pos[d][p];
+        acc_value[d + 1][i] = Monoid::op(acc_value[d][i], acc_value[d][p]);
       }
     }
     build_done_ = true;
@@ -129,7 +135,7 @@ struct AggFunctionalGraph {
     for (int d = kMaxBits - 1; d >= 0; --d) {
       if ((steps >> d) & 1) {
         res = Monoid::op(res, acc_value[d][i]);
-        i = next_pos[d][i].value();
+        i = next_pos[d][i];
       }
     }
     return {res, i};
@@ -144,11 +150,10 @@ struct AggFunctionalGraph {
     for (int d = kMaxBits - 1; d >= 0; --d) {
       T tmp = Monoid::op(val, acc_value[d][i]);
       auto j = next_pos[d][i];
-      if (not j.has_value()) continue;
-      if (pred(tmp, j.value())) continue;
+      if (pred(tmp, j)) continue;
       max_false += 1LL << d;
       val = std::move(tmp);
-      i = j.value();
+      i = j;
     }
     return max_false + 1;
   }
