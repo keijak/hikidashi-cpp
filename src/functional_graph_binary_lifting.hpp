@@ -58,6 +58,7 @@ struct SimpleFunctionalGraph {
   template <class F>
   long long min_steps(int start, F pred) const {
     static_assert(std::is_invocable_r_v<bool, F, int>);
+    assert(build_done_);
     long long max_false = 0;
     int i = start;
     for (int d = kMaxBits - 1; d >= 0; --d) {
@@ -136,6 +137,7 @@ struct AggFunctionalGraph {
 
   long long min_steps(int start,
                       std::function<bool(const T &, int)> pred) const {
+    assert(build_done_);
     long long max_false = 0;
     T val = Monoid::id();
     int i = start;
