@@ -87,7 +87,7 @@ struct SparseTableRMQ {
     assert(0 <= l and l < r);
     assert(1 <= r and r <= n_);
     const int k = msb_log(r - l);
-    const int l2 = r - (1 << k) + 1;
+    const int l2 = r - (1 << k);
     return better_index(sparse_table_[k][l], sparse_table_[k][l2]);
   }
 
