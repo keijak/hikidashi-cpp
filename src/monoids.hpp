@@ -194,7 +194,7 @@ struct AssignSumOp {
   static constexpr F f_id() { return std::nullopt; }
 };
 
-struct MinMinOp {
+struct ChminMinOp {
   using T = long long;
   using F = long long;
 
@@ -202,13 +202,13 @@ struct MinMinOp {
   static T op(const T &x, const T &y) { return std::min(x, y); }
   static constexpr T id() { return std::numeric_limits<T>::max(); }
 
-  // Update: Min
+  // Update: Change Min
   static T f_apply(const F &f, const T &x) { return std::min(f, x); }
   static F f_compose(const F &f, const F &g) { return std::min(f, g); }
   static constexpr F f_id() { return std::numeric_limits<T>::max(); }
 };
 
-struct MaxMaxOp {
+struct ChmaxMaxOp {
   using T = long long;
   using F = long long;
 
@@ -216,7 +216,7 @@ struct MaxMaxOp {
   static T op(const T &x, const T &y) { return std::max(x, y); }
   static constexpr T id() { return std::numeric_limits<T>::lowest(); }
 
-  // Update: Max
+  // Update: Change Max
   static T f_apply(const F &f, const T &x) { return std::max(f, x); }
   static F f_compose(const F &f, const F &g) { return std::max(f, g); }
   static constexpr F f_id() { return std::numeric_limits<T>::lowest(); }
