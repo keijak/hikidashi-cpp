@@ -1,3 +1,13 @@
+// Formal Power Series (Dense/Sparse)
+//
+// Runtime DMAX with a reference template param:
+//   int kRuntimeDMax;
+//   template <typename T, int& DMAX> struct NaiveMult {...};
+//   using DF = DenseFPS<NaiveMult<Mint, kRuntimeDMax>>;
+//
+//   kRuntimeDMax = n;  // Set before creating an FPS object.
+//   DF f = {1};
+
 #include <bits/stdc++.h>
 using i64 = long long;
 using u64 = unsigned long long;
@@ -52,7 +62,7 @@ struct NTTMult {
   static std::vector<T> multiply(const std::vector<T> &x,
                                  const std::vector<T> &y) {
     std::vector<T> res = atcoder::convolution(x, y);
-    if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
+    if (int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
     return res;
   }
 
@@ -91,7 +101,7 @@ struct IntMult {
   static std::vector<value_type> multiply(const std::vector<value_type> &x,
                                           const std::vector<value_type> &y) {
     auto res = atcoder::convolution_ll(x, y);
-    if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
+    if (int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
     return res;
   }
 
@@ -111,7 +121,7 @@ struct ArbitraryModMult {
                                  const std::vector<T> &y) {
     // NOTE: Setting `need=DMAX+1` gives incorrect results.
     auto res = ArbitraryModConvolution<T>::multiply(x, y);
-    if (res.size() > DMAX + 1) res.resize(DMAX + 1);  // shrink
+    if (int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
     return res;
   }
 };
@@ -122,17 +132,17 @@ struct ArbitraryModMult {
 template <typename Mult>
 struct DenseFPS {
   using T = typename Mult::value_type;
-  static const int DMAX = Mult::dmax();
+  static constexpr int dmax() { return Mult::dmax(); }
 
   // Coefficients of terms from x^0 to x^DMAX.
   std::vector<T> coeff_;
 
   DenseFPS() : coeff_(1) {}  // zero-initialized
   explicit DenseFPS(std::vector<T> c) : coeff_(std::move(c)) {
-    assert((int)c.size() <= DMAX + 1);
+    assert(int(c.size()) <= dmax() + 1);
   }
   DenseFPS(std::initializer_list<T> init) : coeff_(init.begin(), init.end()) {
-    assert((int)init.size() <= DMAX + 1);
+    assert(int(init.size()) <= dmax() + 1);
   }
 
   DenseFPS(const DenseFPS &other) : coeff_(other.coeff_) {}
@@ -146,7 +156,7 @@ struct DenseFPS {
     return *this;
   }
 
-  int size() const { return (int)coeff_.size(); }
+  int size() const { return int(coeff_.size()); }
 
   // Returns the coefficient of x^k.
   T operator[](int k) const {
@@ -372,7 +382,7 @@ struct SparseFPS {
 template <typename FPS>
 FPS &operator+=(FPS &x, const SparseFPS<typename FPS::T> &y) {
   for (int i = 0; i < y.size(); ++i) {
-    if (y.degree(i) > FPS::DMAX) break;  // ignore
+    if (y.degree(i) > FPS::dmax()) break;  // ignore
     x.coeff_[y.degree(i)] += y.coeff(i);
   }
   return x;
@@ -402,7 +412,7 @@ FPS &operator*=(FPS &x, const SparseFPS<typename FPS::T> &y) {
   }
   const int yd_max = y.degree(y.size() - 1);
   const int xd_max = x.size() - 1;
-  const int n = std::min(xd_max + yd_max + 1, FPS::DMAX + 1);
+  const int n = std::min(xd_max + yd_max + 1, FPS::dmax() + 1);
   if (x.size() < n) x.coeff_.resize(n);
   for (int xd = n - 1; xd >= 0; --xd) {
     x.coeff_[xd] *= c0;
@@ -428,11 +438,11 @@ FPS operator*(const SparseFPS<typename FPS::T> &x, const FPS &y) {
 // Polynomial division (dense / sparse).
 template <typename FPS>
 FPS &operator/=(FPS &x, const SparseFPS<typename FPS::T> &y) {
-  assert(y.size() > 0 and y.degree(0) == 0 and y.coeff(0) != 0);
+  assert(y.size() > 0u and y.degree(0) == 0 and y.coeff(0) != 0);
   const auto inv_c0 = y.coeff(0).inv();
   const int yd_max = y.degree(y.size() - 1);
   const int xd_max = x.size() - 1;
-  const int n = std::min(xd_max + yd_max + 1, FPS::DMAX + 1);
+  const int n = std::min(xd_max + yd_max + 1, FPS::dmax() + 1);
   if (x.size() < n) x.coeff_.resize(n);
   for (int xd = 0; xd < n; ++xd) {
     for (int j = 1; j < y.size(); ++j) {
