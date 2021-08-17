@@ -5,7 +5,6 @@ struct SmallestPrimeFactors {
   std::vector<int> table;  // smallest prime factors table.
   std::vector<int> primes;
 
-  // O(n log log n)
   explicit SmallestPrimeFactors(int n) : table(n + 1), primes(1, 2) {
     for (int i = 1; i <= n; ++i) table[i] = i;
     for (int i = 2; i <= n; i += 2) table[i] = 2;
