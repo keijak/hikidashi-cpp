@@ -17,6 +17,8 @@ struct SmallestPrimeFactors {
     }
   }
 
+  inline bool is_prime(int n) { return table[n] == n; }
+
   std::vector<std::pair<int, int>> factorize(int n) {
     assert(0 < n and n < int(table.size()));
     std::vector<std::pair<int, int>> res;
