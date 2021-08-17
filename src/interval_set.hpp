@@ -9,7 +9,7 @@ class ClosedIntervalSet : public std::map<i64, i64> {
   bool merge_adjacent;
 
  public:
-  explicit ClosedIntervalSet(bool merge_adjacent)
+  ClosedIntervalSet(bool merge_adjacent = true)
       : merge_adjacent(merge_adjacent) {}
 
   // Returns the interval [l, r] which contains p if available.
