@@ -1,28 +1,28 @@
 #include <bits/stdc++.h>
 using i64 = long long;
 
-struct Factors {
-  std::vector<int> spf;  // smallest prime factors table.
+struct SmallestPrimeFactors {
+  std::vector<int> table;  // smallest prime factors table.
   std::vector<int> primes;
 
   // O(n log log n)
-  explicit Factors(int n) : spf(n + 1), primes(1, 2) {
-    for (int i = 1; i <= n; ++i) spf[i] = i;
-    for (int i = 2; i <= n; i += 2) spf[i] = 2;
+  explicit SmallestPrimeFactors(int n) : table(n + 1), primes(1, 2) {
+    for (int i = 1; i <= n; ++i) table[i] = i;
+    for (int i = 2; i <= n; i += 2) table[i] = 2;
     for (int i = 3; i * i <= n; i += 2) {
-      if (spf[i] != i) continue;
+      if (table[i] != i) continue;
       for (int j = i * i; j <= n; j += i) {
-        if (spf[j] == j) spf[j] = i;
+        if (table[j] == j) table[j] = i;
       }
       primes.push_back(i);
     }
   }
 
   std::vector<std::pair<int, int>> factorize(int n) {
-    assert(0 < n and n < int(spf.size()));
+    assert(0 < n and n < int(table.size()));
     std::vector<std::pair<int, int>> res;
     while (n > 1) {
-      const int p = spf[n];
+      const int p = table[n];
       int count = 0;
       do {
         n /= p;
@@ -34,10 +34,10 @@ struct Factors {
   }
 
   i64 divisor_count(int n) {
-    assert(0 < n and n < int(spf.size()));
+    assert(0 < n and n < int(table.size()));
     i64 res = 1;
     while (n > 1) {
-      const int p = spf[n];
+      const int p = table[n];
       int count = 0;
       do {
         n /= p;
@@ -49,10 +49,10 @@ struct Factors {
   }
 
   i64 divisor_sum(int n) {
-    assert(0 < n and n < int(spf.size()));
+    assert(0 < n and n < int(table.size()));
     i64 res = 1;
     while (n > 1) {
-      const int p = spf[n];
+      const int p = table[n];
       i64 power = 1, psum = 1;
       do {
         n /= p;
@@ -64,14 +64,14 @@ struct Factors {
     return res;
   }
 
-  int mobius(int n) {
-    assert(0 < n and n < int(spf.size()));
+  int moebius(int n) {
+    assert(0 < n and n < int(table.size()));
     int res = 1;
     while (n > 1) {
-      const int p = spf[n];
+      const int p = table[n];
       n /= p;
-      res *= -1;
       if (n % p == 0) return 0;
+      res *= -1;
     }
     return res;
   }
