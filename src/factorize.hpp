@@ -1,29 +1,30 @@
 #include <bits/stdc++.h>
 using i64 = long long;
 
-struct SmallestPrimeFactors {
-  std::vector<int> table;  // smallest prime factors table.
+// Sieve of Eratosthenes.
+struct Sieve {
+  std::vector<int> spf;  // smallest prime factors table.
   std::vector<int> primes;
 
-  explicit SmallestPrimeFactors(int n) : table(n + 1), primes(1, 2) {
-    for (int i = 1; i <= n; ++i) table[i] = i;
-    for (int i = 2; i <= n; i += 2) table[i] = 2;
+  explicit Sieve(int n) : spf(n + 1), primes(1, 2) {
+    for (int i = 1; i <= n; ++i) spf[i] = i;
+    for (int i = 2; i <= n; i += 2) spf[i] = 2;
     for (int i = 3; i * i <= n; i += 2) {
-      if (table[i] != i) continue;
+      if (spf[i] != i) continue;
       for (int j = i * i; j <= n; j += i) {
-        if (table[j] == j) table[j] = i;
+        if (spf[j] == j) spf[j] = i;
       }
       primes.push_back(i);
     }
   }
 
-  inline bool is_prime(int n) { return table[n] == n; }
+  inline bool is_prime(int n) { return spf[n] == n; }
 
   std::vector<std::pair<int, int>> factorize(int n) {
-    assert(0 < n and n < int(table.size()));
+    assert(0 < n and n < int(spf.size()));
     std::vector<std::pair<int, int>> res;
     while (n > 1) {
-      const int p = table[n];
+      const int p = spf[n];
       int count = 0;
       do {
         n /= p;
@@ -35,10 +36,10 @@ struct SmallestPrimeFactors {
   }
 
   i64 divisor_count(int n) {
-    assert(0 < n and n < int(table.size()));
+    assert(0 < n and n < int(spf.size()));
     i64 res = 1;
     while (n > 1) {
-      const int p = table[n];
+      const int p = spf[n];
       int count = 0;
       do {
         n /= p;
@@ -50,10 +51,10 @@ struct SmallestPrimeFactors {
   }
 
   i64 divisor_sum(int n) {
-    assert(0 < n and n < int(table.size()));
+    assert(0 < n and n < int(spf.size()));
     i64 res = 1;
     while (n > 1) {
-      const int p = table[n];
+      const int p = spf[n];
       i64 power = 1, psum = 1;
       do {
         n /= p;
@@ -66,10 +67,10 @@ struct SmallestPrimeFactors {
   }
 
   int moebius(int n) {
-    assert(0 < n and n < int(table.size()));
+    assert(0 < n and n < int(spf.size()));
     int res = 1;
     while (n > 1) {
-      const int p = table[n];
+      const int p = spf[n];
       n /= p;
       if (n % p == 0) return 0;
       res *= -1;
