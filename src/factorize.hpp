@@ -1,6 +1,82 @@
 #include <bits/stdc++.h>
 using i64 = long long;
 
+struct Factors {
+  std::vector<int> spf;  // smallest prime factors table.
+  std::vector<int> primes;
+
+  // O(n log log n)
+  explicit Factors(int n) : spf(n + 1), primes(1, 2) {
+    for (int i = 1; i <= n; ++i) spf[i] = i;
+    for (int i = 2; i <= n; i += 2) spf[i] = 2;
+    for (int i = 3; i * i <= n; i += 2) {
+      if (spf[i] != i) continue;
+      for (int j = i * i; j <= n; j += i) {
+        if (spf[j] == j) spf[j] = i;
+      }
+      primes.push_back(i);
+    }
+  }
+
+  std::vector<std::pair<int, int>> factorize(int n) {
+    assert(0 < n and n < int(spf.size()));
+    std::vector<std::pair<int, int>> res;
+    while (n > 1) {
+      const int p = spf[n];
+      int count = 0;
+      do {
+        n /= p;
+        ++count;
+      } while (n % p == 0);
+      res.emplace_back(p, count);
+    }
+    return res;
+  }
+
+  i64 divisor_count(int n) {
+    assert(0 < n and n < int(spf.size()));
+    i64 res = 1;
+    while (n > 1) {
+      const int p = spf[n];
+      int count = 0;
+      do {
+        n /= p;
+        ++count;
+      } while (n % p == 0);
+      res *= (1 + count);
+    }
+    return res;
+  }
+
+  i64 divisor_sum(int n) {
+    assert(0 < n and n < int(spf.size()));
+    i64 res = 1;
+    while (n > 1) {
+      const int p = spf[n];
+      i64 power = 1, psum = 1;
+      do {
+        n /= p;
+        power *= p;
+        psum += power;
+      } while (n % p == 0);
+      res *= psum;
+    }
+    return res;
+  }
+
+  int mobius(int n) {
+    assert(0 < n and n < int(spf.size()));
+    int res = 1;
+    while (n > 1) {
+      const int p = spf[n];
+      n /= p;
+      res *= -1;
+      if (n % p == 0) return 0;
+    }
+    return res;
+  }
+};
+
 // Returns all divisors of n. O(sqrt(n)) + sorting.
 std::vector<i64> divisors(i64 n) {
   std::vector<i64> res;
@@ -116,82 +192,4 @@ std::vector<i64> segment_sieve(i64 L, i64 H) {
     }
   }
   return table;
-}
-
-// Returns a vector that maps x to x's smallest prime factor (> 1).
-// O(n log log n)
-std::vector<int> sieve_smallest_prime_factors(int n) {
-  std::vector<int> res(n + 1);
-  for (int i = 1; i <= n; ++i) res[i] = i;
-  for (int i = 2; i <= n; i += 2) res[i] = 2;
-  for (int i = 3; i * i <= n; i += 2) {
-    if (res[i] != i) continue;
-    for (int j = i * i; j <= n; j += i) {
-      if (res[j] == j) res[j] = i;
-    }
-  }
-  return res;
-}
-
-// Quick factorization with smallest prime factors.
-std::vector<std::pair<int, int>> factorize(int n, const std::vector<int>& spf) {
-  assert(0 < n and n < int(spf.size()));
-  std::vector<std::pair<int, int>> res;
-  for (;;) {
-    const int p = spf[n];
-    if (p == 1) break;
-    int count = 0;
-    do {
-      n /= p;
-      ++count;
-    } while (n % p == 0);
-    res.emplace_back(p, count);
-  }
-  return res;
-}
-
-// Quick divisor count with smallest prime factors.
-i64 divisor_count(int n, const std::vector<int>& spf) {
-  assert(0 < n and n < int(spf.size()));
-  i64 res = 1;
-  for (;;) {
-    const int p = spf[n];
-    if (p == 1) break;
-    int count = 0;
-    do {
-      n /= p;
-      ++count;
-    } while (n % p == 0);
-    res *= (1 + count);
-  }
-  return res;
-}
-
-// Quick divisor sum with smallest prime factors.
-i64 divisor_sum(int n, const std::vector<int>& spf) {
-  assert(0 < n and n < int(spf.size()));
-  i64 res = 1;
-  for (;;) {
-    const int p = spf[n];
-    if (p == 1) break;
-    int count = 0;
-    i64 power = 1, psum = 1;
-    do {
-      n /= p;
-      power *= p;
-      psum += power;
-    } while (n % p == 0);
-    res *= psum;
-  }
-  return res;
-}
-
-// Returns all prime numbers smaller than or equal to n.
-std::vector<int> primes_upto(int n) {
-  std::vector<int> res;
-  const auto& spf = sieve_smallest_prime_factors(n);
-  for (int i = 2; i <= n; ++i) {
-    if (spf[i] == i) res.push_back(i);
-  }
-  return res;
 }
