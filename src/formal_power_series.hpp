@@ -255,17 +255,34 @@ struct DenseFPS {
     return res;
   }
 
-  // Divides by (1 - x).
-  void cumsum_inplace() {
-    for (int i = 1; i < size(); ++i) {
-      coeff_[i] += coeff_[i - 1];
+  // Divides by (1 - x^k).
+  void cumsum_inplace(int k = 1) {
+    for (int i = k; i < size(); ++i) {
+      coeff_[i] += coeff_[i - k];
     }
   }
 
-  // Divides by (1 - x).
-  DenseFPS cumsum() const {
+  // Divides by (1 - x^k).
+  DenseFPS cumsum(int k = 1) const {
     DenseFPS res = *this;
-    res.cumsum_inplace();
+    res.cumsum_inplace(k);
+    return res;
+  }
+
+  // Multiplies by (1 - x^k).
+  void diff_inplace(int k = 1) {
+    if (size() <= dmax()) {
+      coeff_.resize(min(size() + k, dmax() + 1), 0);
+    }
+    for (int i = size() - 1; i >= 0; --i) {
+      if (i + k < size()) coeff_[i + k] -= coeff_[i];
+    }
+  }
+
+  // Multiplies by (1 - x^k).
+  DenseFPS diff(int k = 1) const {
+    DenseFPS res = *this;
+    res.diff_inplace(k);
     return res;
   }
 };
@@ -379,28 +396,28 @@ struct SparseFPS {
 };
 
 // Polynomial addition (dense + sparse).
-template <typename FPS>
-FPS &operator+=(FPS &x, const SparseFPS<typename FPS::T> &y) {
+template <typename FPS, typename T = typename FPS::T>
+FPS &operator+=(FPS &x, const SparseFPS<T> &y) {
   for (int i = 0; i < y.size(); ++i) {
     if (y.degree(i) > FPS::dmax()) break;  // ignore
     x.coeff_[y.degree(i)] += y.coeff(i);
   }
   return x;
 }
-template <typename FPS>
-FPS operator+(const FPS &x, const SparseFPS<typename FPS::T> &y) {
+template <typename FPS, typename T = typename FPS::T>
+FPS operator+(const FPS &x, const SparseFPS<T> &y) {
   auto res = x;
   res += y;
   return res;
 }
-template <typename FPS>
-FPS operator+(const SparseFPS<typename FPS::T> &x, const FPS &y) {
+template <typename FPS, typename T = typename FPS::T>
+FPS operator+(const SparseFPS<T> &x, const FPS &y) {
   return y + x;  // commutative
 }
 
 // Polynomial multiplication (dense * sparse).
-template <typename FPS>
-FPS &operator*=(FPS &x, const SparseFPS<typename FPS::T> &y) {
+template <typename FPS, typename T = typename FPS::T>
+FPS &operator*=(FPS &x, const SparseFPS<T> &y) {
   if (y.size() == 0) {
     return x *= 0;
   }
@@ -424,55 +441,51 @@ FPS &operator*=(FPS &x, const SparseFPS<typename FPS::T> &y) {
   }
   return x;
 }
-template <typename FPS>
-FPS operator*(const FPS &x, const SparseFPS<typename FPS::T> &y) {
+template <typename FPS, typename T = typename FPS::T>
+FPS operator*(const FPS &x, const SparseFPS<T> &y) {
   auto res = x;
   res *= y;
   return res;
 }
-template <typename FPS>
-FPS operator*(const SparseFPS<typename FPS::T> &x, const FPS &y) {
+template <typename FPS, typename T = typename FPS::T>
+FPS operator*(const SparseFPS<T> &x, const FPS &y) {
   return y * x;  // commutative
 }
 
 // Polynomial division (dense / sparse).
-template <typename FPS>
-FPS &operator/=(FPS &x, const SparseFPS<typename FPS::T> &y) {
-  assert(y.size() > 0u and y.degree(0) == 0 and y.coeff(0) != 0);
-  const auto inv_c0 = y.coeff(0).inv();
-  const int yd_max = y.degree(y.size() - 1);
-  const int xd_max = x.size() - 1;
-  const int n = std::min(xd_max + yd_max + 1, FPS::dmax() + 1);
-  if (x.size() < n) x.coeff_.resize(n);
-  for (int xd = 0; xd < n; ++xd) {
+template <typename FPS, typename T = typename FPS::T>
+FPS &operator/=(FPS &x, const SparseFPS<T> &y) {
+  assert(y.size() > 0 and y.degree(0) == 0 and y.coeff(0) != 0);
+  const auto ic = y.coeff(0).inv();
+  for (int i = 0; i < x.size(); ++i) {
     for (int j = 1; j < y.size(); ++j) {
       int yd = y.degree(j);
-      if (yd > xd) break;
-      x.coeff_[xd] -= x[xd - yd] * y[j];
+      if (i - yd < 0) break;
+      x.coeff_[i] -= x.coeff_[i - yd] * y.coeff(j);
     }
-    x.coeff_[xd] *= inv_c0;
+    x.coeff_[i] *= ic;
   }
   return x;
 }
-template <typename FPS>
-FPS operator/(const FPS &x, const SparseFPS<typename FPS::T> &y) {
+template <typename FPS, typename T = typename FPS::T>
+FPS operator/(const FPS &x, const SparseFPS<T> &y) {
   FPS res = x;
   res /= y;
   return res;
 }
 
-template <typename FPS>
+template <typename FPS, typename T = typename FPS::T>
 FPS derivative(const FPS &x) {
-  std::vector<typename FPS::T> res(x.size() - 1);
+  std::vector<T> res(x.size() - 1);
   for (int i = 1; i < x.size(); ++i) {
     res[i - 1] = x[i] * i;
   }
   return FPS(std::move(res));
 }
 
-template <typename FPS>
-FPS integral(const FPS &x, const typename FPS::T &c) {
-  std::vector<typename FPS::T> res(x.size() + 1);
+template <typename FPS, typename T = typename FPS::T>
+FPS integral(const FPS &x, const T &c) {
+  std::vector<T> res(x.size() + 1);
   res[0] = c;
   for (int i = 1; i <= x.size(); ++i) {
     res[i] = x[i - 1] / i;
