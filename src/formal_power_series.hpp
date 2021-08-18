@@ -156,22 +156,17 @@ struct DenseFPS {
     return *this;
   }
 
-  int size() const { return int(coeff_.size()); }
+  inline int size() const { return int(coeff_.size()); }
 
   // Returns the coefficient of x^k.
-  T operator[](int k) const {
-    if (k >= size()) return 0;
-    return coeff_[k];
-  }
+  inline T operator[](int k) const { return (k >= size()) ? 0 : coeff_[k]; }
 
   DenseFPS &operator+=(const T &scalar) {
     coeff_[0] += scalar;
     return *this;
   }
   friend DenseFPS operator+(const DenseFPS &x, const T &scalar) {
-    DenseFPS res = x;
-    res += scalar;
-    return res;
+    return DenseFPS(x) += scalar;
   }
   DenseFPS &operator+=(const DenseFPS &other) {
     if (size() < other.size()) {
@@ -181,9 +176,7 @@ struct DenseFPS {
     return *this;
   }
   friend DenseFPS operator+(const DenseFPS &x, const DenseFPS &y) {
-    DenseFPS res = x;
-    res += y;
-    return res;
+    return DenseFPS(x) -= y;
   }
 
   DenseFPS &operator-=(const DenseFPS &other) {
@@ -194,9 +187,7 @@ struct DenseFPS {
     return *this;
   }
   friend DenseFPS operator-(const DenseFPS &x, const DenseFPS &y) {
-    DenseFPS res = x;
-    res -= y;
-    return res;
+    return DenseFPS(x) -= y;
   }
 
   DenseFPS &operator*=(const T &scalar) {
@@ -204,18 +195,14 @@ struct DenseFPS {
     return *this;
   }
   friend DenseFPS operator*(const DenseFPS &x, const T &scalar) {
-    DenseFPS res = x;
-    res *= scalar;
-    return res;
+    return DenseFPS(x) *= scalar;
   }
   friend DenseFPS operator*(const T &scalar, const DenseFPS &y) {
-    DenseFPS res = {scalar};
-    res *= y;
-    return res;
+    return DenseFPS{scalar} *= y;
   }
   DenseFPS &operator*=(const DenseFPS &other) {
-    *this = DenseFPS(Mult::multiply(std::move(this->coeff_), other.coeff_));
-    return *this;
+    return *this =
+               DenseFPS(Mult::multiply(std::move(this->coeff_), other.coeff_));
   }
   friend DenseFPS operator*(const DenseFPS &x, const DenseFPS &y) {
     return DenseFPS(Mult::multiply(x.coeff_, y.coeff_));
@@ -226,18 +213,13 @@ struct DenseFPS {
     return *this;
   }
   friend DenseFPS operator/(const DenseFPS &x, const T &scalar) {
-    DenseFPS res = x;
-    res /= scalar;
-    return res;
+    return DenseFPS(x) /= scalar;
   }
   friend DenseFPS operator/(const T &scalar, const DenseFPS &y) {
-    DenseFPS res = {scalar};
-    res /= y;
-    return res;
+    return DenseFPS{scalar} /= y;
   }
   DenseFPS &operator/=(const DenseFPS &other) {
-    *this *= DenseFPS(Mult::invert(other.coeff_));
-    return *this;
+    return *this *= DenseFPS(Mult::invert(other.coeff_));
   }
   friend DenseFPS operator/(const DenseFPS &x, const DenseFPS &y) {
     return x * DenseFPS(Mult::invert(y.coeff_));
@@ -245,8 +227,7 @@ struct DenseFPS {
 
   DenseFPS pow(i64 t) const {
     assert(t >= 0);
-    DenseFPS res = {1};
-    DenseFPS base = *this;
+    DenseFPS res = {1}, base = *this;
     while (t) {
       if (t & 1) res *= base;
       base *= base;
@@ -255,34 +236,41 @@ struct DenseFPS {
     return res;
   }
 
-  // Divides by (1 - x^k).
-  void cumsum_inplace(int k = 1) {
-    for (int i = k; i < size(); ++i) {
-      coeff_[i] += coeff_[i - k];
-    }
-  }
-
-  // Divides by (1 - x^k).
-  DenseFPS cumsum(int k = 1) const {
-    DenseFPS res = *this;
-    res.cumsum_inplace(k);
-    return res;
-  }
-
-  // Multiplies by (1 - x^k).
-  void diff_inplace(int k = 1) {
+  // Multiplies by (1 + c * x^k).
+  void multiply2_inplace(int k, int c) {
     if (size() <= dmax()) {
       coeff_.resize(min(size() + k, dmax() + 1), 0);
     }
     for (int i = size() - 1; i >= 0; --i) {
-      if (i + k < size()) coeff_[i + k] -= coeff_[i];
+      if (i + k < size()) coeff_[i + k] += coeff_[i] * c;
     }
   }
-
-  // Multiplies by (1 - x^k).
-  DenseFPS diff(int k = 1) const {
+  // Multiplies by (1 + c * x^k).
+  DenseFPS multiply2(int k, int c) const {
     DenseFPS res = *this;
-    res.diff_inplace(k);
+    res.multiply2_inplace(k, c);
+    return res;
+  }
+
+  // Divides by (1 + c * x^k).
+  void divide2_inplace(int k, int c) {
+    for (int i = k; i < size(); ++i) {
+      coeff_[i] -= coeff_[i - k] * c;
+    }
+  }
+  // Divides by (1 + c * x^k).
+  DenseFPS divide2(int k, int c) const {
+    DenseFPS res = *this;
+    res.divide2_inplace(k, c);
+    return res;
+  }
+
+  T eval(const T &a) const {
+    T res = 0, x = 1;
+    for (auto c : coeff_) {
+      res += c * x;
+      x *= a;
+    }
     return res;
   }
 };
