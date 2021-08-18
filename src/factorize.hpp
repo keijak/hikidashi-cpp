@@ -66,6 +66,7 @@ struct Sieve {
     return res;
   }
 
+  // Möbius function.
   int moebius(int n) {
     assert(0 < n and n < int(spf.size()));
     int res = 1;
@@ -74,6 +75,21 @@ struct Sieve {
       n /= p;
       if (n % p == 0) return 0;
       res *= -1;
+    }
+    return res;
+  }
+
+  // Euler's totient function.
+  int phi(int n) {
+    assert(0 < n and n < int(spf.size()));
+    i64 res = n;
+    while (n > 1) {
+      const int p = spf[n];
+      do {
+        n /= p;
+      } while (n % p == 0);
+      res /= p;
+      res *= p - 1;
     }
     return res;
   }
@@ -127,28 +143,34 @@ std::vector<std::pair<i64, int>> factorize(i64 n) {
 // O(d(n)) + sorting
 std::vector<i64> enumerate_divisors(
     const std::vector<std::pair<i64, int>>& fac) {
-  std::vector<i64> res;
-
-  auto rec = [&](auto& rec, int i, i64 val) -> void {
-    if (i == (int)fac.size()) {
-      res.push_back(val);
-      return;
+  std::vector<i64> res = {1};
+  for (auto [p, k] : fac) {
+    int sz = res.size();
+    for (int i = 0; i < sz; ++i) {
+      i64 pp = 1;
+      for (int j = 0; j < k; ++j) {
+        pp *= p;
+        res.push_back(res[i] * pp);
+      }
     }
-    const auto& [p, k] = fac[i];
-    rec(rec, i + 1, val);
-    for (int j = 1; j <= k; ++j) {
-      val *= p;
-      rec(rec, i + 1, val);
-    }
-  };
-  rec(rec, 0, 1);
-
+  }
   std::sort(res.begin(), res.end());
   return res;
 }
 
 // On a large N, often faster than simple `divisors()`.
 std::vector<i64> divisors2(i64 n) { return enumerate_divisors(factorize(n)); }
+
+// Euler's totient function.
+// Number of integers coprime to n (between 1 and n inclusive).
+i64 phi(i64 n) {
+  i64 res = n;
+  for (auto [p, _] : factorize(n)) {
+    res /= p;
+    res *= p - 1;
+  }
+  return res;
+}
 
 // Returns a bitset to tell if each number is prime. O(n log log n).
 std::vector<bool> prime_sieve(int n) {
