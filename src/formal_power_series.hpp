@@ -421,16 +421,18 @@ FPS &operator*=(FPS &x, const SparseFPS<T> &y) {
   if (y.size() == 0) {
     return x *= 0;
   }
-  typename FPS::T c0 = 0;
+  const int yd_max = y.degree(y.size() - 1);
+  const int xd_max = x.size() - 1;
+  const int n = std::min(xd_max + yd_max, FPS::dmax()) + 1;
+  if (x.size() < n) x.coeff_.resize(n);
+
+  T c0 = 0;
   int j0 = 0;
   if (y.degree(0) == 0) {
     c0 = y.coeff(0);
-    ++j0;
+    j0 = 1;
   }
-  const int yd_max = y.degree(y.size() - 1);
-  const int xd_max = x.size() - 1;
-  const int n = std::min(xd_max + yd_max + 1, FPS::dmax() + 1);
-  if (x.size() < n) x.coeff_.resize(n);
+
   for (int xd = n - 1; xd >= 0; --xd) {
     x.coeff_[xd] *= c0;
     for (int j = j0; j < y.size(); ++j) {
@@ -456,14 +458,14 @@ FPS operator*(const SparseFPS<T> &x, const FPS &y) {
 template <typename FPS, typename T = typename FPS::T>
 FPS &operator/=(FPS &x, const SparseFPS<T> &y) {
   assert(y.size() > 0 and y.degree(0) == 0 and y.coeff(0) != 0);
-  const auto ic = y.coeff(0).inv();
-  for (int i = 0; i < x.size(); ++i) {
+  const auto ic0 = y.coeff(0).inv();
+  for (int xd = 0; xd < x.size(); ++xd) {
     for (int j = 1; j < y.size(); ++j) {
       int yd = y.degree(j);
-      if (i - yd < 0) break;
-      x.coeff_[i] -= x.coeff_[i - yd] * y.coeff(j);
+      if (xd < yd) break;
+      x.coeff_[xd] -= x.coeff_[xd - yd] * y.coeff(j);
     }
-    x.coeff_[i] *= ic;
+    x.coeff_[xd] *= ic0;
   }
   return x;
 }
