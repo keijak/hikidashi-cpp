@@ -3,9 +3,11 @@
 struct UnionFind {
   int n;
   mutable std::vector<int> parent;  // positive: parent, negative: size
-  int num_roots;
+  std::set<int> roots_;
 
-  explicit UnionFind(int sz) : n(sz), parent(sz, -1), num_roots(sz) {}
+  explicit UnionFind(int sz) : n(sz), parent(sz, -1) {
+    for (int i = 0; i < sz; ++i) roots_.insert(i);
+  }
 
   bool unite(int x, int y) {
     x = find(x), y = find(y);
@@ -13,7 +15,7 @@ struct UnionFind {
     if (-parent[x] < -parent[y]) std::swap(x, y);
     parent[x] += parent[y];
     parent[y] = x;
-    --num_roots;
+    roots_.erase(y);
     return true;
   }
 
@@ -26,14 +28,7 @@ struct UnionFind {
 
   bool same(int x, int y) const { return find(x) == find(y); }
 
-  std::vector<int> roots() const {
-    std::vector<int> res;
-    res.reserve(num_roots);
-    for (int i = 0; i < n; ++i) {
-      if (parent[i] < 0) res.push_back(i);
-    }
-    return res;
-  }
+  const std::set<int>& roots() const { return roots_; }
 };
 
 template <typename Abelian>  // Abelian Monoid
