@@ -1,20 +1,21 @@
 #include <bits/stdc++.h>
 using i64 = long long;
 
-// Sieve of Eratosthenes.
-struct Sieve {
+struct PrimeSieve {
   std::vector<int> spf;  // smallest prime factors table.
   std::vector<int> primes;
 
-  explicit Sieve(int n) : spf(n + 1), primes(1, 2) {
-    for (int i = 1; i <= n; ++i) spf[i] = i;
-    for (int i = 2; i <= n; i += 2) spf[i] = 2;
-    for (int i = 3; i * i <= n; i += 2) {
-      if (spf[i] != i) continue;
-      for (int j = i * i; j <= n; j += i) {
-        if (spf[j] == j) spf[j] = i;
+  explicit PrimeSieve(int n) : spf(n + 1), primes(1, 2) {
+    // Linear Sieve
+    for (int i = 2; i <= n; ++i) {
+      if (spf[i] == 0) {
+        spf[i] = i;
+        primes.push_back(i);
       }
-      primes.push_back(i);
+      for (const auto& p : primes) {
+        if (i * p > n or p > spf[i]) break;
+        spf[i * p] = p;
+      }
     }
   }
 
@@ -184,12 +185,12 @@ std::vector<bool> prime_sieve(int n) {
   return is_prime;
 }
 
-// Returns a prime table of the segment [L, H).
+// Returns a prime table of the segment [L, R).
 // (table[x-L] != 0) ⇔ x is a prime number.
-std::vector<i64> segment_sieve(i64 L, i64 H) {
-  static const i64 SQRTN = 1 << 16;  // upper bound of sqrt(H)
+std::vector<i64> segment_sieve(i64 L, i64 R) {
+  static const i64 SQRTN = 1 << 16;  // upper bound of sqrt(R)
   static int p[SQRTN], lookup = 0;
-  assert(H <= SQRTN * SQRTN);
+  assert(R <= SQRTN * SQRTN);
   if (!lookup) {
     for (int i = 2; i < SQRTN; ++i) p[i] = i;
     for (int i = 2; i * i < SQRTN; ++i)
@@ -198,11 +199,11 @@ std::vector<i64> segment_sieve(i64 L, i64 H) {
     std::remove(p, p + SQRTN, 0);
     lookup = 1;
   }
-  std::vector<i64> table(H - L);
-  for (i64 i = L; i < H; ++i) {
+  std::vector<i64> table(R - L);
+  for (i64 i = L; i < R; ++i) {
     table[i - L] = i;
   }
-  for (int i = 0; i64(p[i]) * p[i] < H; ++i) {  // O( \sqrt(H) )
+  for (int i = 0; i64(p[i]) * p[i] < R; ++i) {  // O( \sqrt(R) )
     i64 j;
     if (p[i] >= L) {
       j = i64(p[i]) * p[i];
@@ -211,7 +212,7 @@ std::vector<i64> segment_sieve(i64 L, i64 H) {
     } else {
       j = L - (L % p[i]) + p[i];
     }
-    for (; j < H; j += p[i]) {
+    for (; j < R; j += p[i]) {
       table[j - L] = 0;
     }
   }
