@@ -5,7 +5,7 @@ struct PrimeSieve {
   std::vector<int> spf;  // smallest prime factors table.
   std::vector<int> primes;
 
-  explicit PrimeSieve(int n) : spf(n + 1), primes(1, 2) {
+  explicit PrimeSieve(int n) : spf(n + 1) {
     // Linear Sieve
     for (int i = 2; i <= n; ++i) {
       if (spf[i] == 0) {
