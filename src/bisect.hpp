@@ -1,6 +1,4 @@
-#include <cassert>
-#include <cmath>
-#include <type_traits>
+#include <bits/stdc++.h>
 using i64 = long long;
 
 // Binary search.
@@ -11,6 +9,7 @@ using i64 = long long;
 template <class F>
 i64 bisect(i64 true_x, i64 false_x, F pred) {
   static_assert(std::is_invocable_r_v<bool, F, i64>, "F must be: i64 -> bool");
+  assert(std::max<i64>(true_x, false_x) <= std::numeric_limits<i64>::max() / 2);
   // To allow negative values, use floor_div() in the loop.
   assert(true_x >= -1 and false_x >= -1);
   using u64 = unsigned long long;
