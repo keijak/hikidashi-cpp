@@ -21,7 +21,7 @@ struct PrimeSieve {
 
   inline bool is_prime(int n) { return spf[n] == n; }
 
-  std::vector<std::pair<int, int>> factorize(int n) {
+  auto factorize(int n) {
     assert(0 < n and n < int(spf.size()));
     std::vector<std::pair<int, int>> res;
     while (n > 1) {
@@ -67,6 +67,19 @@ struct PrimeSieve {
     return res;
   }
 
+  int prime_factor_count(int n) {
+    assert(0 < n and n < int(spf.size()));
+    int res = 0;
+    while (n > 1) {
+      const int p = spf[n];
+      do {
+        n /= p;
+      } while (n % p == 0);
+      ++res;
+    }
+    return res;
+  }
+
   // Möbius function.
   int moebius(int n) {
     assert(0 < n and n < int(spf.size()));
@@ -80,8 +93,8 @@ struct PrimeSieve {
     return res;
   }
 
-  // Euler's totient function.
-  int phi(int n) {
+  // Euler's phi function.
+  int totient(int n) {
     assert(0 < n and n < int(spf.size()));
     i64 res = n;
     while (n > 1) {
@@ -162,9 +175,9 @@ std::vector<i64> enumerate_divisors(
 // On a large N, often faster than simple `divisors()`.
 std::vector<i64> divisors2(i64 n) { return enumerate_divisors(factorize(n)); }
 
-// Euler's totient function.
+// Euler's phi function.
 // Number of integers coprime to n (between 1 and n inclusive).
-i64 phi(i64 n) {
+i64 totient(i64 n) {
   i64 res = n;
   for (auto [p, _] : factorize(n)) {
     res /= p;
