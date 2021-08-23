@@ -67,6 +67,7 @@ struct PrimeSieve {
     return res;
   }
 
+  // Number of prime factors.
   int prime_factor_count(int n) {
     assert(0 < n and n < int(spf.size()));
     int res = 0;
