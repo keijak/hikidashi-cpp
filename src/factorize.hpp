@@ -125,11 +125,13 @@ std::vector<i64> divisors(i64 n) {
 
 // Returns a table of divisor counts of integers <= n.
 std::vector<int> divisor_count_table(int n) {
-  std::vector<int> counts(n + 1, 1);
+  assert(n >= 1);
+  std::vector<int> counts(n + 1, 2);  // 1 and self
   counts[0] = 0;
-  for (int i = 2; i * i <= n; ++i) {
-    for (int j = i * i; j <= n; j += i) {
-      ++counts[j];
+  counts[1] = 1;
+  for (int d = 2; d * 2 <= n; ++d) {
+    for (int x = d * 2; x <= n; x += d) {
+      ++counts[x];
     }
   }
   return counts;
