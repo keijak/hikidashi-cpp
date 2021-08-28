@@ -73,22 +73,15 @@ struct NTTMult {
     std::vector<T> res(n);
     res[0] = x[0].inv();
     for (int i = 1; i < n; i <<= 1) {
+      const int m = std::min(2 * i, n);
       std::vector<T> f(2 * i), g(2 * i);
-      for (int j = 0, m = std::min(2 * i, n); j < m; ++j) {
-        f[j] = x[j];
-      }
-      for (int j = 0; j < i; ++j) {
-        g[j] = res[j];
-      }
+      for (int j = 0; j < m; ++j) f[j] = x[j];
+      for (int j = 0; j < i; ++j) g[j] = res[j];
       f = atcoder::convolution(f, g);
       f.resize(2 * i);
-      for (int j = 0; j < i; ++j) {
-        f[j] = 0;
-      }
+      for (int j = 0; j < i; ++j) f[j] = 0;
       f = atcoder::convolution(f, g);
-      for (int j = i, m = std::min(2 * i, n); j < m; ++j) {
-        res[j] = -f[j];
-      }
+      for (int j = i; j < m; ++j) res[j] = -f[j];
     }
     return res;
   }
@@ -119,8 +112,8 @@ struct ArbitraryModMult {
 
   static constexpr int dmax() { return DMAX; }
 
-  static std::vector<T> multiply(const std::vector<T> &x,
-                                 const std::vector<T> &y) {
+  static std::vector<T> convolution(const std::vector<T> &x,
+                                    const std::vector<T> &y, int size_limit) {
     std::vector<int> xv(x.size());
     std::vector<int> yv(y.size());
     for (int i = 0; i < (int)x.size(); ++i) xv[i] = x[i].val();
@@ -134,7 +127,7 @@ struct ArbitraryModMult {
     const i64 m1_inv_m2 = atcoder::inv_mod(M1, M2);
     const i64 m12_inv_m3 = atcoder::inv_mod(i64(M1) * M2, M3);
     const i64 m12 = i64(M1) * M2 % T::mod();
-    const int n = std::min<int>(x.size() + y.size() - 1, dmax() + 1);
+    const int n = std::min<int>(x.size() + y.size() - 1, size_limit);
     std::vector<T> res(n);
     for (int i = 0; i < n; ++i) {
       atcoder::static_modint<M2> v1 = z2[i] - z1[i];
@@ -143,6 +136,30 @@ struct ArbitraryModMult {
       atcoder::static_modint<M3> v2 = z3[i] - z1[i] - w1;
       v2 *= m12_inv_m3;
       res[i] = z1[i] + w1 + (v2.val() * m12);
+    }
+    return res;
+  }
+
+  static std::vector<T> multiply(const std::vector<T> &x,
+                                 const std::vector<T> &y) {
+    return convolution(x, y, dmax() + 1);
+  }
+
+  static std::vector<T> invert(const std::vector<T> &x) {
+    assert(x[0].val() != 0);  // must be invertible
+    const int n = x.size();
+    std::vector<T> res(n);
+    res[0] = x[0].inv();
+    for (int i = 1; i < n; i <<= 1) {
+      const int m = std::min(2 * i, n);
+      std::vector<T> f(2 * i), g(2 * i);
+      for (int j = 0; j < m; ++j) f[j] = x[j];
+      for (int j = 0; j < i; ++j) g[j] = res[j];
+      f = convolution(f, g, 2 * i);
+      f.resize(2 * i);
+      for (int j = 0; j < i; ++j) f[j] = 0;
+      f = convolution(f, g, 2 * i);
+      for (int j = i; j < m; ++j) res[j] = -f[j];
     }
     return res;
   }
