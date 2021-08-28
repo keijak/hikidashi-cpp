@@ -127,13 +127,13 @@ struct ArbitraryModMult {
     for (int i = 0; i < (int)y.size(); ++i) yv[i] = y[i].val();
 
     constexpr int M1 = 167772161, M2 = 469762049, M3 = 1224736769;
-    auto z1 = atcoder::convolution<M1>(xv, yv);
-    auto z2 = atcoder::convolution<M2>(xv, yv);
-    auto z3 = atcoder::convolution<M3>(xv, yv);
+    const auto z1 = atcoder::convolution<M1>(xv, yv);
+    const auto z2 = atcoder::convolution<M2>(xv, yv);
+    const auto z3 = atcoder::convolution<M3>(xv, yv);
 
     const i64 m1_inv_m2 = atcoder::inv_mod(M1, M2);
     const i64 m12_inv_m3 = atcoder::inv_mod(i64(M1) * M2, M3);
-    const i64 m12 = i64(M1) * M2 % T::mod();
+    constexpr i64 m12 = i64(M1) * M2 % T::mod();
     const int n = std::min<int>(x.size() + y.size() - 1, dmax() + 1);
     std::vector<T> res(n);
     for (int i = 0; i < n; ++i) {
