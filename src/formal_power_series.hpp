@@ -133,7 +133,7 @@ struct ArbitraryModMult {
 
     const i64 m1_inv_m2 = atcoder::inv_mod(M1, M2);
     const i64 m12_inv_m3 = atcoder::inv_mod(i64(M1) * M2, M3);
-    constexpr i64 m12 = i64(M1) * M2 % T::mod();
+    const i64 m12 = i64(M1) * M2 % T::mod();
     const int n = std::min<int>(x.size() + y.size() - 1, dmax() + 1);
     std::vector<T> res(n);
     for (int i = 0; i < n; ++i) {
