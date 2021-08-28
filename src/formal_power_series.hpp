@@ -13,6 +13,7 @@ using i64 = long long;
 using u64 = unsigned long long;
 
 #include <atcoder/convolution>
+#include <atcoder/math>
 #include <atcoder/modint>
 
 namespace multiplication {
@@ -110,18 +111,40 @@ struct IntMult {
   }
 };
 
-// dep: fft.hpp
 // T: modint
 template <typename T, int DMAX>
 struct ArbitraryModMult {
   using value_type = T;
+  static_assert(atcoder::internal::is_modint<T>::value);
+
   static constexpr int dmax() { return DMAX; }
 
   static std::vector<T> multiply(const std::vector<T> &x,
                                  const std::vector<T> &y) {
-    // NOTE: Setting `need=DMAX+1` gives incorrect results.
-    auto res = ArbitraryModConvolution<T>::multiply(x, y);
-    if (int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
+    std::vector<int> xv(x.size());
+    std::vector<int> yv(y.size());
+    for (int i = 0; i < (int)x.size(); ++i) xv[i] = x[i].val();
+    for (int i = 0; i < (int)y.size(); ++i) yv[i] = y[i].val();
+
+    constexpr int M1 = 167772161, M2 = 469762049, M3 = 1224736769;
+    auto z1 = atcoder::convolution<M1>(xv, yv);
+    auto z2 = atcoder::convolution<M2>(xv, yv);
+    auto z3 = atcoder::convolution<M3>(xv, yv);
+
+    const i64 M1_INV_M2 = atcoder::inv_mod(M1, M2);
+    const i64 M12_INV_M3 = atcoder::inv_mod(i64(M1) * M2, M3);
+    const i64 M12_MOD = i64(M1) * M2 % T::mod();
+    const int n = std::min<int>(x.size() + y.size() - 1, dmax() + 1);
+    std::vector<T> res(n);
+    for (int i = 0; i < n; ++i) {
+      atcoder::static_modint<M2> v1 = z2[i] - z1[i];
+      v1 *= M1_INV_M2;
+      const i64 w1 = v1.val() * i64(M1);
+      atcoder::static_modint<M3> v2 = z3[i] - z1[i] - w1;
+      v2 *= M12_INV_M3;
+      const i64 w2 = v2.val() * M12_MOD;
+      res[i] = z1[i] + w1 + w2;
+    }
     return res;
   }
 };

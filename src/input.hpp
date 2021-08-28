@@ -38,6 +38,7 @@ inline void read_signed(T& ret) {
   // ungetc(ch, stdin);  // assumption: ch is an ignorable whitespace
 }
 
+#include <iostream>
 struct Input {
   template <typename T>
   operator T() const {
@@ -45,4 +46,4 @@ struct Input {
     std::cin >> x;
     return x;
   }
-} in;
+} const in;

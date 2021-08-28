@@ -23,4 +23,4 @@ struct Infinity {
     return x != T(y);
   }
 };
-constexpr Infinity<> big;
+constexpr Infinity<> kBig;
