@@ -6,7 +6,7 @@ struct PrimeSieve {
   std::vector<int> primes;
 
   explicit PrimeSieve(int n) : spf(n + 1) {
-    // Linear Sieve
+    // O(n)
     for (int i = 2; i <= n; ++i) {
       if (spf[i] == 0) {
         spf[i] = i;
@@ -19,9 +19,9 @@ struct PrimeSieve {
     }
   }
 
-  inline bool is_prime(int n) { return spf[n] == n; }
+  inline bool is_prime(int n) const { return spf[n] == n; }
 
-  auto factorize(int n) {
+  auto factorize(int n) const {
     assert(0 < n and n < int(spf.size()));
     std::vector<std::pair<int, int>> res;
     while (n > 1) {

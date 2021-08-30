@@ -176,7 +176,7 @@ struct AssignMaxOp {
 struct AssignSumOp {
   struct T {
     long long sum;
-    int width;
+    int width;  // NOTE: Must be initialized with width=1!
   };
   using F = std::optional<long long>;
 
