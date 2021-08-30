@@ -127,7 +127,7 @@ struct AddMaxOp {
 struct AddSumOp {
   struct T {
     long long sum;
-    int width;
+    int width;  // NOTE: Must be initialized with width=1!
   };
   using F = long long;
 
