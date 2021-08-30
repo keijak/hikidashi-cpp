@@ -176,12 +176,15 @@ struct DenseFPS {
   // Coefficients of terms from x^0 to x^DMAX.
   std::vector<T> coeff_;
 
-  DenseFPS() : coeff_(1) {}  // zero-initialized
+  DenseFPS() : coeff_(1, 0) {}  // = 0 * x^0
+
   explicit DenseFPS(std::vector<T> c) : coeff_(std::move(c)) {
-    assert(int(c.size()) <= dmax() + 1);
+    while (size() > dmax() + 1) coeff_.pop_back();
+    assert(size() > 0);
   }
   DenseFPS(std::initializer_list<T> init) : coeff_(init.begin(), init.end()) {
-    assert(int(init.size()) <= dmax() + 1);
+    while (size() > dmax() + 1) coeff_.pop_back();
+    assert(size() > 0);
   }
 
   DenseFPS(const DenseFPS &other) : coeff_(other.coeff_) {}
@@ -195,7 +198,8 @@ struct DenseFPS {
     return *this;
   }
 
-  inline int size() const { return int(coeff_.size()); }
+  // size <= dmax + 1
+  inline int size() const { return static_cast<int>(coeff_.size()); }
 
   // Returns the coefficient of x^k.
   inline T operator[](int k) const { return (k >= size()) ? 0 : coeff_[k]; }
@@ -277,11 +281,12 @@ struct DenseFPS {
 
   // Multiplies by (1 + c * x^k).
   void multiply2_inplace(int k, int c) {
+    assert(k > 0);
     if (size() <= dmax()) {
       coeff_.resize(min(size() + k, dmax() + 1), 0);
     }
-    for (int i = size() - 1; i >= 0; --i) {
-      if (i + k < size()) coeff_[i + k] += coeff_[i] * c;
+    for (int i = size() - 1; i >= k; --i) {
+      coeff_[i] += coeff_[i - k] * c;
     }
   }
   // Multiplies by (1 + c * x^k).
@@ -293,6 +298,7 @@ struct DenseFPS {
 
   // Divides by (1 + c * x^k).
   void divide2_inplace(int k, int c) {
+    assert(k > 0);
     for (int i = k; i < size(); ++i) {
       coeff_[i] -= coeff_[i - k] * c;
     }
