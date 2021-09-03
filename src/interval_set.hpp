@@ -2,7 +2,7 @@
 using namespace std;
 using i64 = long long;
 
-// Set of disjoint closed intervals [l, r].
+// Disjoint closed intervals [l, r] (mapping l to r).
 class ClosedIntervalSet : public std::map<i64, i64> {
  private:
   // If true, automatically merges [l, c] and [c+1, r].

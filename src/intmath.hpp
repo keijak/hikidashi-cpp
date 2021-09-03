@@ -63,6 +63,29 @@ T floor_div(T x, T y) {
   return x / y - (((x ^ y) < 0) and (x % y));
 }
 
+template <typename T>
+T power(T b, i64 e) {
+  assert(e >= 0);
+  T x = 1;
+  while (e > 0) {
+    if (e & 1) x *= b;
+    b *= b;
+    e >>= 1;
+  }
+  return x;
+}
+
+template <typename T>
+T geometric_progression_sum(T a1, T r, T n) {
+  return a1 * (power(r, n) - 1) / (r - 1);
+}
+
+template <typename T>
+T arithmetic_progression_sum(T a1, T d, T n) {
+  T an = a1 + d * (n - 1);
+  return n * (a1 + an) / 2;
+}
+
 // Etended Euclidean algorithm.
 // Returns [g, x, y] where g = a*x + b*y = GCD(a, b).
 // Note that g, x, y can be negative.

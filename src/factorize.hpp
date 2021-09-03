@@ -36,7 +36,7 @@ struct PrimeSieve {
     return res;
   }
 
-  i64 divisor_count(int n) {
+  i64 divisor_count(int n) const {
     assert(0 < n and n < int(spf.size()));
     i64 res = 1;
     while (n > 1) {
@@ -51,7 +51,7 @@ struct PrimeSieve {
     return res;
   }
 
-  i64 divisor_sum(int n) {
+  i64 divisor_sum(int n) const {
     assert(0 < n and n < int(spf.size()));
     i64 res = 1;
     while (n > 1) {
@@ -68,7 +68,7 @@ struct PrimeSieve {
   }
 
   // Number of prime factors.
-  int prime_factor_count(int n) {
+  int prime_factor_count(int n) const {
     assert(0 < n and n < int(spf.size()));
     int res = 0;
     while (n > 1) {
@@ -82,7 +82,7 @@ struct PrimeSieve {
   }
 
   // Möbius function.
-  int moebius(int n) {
+  int moebius(int n) const {
     assert(0 < n and n < int(spf.size()));
     int res = 1;
     while (n > 1) {
@@ -95,7 +95,7 @@ struct PrimeSieve {
   }
 
   // Euler's phi function.
-  int totient(int n) {
+  int totient(int n) const {
     assert(0 < n and n < int(spf.size()));
     i64 res = n;
     while (n > 1) {
@@ -204,7 +204,7 @@ std::vector<bool> prime_sieve(int n) {
 // Returns a prime table of the segment [L, R).
 // (table[x-L] != 0) ⇔ x is a prime number.
 std::vector<i64> segment_sieve(i64 L, i64 R) {
-  static const i64 SQRTN = 1 << 16;  // upper bound of sqrt(R)
+  static const i64 SQRTN = 1LL << 20;  // upper bound of sqrt(R)
   static int p[SQRTN], lookup = 0;
   assert(R <= SQRTN * SQRTN);
   if (!lookup) {

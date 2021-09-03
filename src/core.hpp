@@ -50,3 +50,19 @@ i64 bisect(i64 true_x, i64 false_x, F pred) {
 
 template <class T>
 using MinHeap = std::priority_queue<T, std::vector<T>, std::greater<T>>;
+
+template <typename T>
+void distinct(std::vector<T> &v) {
+  std::sort(v.begin(), v.end());
+  v.erase(std::unique(v.begin(), v.end()), v.end());
+}
+
+auto adjascent(int x, int y) -> std::vector<std::pair<int, int>> {
+  static const int dx[4] = {1, 0, -1, 0};
+  static const int dy[4] = {0, 1, 0, -1};
+  std::vector<std::pair<int, int>> ret(4);
+  for (int d = 0; d < 4; ++d) {
+    ret[d] = {x + dx[d], y + dy[d]};
+  }
+  return ret;
+}
