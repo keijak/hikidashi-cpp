@@ -52,7 +52,7 @@ template <class T>
 using MinHeap = std::priority_queue<T, std::vector<T>, std::greater<T>>;
 
 template <typename T>
-void distinct(std::vector<T> &v) {
+void sort_unique(std::vector<T> &v) {
   std::sort(v.begin(), v.end());
   v.erase(std::unique(v.begin(), v.end()), v.end());
 }

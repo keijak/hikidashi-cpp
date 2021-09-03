@@ -159,7 +159,7 @@ std::vector<std::pair<i64, int>> factorize(i64 n) {
 // Enumerates divisors from prime factorization.
 // O(d(n)) + sorting
 std::vector<i64> enumerate_divisors(
-    const std::vector<std::pair<i64, int>>& fac) {
+    const std::vector<std::pair<int, int>>& fac) {
   std::vector<i64> res = {1};
   for (auto [p, k] : fac) {
     int sz = res.size();
