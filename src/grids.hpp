@@ -1,5 +1,22 @@
-#include <vector>
+#include <bits/stdc++.h>
 using std::vector;
+
+auto make_inside(int H, int W) {
+  auto inside = [H, W](int i, int j) {
+    return 0 <= i and i < H and 0 <= j and j < W;
+  };
+  return inside;
+}
+
+auto adjascent(int x, int y) -> std::vector<std::pair<int, int>> {
+  static const int dx[4] = {1, 0, -1, 0};
+  static const int dy[4] = {0, 1, 0, -1};
+  std::vector<std::pair<int, int>> ret(4);
+  for (int d = 0; d < 4; ++d) {
+    ret[d] = {x + dx[d], y + dy[d]};
+  }
+  return ret;
+}
 
 // Note: Don't forget to update variables H and W.
 template <typename T>
