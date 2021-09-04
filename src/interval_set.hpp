@@ -50,8 +50,8 @@ class ClosedIntervalSet : public std::map<i64, i64> {
 
   // Are p and q in the same interval?
   bool same(i64 p, i64 q) {
-    const auto& it = find_interval(p);
-    return it != end() && it->first <= q && q <= it->second;
+    const auto it = find_interval(p);
+    return it != end() and it->first <= q and q <= it->second;
   }
 
   // Minimum excluded value greater than or equal to X.
@@ -85,7 +85,7 @@ class HalfOpenIntervalSet : public std::map<i64, i64> {
 
   // Inserts interval [l, r)
   void add_interval(i64 l, i64 r) {
-    auto itl = upper_bound(l), itr = upper_bound(r - 1 + merge_adjacent);
+    auto itl = upper_bound(l), itr = lower_bound(r + merge_adjacent);
     if (itl != begin()) {
       --itl;
       if (itl->second <= l - merge_adjacent) ++itl;
@@ -100,7 +100,7 @@ class HalfOpenIntervalSet : public std::map<i64, i64> {
 
   // Removes interval [l, r)
   void remove_interval(i64 l, i64 r) {
-    auto itl = upper_bound(l), itr = upper_bound(r - 1);
+    auto itl = upper_bound(l), itr = lower_bound(r);
     if (itl != begin()) {
       --itl;
       if (itl->second <= l) ++itl;
