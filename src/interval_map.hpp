@@ -3,13 +3,13 @@ using namespace std;
 using i64 = long long;
 
 // Disjoint closed intervals [l, r] (mapping l to r).
-class ClosedIntervalSet : public std::map<i64, i64> {
+class ClosedIntervalMap : public std::map<i64, i64> {
  private:
   // If true, automatically merges [l, c] and [c+1, r].
   bool merge_adjacent;
 
  public:
-  ClosedIntervalSet(bool merge_adjacent = true)
+  ClosedIntervalMap(bool merge_adjacent = true)
       : merge_adjacent(merge_adjacent) {}
 
   // Returns the interval [l, r] which contains p if available.
@@ -63,14 +63,13 @@ class ClosedIntervalSet : public std::map<i64, i64> {
 };
 
 // Disjoint half-open intervals [l, r) (mapping l to r).
-class HalfOpenIntervalSet : public std::map<i64, i64> {
+class IntervalMap : public std::map<i64, i64> {
  private:
   // If true, automatically merges [l, c) and [c, r).
   bool merge_adjacent;
 
  public:
-  HalfOpenIntervalSet(bool merge_adjacent = true)
-      : merge_adjacent(merge_adjacent) {}
+  IntervalMap(bool merge_adjacent = true) : merge_adjacent(merge_adjacent) {}
 
   // Returns the interval [l, r) which contains p if available.
   // Otherwise returns this->end().
