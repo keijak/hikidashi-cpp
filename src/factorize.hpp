@@ -12,7 +12,7 @@ struct PrimeSieve {
         spf[i] = i;
         primes.push_back(i);
       }
-      for (const auto& p : primes) {
+      for (const auto &p : primes) {
         if (i * p > n or p > spf[i]) break;
         spf[i * p] = p;
       }
@@ -159,7 +159,7 @@ std::vector<std::pair<i64, int>> factorize(i64 n) {
 // Enumerates divisors from prime factorization.
 // O(d(n)) + sorting
 std::vector<i64> enumerate_divisors(
-    const std::vector<std::pair<int, int>>& fac) {
+    const std::vector<std::pair<int, int>> &fac) {
   std::vector<i64> res = {1};
   for (auto [p, k] : fac) {
     int sz = res.size();
@@ -233,4 +233,59 @@ std::vector<i64> segment_sieve(i64 L, i64 R) {
     }
   }
   return table;
+}
+
+// F(n) = sum_{i|n} f(i)
+// O(N log log N)
+template <class T>
+void divisor_zeta_transform(std::vector<T> &f, const std::vector<int> &primes) {
+  const int n = f.size();
+  for (auto p : primes) {
+    if (p >= n) break;
+    for (int k = 1; k * p < n; ++k) {
+      f[k * p] += f[k];
+    }
+  }
+}
+
+// f(n) = sum_{i|n} mu(n/i)*F(i)
+// O(N log log N)
+template <class T>
+void divisor_moebius_transform(std::vector<T> &f,
+                               const std::vector<int> &primes) {
+  const int n = f.size();
+  for (auto p : primes) {
+    if (p >= n) break;
+    for (int k = (n - 1) / p; k > 0; --k) {
+      f[k * p] -= f[k];
+    }
+  }
+}
+
+// F(n) = sum_{n|i} f(i)
+// O(N log log N)
+template <class T>
+void multiple_zeta_transform(std::vector<T> &f,
+                             const std::vector<int> &primes) {
+  const int n = f.size();
+  for (auto p : primes) {
+    if (p >= n) break;
+    for (int k = (n - 1) / p; k > 0; --k) {
+      f[k] += f[k * p];
+    }
+  }
+}
+
+// f(n) = sum_{n|i} mu(i/n)*F(i)
+// O(N log log N)
+template <class T>
+void multiple_moebius_transform(std::vector<T> &f,
+                                const std::vector<int> &primes) {
+  const int n = f.size();
+  for (auto p : primes) {
+    if (p >= n) break;
+    for (int k = 1; k * p < n; ++k) {
+      f[k] -= f[k * p];
+    }
+  }
 }
