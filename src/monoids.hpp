@@ -221,3 +221,49 @@ struct ChmaxMaxOp {
   static F f_compose(const F &f, const F &g) { return std::max(f, g); }
   static constexpr F f_id() { return std::numeric_limits<T>::lowest(); }
 };
+
+// ref. https://null-mn.hatenablog.com/entry/2021/08/22/064325
+struct ArithmeticProgression {
+  using i64 = long long;
+  static constexpr i64 kBig = std::numeric_limits<i64>::max() / 2;
+
+  struct T {
+    i64 min;
+    i64 max;
+    i64 sum;
+    // closed interval [l, r]
+    int l;
+    int r;
+  };
+  struct Line {  // a*x + b
+    i64 a;
+    i64 b;
+  };
+  using F = std::optional<Line>;
+
+  // Fold: Max, Min, Sum
+  static T op(const T &x, const T &y) {
+    return T{
+        std::min(x.min, y.min), std::max(x.max, y.max), x.sum + y.sum, x.l, y.r,
+    };
+  }
+
+  static T id() { return {kBig, -kBig, 0LL, -1, -1}; }
+
+  // Update: Assign a*x + b
+  static T f_apply(const F &f, const T &x) {
+    if (not f) return x;
+    auto [a, b] = *f;
+    i64 width = x.r - x.l;
+    i64 lval = a * x.l + b;
+    i64 rval = a * x.r + b;
+    return T{std::min(lval, rval), std::max(lval, rval),
+             (width + 1) * (lval + rval) / 2, x.l, x.r};
+  }
+  static F f_compose(const F &f, const F &g) { return f ? f : g; }
+  static F f_id() { return std::nullopt; }
+};
+std::ostream &operator<<(std::ostream &os, const ArithmeticProgression::T &a) {
+  return os << "{min:" << a.min << ", max:" << a.max << ", sum:" << a.sum
+            << ", l:" << a.l << ", r:" << a.r << "}";
+}
