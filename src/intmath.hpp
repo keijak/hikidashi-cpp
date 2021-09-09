@@ -86,6 +86,23 @@ T arithmetic_progression_sum(T a1, T d, T n) {
   return n * (a1 + an) / 2;
 }
 
+// [floor(n/1),  floor(n/2), ..., floor(n/n)]
+// Contains O(sqrt(n)) distinct values.
+//
+// Returns (value, l, r) for each distinct value, such that
+// value = floor(n/x) for l <= x < r
+auto floor_harmonic_sequence(i64 n) {
+  std::vector<std::tuple<i64, i64, i64>> ret;
+  i64 l = 1;
+  while (l <= n) {
+    i64 r = n / (n / l) + 1;
+    // floor(n/x) yields the same value for l <= x < r.
+    ret.emplace_back(n / l, l, r);
+    l = r;
+  }
+  return ret;
+}
+
 // Etended Euclidean algorithm.
 // Returns [g, x, y] where g = a*x + b*y = GCD(a, b).
 // Note that g, x, y can be negative.
