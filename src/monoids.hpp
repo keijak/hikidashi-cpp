@@ -223,7 +223,7 @@ struct ChmaxMaxOp {
 };
 
 // ref. https://null-mn.hatenablog.com/entry/2021/08/22/064325
-struct ArithmeticProgression {
+struct AssignArithmeticProgressionOp {
   using i64 = long long;
   static constexpr i64 kBig = std::numeric_limits<i64>::max() / 2;
 
