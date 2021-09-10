@@ -145,6 +145,29 @@ struct AddSumOp {
   static constexpr F f_id() { return 0; }
 };
 
+// Range Flip Range Sum over 0-1 sequence.
+struct XorSumOp {
+  struct T {
+    int count;
+    int width;  // NOTE: Must be initialized with width=1!
+  };
+  using F = int;
+
+  // Fold: Sum
+  static T op(const T &x, const T &y) {
+    return {x.count + y.count, x.width + y.width};
+  }
+  static T id() { return {0, 0}; }
+
+  // Update: 0-1 flip by f=1.
+  static T f_apply(const F &f, const T &x) {
+    if (f == 0) return x;
+    return {x.width - x.count, x.width};
+  }
+  static F f_compose(const F &f, const F &g) { return f ^ g; }
+  static constexpr F f_id() { return 0; }
+};
+
 struct AssignMinOp {
   using T = long long;
   using F = std::optional<long long>;
