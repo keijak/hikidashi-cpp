@@ -263,7 +263,8 @@ struct AssignArithmeticProgressionOp {
   static F f_compose(const F &f, const F &g) { return f ? f : g; }
   static F f_id() { return std::nullopt; }
 };
-std::ostream &operator<<(std::ostream &os, const ArithmeticProgression::T &a) {
+std::ostream &operator<<(std::ostream &os,
+                         const AssignArithmeticProgressionOp::T &a) {
   return os << "{min:" << a.min << ", max:" << a.max << ", sum:" << a.sum
             << ", l:" << a.l << ", r:" << a.r << "}";
 }
