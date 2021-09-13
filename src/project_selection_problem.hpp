@@ -3,9 +3,9 @@
 #include <atcoder/maxflow>
 
 // For each node v, make sure:
-// - sum(cost(*, v)) < BIG_COST
-// - sum(cost(v, *)) < BIG_COST
-const int BIG_COST = 1e8;
+// - sum(cost(*, v)) < kBigCost
+// - sum(cost(v, *)) < kBigCost
+static const int kBigCost = 1e8;
 
 // T: flow capacity type (i32/i64)
 template <typename T>
@@ -31,13 +31,14 @@ struct ProjectSelection {
       : kSource(n), kSink(n + 1), n_(n), m_(0), bonus_(0) {}
 
   // Returns the minimum cost.
-  T min_cost() const {
+  T min_cost() {
     atcoder::mf_graph<T> g(n_ + m_ + 2);
     for (const Edge &e : edges_) {
       g.add_edge(e.from, e.to, e.cost);
     }
     T res = g.flow(kSource, kSink) - bonus_;
-    // assignment_ = g.min_cut(kSource);  // Get the assignment.
+    // Get the assignment.
+    // assignment_ = g.min_cut(kSource);
     return res;
   }
 
@@ -128,7 +129,7 @@ struct ProjectSelection {
     bonus_ += gain;
     if_X_and_notY_then_cost(kSource, y, gain);
     for (const auto &x : xs) {
-      if_X_and_notY_then_cost(y, x, BIG_COST);
+      if_X_and_notY_then_cost(y, x, kBigCost);
     }
   }
 
@@ -138,7 +139,7 @@ struct ProjectSelection {
     bonus_ += gain;
     if_X_and_notY_then_cost(y, kSink, gain);
     for (const auto &x : xs) {
-      if_X_and_notY_then_cost(x, y, BIG_COST);
+      if_X_and_notY_then_cost(x, y, kBigCost);
     }
   }
 };
