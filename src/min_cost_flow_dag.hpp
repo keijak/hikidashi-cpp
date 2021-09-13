@@ -1,4 +1,8 @@
 // https://kopricky.github.io/code/NetworkFlow/min_cost_flow_DAG.html
+//
+// The input graph may contain negative edge cost but must be a DAG.
+// Calculates potential at each node using DP instead of Bellman-Ford,
+// which is less general but faster.
 #include <bits/stdc++.h>
 
 template <typename Cap, typename Cost>
