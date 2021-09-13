@@ -1,31 +1,52 @@
 #include <bits/stdc++.h>
-using std::vector;
 
-auto make_inside(int H, int W) {
-  auto inside = [H, W](int i, int j) {
-    return 0 <= i and i < H and 0 <= j and j < W;
-  };
-  return inside;
-}
-
-auto adjascent(int x, int y) -> std::vector<std::pair<int, int>> {
+auto make_neighbors(int H, int W) {
   static const int dx[4] = {1, 0, -1, 0};
   static const int dy[4] = {0, 1, 0, -1};
-  std::vector<std::pair<int, int>> ret(4);
-  for (int d = 0; d < 4; ++d) {
-    ret[d] = {x + dx[d], y + dy[d]};
-  }
-  return ret;
+  auto inside = [&](int i, int j) {
+    return 0 <= i and i < H and 0 <= j and j < W;
+  };
+  auto neighbors = [&](int x, int y) {
+    std::vector<std::pair<int, int>> ret;
+    ret.reserve(4);
+    for (int d = 0; d < 4; ++d) {
+      const int nx = x + dx[d];
+      const int ny = y + dy[d];
+      if (not inside(nx, ny)) continue;
+      ret.emplace_back(nx, ny);
+    }
+    return ret;
+  };
+  return std::pair{inside, neighbors};
 }
 
-// Note: Don't forget to update variables H and W.
-template <typename T>
-void rotate90(vector<vector<T>> &grid) {
+template <typename V>
+void transpose(std::vector<V> &grid) {
   const int h = grid.size();
   if (h == 0) return;
   const int w = grid[0].size();
   if (w == 0) return;
-  auto tmp = vector(w, vector(h, T()));
+  std::vector<V> tmp(w, V(h, grid[0][0]));
+  for (int i = 0; i < h; ++i) {
+    for (int j = 0; j < w; ++j) {
+      tmp[j][i] = grid[i][j];
+    }
+  }
+  std::swap(grid, tmp);
+}
+template <typename V>
+void transpose(std::vector<V> &grid, int &H, int &W) {
+  transpose(grid);
+  std::swap(H, W);
+}
+
+template <typename V>
+void rotate90(std::vector<V> &grid) {
+  const int h = grid.size();
+  if (h == 0) return;
+  const int w = grid[0].size();
+  if (w == 0) return;
+  std::vector<V> tmp(w, V(h, grid[0][0]));
   for (int i = 0; i < h; ++i) {
     for (int j = 0; j < w; ++j) {
       tmp[w - 1 - j][i] = grid[i][j];
@@ -33,14 +54,19 @@ void rotate90(vector<vector<T>> &grid) {
   }
   std::swap(grid, tmp);
 }
+template <typename V>
+void rotate90(std::vector<V> &grid, int &H, int &W) {
+  rotate90(grid);
+  std::swap(H, W);
+}
 
-template <typename T>
-void rotate180(vector<vector<T>> &grid) {
+template <typename V>
+void rotate180(std::vector<V> &grid) {
   const int h = grid.size();
   if (h == 0) return;
   const int w = grid[0].size();
   if (w == 0) return;
-  auto tmp = vector(w, vector(h, T()));
+  auto tmp = grid;
   for (int i = 0; i < h; ++i) {
     for (int j = 0; j < w; ++j) {
       tmp[h - 1 - i][w - 1 - j] = grid[i][j];
@@ -49,24 +75,8 @@ void rotate180(vector<vector<T>> &grid) {
   std::swap(grid, tmp);
 }
 
-// Note: Don't forget to update variables H and W.
-template <typename T>
-void transpose(vector<vector<T>> &grid) {
-  const int h = grid.size();
-  if (h == 0) return;
-  const int w = grid[0].size();
-  if (w == 0) return;
-  auto tmp = vector(w, vector(h, T()));
-  for (int i = 0; i < h; ++i) {
-    for (int j = 0; j < w; ++j) {
-      tmp[j][i] = grid[i][j];
-    }
-  }
-  std::swap(grid, tmp);
-}
-
-template <typename T>
-void flip_horizontally(vector<vector<T>> &grid) {
+template <typename V>
+void flip_horizontally(std::vector<V> &grid) {
   const int h = grid.size();
   if (h == 0) return;
   const int w = grid[0].size();
@@ -80,8 +90,8 @@ void flip_horizontally(vector<vector<T>> &grid) {
   }
 }
 
-template <typename T>
-void flip_vertically(vector<vector<T>> &grid) {
+template <typename V>
+void flip_vertically(std::vector<V> &grid) {
   const int h = grid.size();
   if (h == 0) return;
   const int w = grid[0].size();
