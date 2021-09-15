@@ -121,7 +121,12 @@ struct LazySegTree {
   }
   void apply_all(int k, F f) const {
     data_[k] = LazyMonoid::f_apply(f, data_[k]);
-    if (k < offset_) lazy_[k] = LazyMonoid::f_compose(f, lazy_[k]);
+    if (k < offset_) {
+      lazy_[k] = LazyMonoid::f_compose(f, lazy_[k]);
+#ifdef SEGMENT_TREE_BEATS
+      if (data_[k].failed) push(k), update(k);
+#endif
+    }
   }
   void push(int k) const {
     apply_all(2 * k, lazy_[k]);
