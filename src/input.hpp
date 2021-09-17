@@ -46,4 +46,14 @@ struct Input {
     std::cin >> x;
     return x;
   }
+  struct SizedInput {
+    std::size_t n;
+    template <typename T>
+    operator T() const {
+      T x(n);
+      for (auto& e : x) std::cin >> e;
+      return x;
+    }
+  };
+  SizedInput operator()(std::size_t n) const { return {n}; }
 } const in;
