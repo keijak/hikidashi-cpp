@@ -1,5 +1,6 @@
 // Slope Trick on piecewise linear convex curve.
 // https://maspypy.com/slope-trick-1-%E8%A7%A3%E8%AA%AC%E7%B7%A8
+// https://ei1333.github.io/library/structure/others/generalized-slope-trick.cpp
 #include <bits/stdc++.h>
 
 template <typename T = long long>
@@ -9,6 +10,7 @@ struct PWLConvexCurve {
   T fmin;
   std::priority_queue<T, std::vector<T>, std::less<>> lq;
   std::priority_queue<T, std::vector<T>, std::greater<>> rq;
+
   PWLConvexCurve() : fmin{0} {
     lq.push(-kInf);
     rq.push(kInf);
@@ -18,7 +20,7 @@ struct PWLConvexCurve {
 
   // Add g(x) = max(x-a, 0)
   void add_x_minus_a(T a) {
-    fmin += max<T>(lq.top() - a, 0);
+    fmin += std::max<T>(lq.top() - a, 0);
     lq.push(a);
     rq.push(lq.top());
     lq.pop();
@@ -26,7 +28,7 @@ struct PWLConvexCurve {
 
   // Add g(x) = max(a-x, 0)
   void add_a_minus_x(T a) {
-    fmin += max<T>(a - rq.top(), 0);
+    fmin += std::max<T>(a - rq.top(), 0);
     rq.push(a);
     lq.push(rq.top());
     rq.pop();
@@ -38,7 +40,15 @@ struct PWLConvexCurve {
     add_a_minus_x(a);
   }
 
-  T get_min() const { return fmin; }
+  // Flatten the left slope.
+  void cum_max() {
+    while (not lq.empty()) lq.pop();
+  }
+
+  // Flatten the right slope.
+  void cum_min() {
+    while (not rq.empty()) rq.pop();
+  }
 };
 template <typename T>
 std::ostream &operator<<(std::ostream &os, const PWLConvexCurve<T> &curve) {
