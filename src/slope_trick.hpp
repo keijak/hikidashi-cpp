@@ -7,51 +7,81 @@ template <typename T = long long>
 struct PWLConvexCurve {
   static constexpr T kInf = std::numeric_limits<T>::max() / 2;
 
-  T fmin;
-  std::priority_queue<T, std::vector<T>, std::less<>> lq;
-  std::priority_queue<T, std::vector<T>, std::greater<>> rq;
+ private:
+  std::priority_queue<T, std::vector<T>, std::less<>> lq_;
+  std::priority_queue<T, std::vector<T>, std::greater<>> rq_;
+  T min_;
+  T l_offset_;
+  T r_offset_;
 
-  PWLConvexCurve() : fmin{0} {
-    lq.push(-kInf);
-    rq.push(kInf);
-  }
+ public:
+  PWLConvexCurve() : min_{0}, l_offset_{0}, r_offset_{0} {}
 
-  void add_constant(T c) { fmin += c; }
+  T min() const { return min_; }
 
-  // Add g(x) = max(x-a, 0)
+  // Adds g(x) = c
+  void add_constant(T c) { min_ += c; }
+
+  // Adds g(x) = max(x-a, 0)
   void add_x_minus_a(T a) {
-    fmin += std::max<T>(lq.top() - a, 0);
-    lq.push(a);
-    rq.push(lq.top());
-    lq.pop();
+    min_ += std::max<T>(top_l() - a, 0);
+    push_l(a);
+    push_r(top_l());
+    lq_.pop();
   }
 
-  // Add g(x) = max(a-x, 0)
+  // Adds g(x) = max(a-x, 0)
   void add_a_minus_x(T a) {
-    fmin += std::max<T>(a - rq.top(), 0);
-    rq.push(a);
-    lq.push(rq.top());
-    rq.pop();
+    min_ += std::max<T>(a - top_r(), 0);
+    push_r(a);
+    push_l(top_r());
+    rq_.pop();
   }
 
-  // Add g(x) = abs(x - a)
+  // Adds g(x) = abs(x - a)
   void add_abs(T a) {
     add_x_minus_a(a);
     add_a_minus_x(a);
   }
 
-  // Flatten the left slope.
+  // Flattens the left slope.
   void cum_max() {
-    while (not lq.empty()) lq.pop();
+    while (not lq_.empty()) lq_.pop();
   }
 
-  // Flatten the right slope.
+  // Flattens the right slope.
   void cum_min() {
-    while (not rq.empty()) rq.pop();
+    while (not rq_.empty()) rq_.pop();
+  }
+
+  // Shifts the left points toward right by a.
+  // Shifts the right points toward right by b.
+  // Can widen the flat interval.
+  // \_/ => \___/
+  void shift(T a, T b) {
+    assert(a <= b);
+    l_offset_ += a;
+    r_offset_ += b;
+  }
+
+  // Shifts all points toward right by a.
+  void shift(T a) { shift(a, a); }
+
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const PWLConvexCurve &curve) {
+    return os << "min=" << curve.min() << " l0=" << curve.top_l()
+              << " r0=" << curve.top_r();
+  }
+
+ private:
+  void push_l(T a) { lq_.push(a - l_offset_); }
+  void push_r(T a) { rq_.push(a - r_offset_); }
+  T top_l() const {
+    if (lq_.empty()) return -kInf;
+    return lq_.top() + l_offset_;
+  }
+  T top_r() const {
+    if (rq_.empty()) return kInf;
+    return rq_.top() + r_offset_;
   }
 };
-template <typename T>
-std::ostream &operator<<(std::ostream &os, const PWLConvexCurve<T> &curve) {
-  return os << "fmin=" << curve.fmin << " l0=" << curve.lq.top()
-            << " r0=" << curve.rq.top();
-}
