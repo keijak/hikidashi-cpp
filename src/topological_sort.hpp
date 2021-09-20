@@ -2,11 +2,11 @@
 using namespace std;
 
 // Returns the topogically sorted list of nodes.
-// Nodes with zero indegree come first.
-// Returns nullopt if the input graph is not a DAG.
-// Args:
-//   g: directed adjacency list.
-//     g[a] = {b, c, d};  // => {a->b, a->c, a->d}
+//
+// Assuming edges are directed from "smaller" nodes to "larger" nodes,
+// returns a list of nodes sorted in the small-to-large order.
+//
+// nullopt is returned if the input graph is not a DAG.
 optional<vector<int>> topological_sort(const vector<vector<int>> &g) {
   const int n = g.size();
   vector<int> indeg(n);
