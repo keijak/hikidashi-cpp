@@ -3,7 +3,7 @@ using i64 = long long;
 
 struct Edge {
   int to;
-  // int hoge;
+  // int weight;
 };
 
 template <typename Task>
