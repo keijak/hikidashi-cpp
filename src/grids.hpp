@@ -75,6 +75,7 @@ void rotate180(std::vector<V> &grid) {
   std::swap(grid, tmp);
 }
 
+// Swaps i-th column and (W-1-i)-th column.
 template <typename V>
 void flip_horizontally(std::vector<V> &grid) {
   const int h = grid.size();
@@ -90,6 +91,7 @@ void flip_horizontally(std::vector<V> &grid) {
   }
 }
 
+// Swaps i-th row and (H-1-i)-th row.
 template <typename V>
 void flip_vertically(std::vector<V> &grid) {
   const int h = grid.size();
