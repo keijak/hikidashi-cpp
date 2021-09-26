@@ -7,7 +7,7 @@ struct Edge {
 };
 
 template <typename Task>
-class Rerooting {
+class RerootingDP {
  private:
   using NV = typename Task::NodeValue;
   using EV = typename Task::EdgeValue;
@@ -20,7 +20,7 @@ class Rerooting {
   int base_root;                     // base root node where we start DFS
 
  public:
-  explicit Rerooting(Task task, std::vector<std::vector<Edge>> g, int r = 0)
+  explicit RerootingDP(Task task, std::vector<std::vector<Edge>> g, int r = 0)
       : task(move(task)),
         n((int)g.size()),
         g(move(g)),
@@ -90,72 +90,106 @@ class InplaceRerooting {
   using NV = typename Task::NodeValue;
   using EV = typename Task::EdgeValue;
 
-  Task task;
-  int n;                             // number of nodes
-  std::vector<std::vector<Edge>> g;  // graph (tree)
-  std::vector<NV> sub;               // values for each subtree rooted at i
-  std::vector<NV> full;              // values for each entire tree rooted at i
-  int base_root;                     // base root node where we start DFS
+  Task task_;
+  int n_;                             // number of nodes
+  std::vector<std::vector<Edge>> g_;  // graph (tree)
+  std::vector<NV> sub_result_;        // values for each subtree rooted at i
+  std::vector<NV> full_result_;       // values for each entire tree rooted at i
+  int base_root_;                     // base root node where we start DFS
 
  public:
   explicit InplaceRerooting(Task task, std::vector<std::vector<Edge>> g,
                             int r = 0)
-      : task(move(task)),
-        n((int)g.size()),
-        g(move(g)),
-        sub(n),
-        full(n),
-        base_root(r) {}
+      : task_(move(task)),
+        n_((int)g.size()),
+        g_(move(g)),
+        sub_result_(n_),
+        full_result_(n_),
+        base_root_(r) {}
 
   const std::vector<NV> &run() {
-    pull_up(base_root, -1);
-    push_down(base_root, -1, std::nullopt);
-    return full;
+    pull_up(base_root_, -1);
+    push_down(base_root_, -1, std::nullopt);
+    return full_result_;
   }
 
  private:
   NV pull_up(int v, int par) {
-    EV res = task.id();
-    for (auto &e : g[v]) {
+    EV res = task_.id();
+    for (auto &e : g_[v]) {
       int u = e.to;
       if (u == par) continue;
-      auto sub = task.add_edge(pull_up(u, v), e);
-      task.merge_inplace(res, std::move(sub));
+      auto sub = task_.add_edge(pull_up(u, v), e);
+      task_.merge_inplace(res, std::move(sub));
     }
-    return (sub[v] = task.add_node(res, v));
+    return (sub_result_[v] = task_.add_node(res, v));
   }
 
   void push_down(int v, int par, std::optional<NV> upper_sub) {
-    int m = g[v].size();
-    EV agg = task.id();
+    int m = g_[v].size();
+    EV agg = task_.id();
 
     for (int i = 0; i < m; ++i) {
-      auto &e = g[v][i];
+      auto &e = g_[v][i];
       int u = e.to;
       if (u == par) {
         assert(upper_sub.has_value());
-        task.merge_inplace(agg, task.add_edge(std::move(*upper_sub), e));
+        task_.merge_inplace(agg, task_.add_edge(std::move(*upper_sub), e));
       } else {
-        task.merge_inplace(agg, task.add_edge(sub[u], e));
+        task_.merge_inplace(agg, task_.add_edge(sub_result_[u], e));
       }
     }
-    full[v] = task.add_node(agg, v);
+    full_result_[v] = task_.add_node(agg, v);
 
     for (int i = 0; i < m; ++i) {
-      auto &e = g[v][i];
+      auto &e = g_[v][i];
       int u = e.to;
       if (u == par) continue;
-      EV edge_value = task.add_edge(sub[u], e);
-      task.subtract_inplace(agg, edge_value);
-      std::optional<NV> next_upper_sub{task.add_node(agg, v)};
+      EV edge_value = task_.add_edge(sub_result_[u], e);
+      task_.subtract_inplace(agg, edge_value);
+      std::optional<NV> next_upper_sub{task_.add_node(agg, v)};
       push_down(u, v, std::move(next_upper_sub));
-      task.merge_inplace(agg, std::move(edge_value));
+      task_.merge_inplace(agg, std::move(edge_value));
     }
   }
 };
 
+// https://atcoder.jp/contests/abc220/tasks/abc220_f
+struct DistanceSums2Task {
+  struct T {
+    i64 node_count;
+    i64 edge_count;
+    T(i64 nc = 0, i64 ec = 0) : node_count(nc), edge_count(ec) {}
+  };
+  using NodeValue = T;
+  using EdgeValue = T;
+
+  EdgeValue id() const { return {0, 0}; }
+
+  NodeValue add_node(EdgeValue val, int node) const {
+    val.node_count += 1;
+    return val;
+  }
+
+  EdgeValue add_edge(const NodeValue &val, const Edge &edge) const {
+    EdgeValue res = val;
+    res.edge_count += val.node_count;
+    return res;
+  }
+
+  void merge_inplace(EdgeValue &agg, const EdgeValue &x) const {
+    agg.node_count += x.node_count;
+    agg.edge_count += x.edge_count;
+  }
+
+  void subtract_inplace(EdgeValue &agg, const EdgeValue &x) const {
+    agg.node_count -= x.node_count;
+    agg.edge_count -= x.edge_count;
+  }
+};
+
 // https://atcoder.jp/contests/abc201/tasks/abc201_e
-struct InplaceTask {
+struct XorDistancesTask {
   static constexpr int M = 60;
   using Mint = double;
   using Table = std::array<Mint, M * 2>;  // copy is expensive
