@@ -76,14 +76,26 @@ T power(T b, i64 e) {
 }
 
 template <typename T>
+T arithmetic_progression_sum(T a1, T d, T n) {
+  T an = a1 + d * (n - 1);
+  return n * (a1 + an) / 2;
+}
+
+template <typename T>
 T geometric_progression_sum(T a1, T r, T n) {
   return a1 * (power(r, n) - 1) / (r - 1);
 }
 
+// [1, x, x^2, x^3, ..., x^n]
 template <typename T>
-T arithmetic_progression_sum(T a1, T d, T n) {
-  T an = a1 + d * (n - 1);
-  return n * (a1 + an) / 2;
+std::vector<T> pow_seq(int n, int base = 2) {
+  assert(n >= 0 and base > 0);
+  std::vector<T> ret(n + 1);
+  ret[0] = 1;
+  for (int i = 0; i < n; ++i) {
+    ret[i + 1] = ret[i] * base;
+  }
+  return ret;
 }
 
 // [floor(n/1),  floor(n/2), ..., floor(n/n)]
