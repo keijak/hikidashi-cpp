@@ -90,12 +90,12 @@ T geometric_progression_sum(T a1, T r, T n) {
 template <typename T>
 std::vector<T> pow_seq(int n, int base = 2) {
   assert(n >= 0 and base > 0);
-  std::vector<T> ret(n + 1);
-  ret[0] = 1;
+  std::vector<T> p(n + 1);
+  p[0] = 1;
   for (int i = 0; i < n; ++i) {
-    ret[i + 1] = ret[i] * base;
+    p[i + 1] = p[i] * base;
   }
-  return ret;
+  return p;
 }
 
 // [floor(n/1),  floor(n/2), ..., floor(n/n)]
