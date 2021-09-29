@@ -36,6 +36,7 @@ std::string from_decimal(i64 x_base_10, int k) {
   std::string x_base_k;
   while (x_base_10) {
     char d = (x_base_10 % k) + '0';
+    x_base_10 /= k;
     x_base_k.push_back(d);
   }
   std::reverse(x_base_k.begin(), x_base_k.end());
