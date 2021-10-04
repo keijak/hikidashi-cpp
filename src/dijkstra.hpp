@@ -6,7 +6,7 @@ inline bool chmin(T &a, U b) {
   return a > b and ((a = std::move(b)), true);
 }
 
-const i64 BIG = 1e16;
+const i64 kBig = 1e16;
 
 template <class T>
 using MinHeap = priority_queue<T, vector<T>, greater<T>>;
@@ -25,7 +25,7 @@ bool operator>(const State &x, const State &y) { return x.cost > y.cost; }
 // Returns min distance from the start node to each node (if exists).
 auto search_shortest_path(const vector<vector<Edge>> &g, int start, int goal) {
   const int n = g.size();
-  auto mincost = vector(n, BIG);
+  auto mincost = vector(n, kBig);
   MinHeap<State> que;
   auto push = [&](i64 cost, int node) -> bool {
     if (chmin(mincost[node], cost)) {
@@ -64,7 +64,7 @@ auto search_shortest_path_on_grid(const vector<string> &g,
   const int H = g.size();
   const int W = g[0].size();
   const array<int, 4> dx = {0, 1, 0, -1}, dy = {1, 0, -1, 0};
-  auto mincost = vector(H, vector(W, BIG));
+  auto mincost = vector(H, vector(W, kBig));
   MinHeap<GridState> que;
   auto push = [&](i64 cost, int r, int c) -> bool {
     if (r < 0 or r >= H or c < 0 or c >= W) return false;
