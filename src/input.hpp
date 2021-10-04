@@ -37,23 +37,3 @@ inline void read_signed(T& ret) {
   ret *= sign;
   // ungetc(ch, stdin);  // assumption: ch is an ignorable whitespace
 }
-
-#include <iostream>
-struct Input {
-  template <typename T>
-  operator T() const {
-    T x;
-    std::cin >> x;
-    return x;
-  }
-  struct SizedInput {
-    std::size_t n;
-    template <typename T>
-    operator T() const {
-      T x(n);
-      for (auto& e : x) std::cin >> e;
-      return x;
-    }
-  };
-  SizedInput operator()(std::size_t n) const { return {n}; }
-} const in;
