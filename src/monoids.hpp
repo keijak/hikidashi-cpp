@@ -168,6 +168,20 @@ struct XorSumOp {
   static constexpr F f_id() { return 0; }
 };
 
+struct MulSumOp {
+  using T = long long;
+  using F = long long;
+
+  // Fold: Sum
+  static T op(const T &x, const T &y) { return x + y; }
+  static T id() { return 0; }
+
+  // Update: Multiply
+  static T f_apply(const F &f, const T &x) { return x * f; }
+  static F f_compose(const F &f, const F &g) { return f * g; }
+  static F f_id() { return 1; }
+};
+
 struct AssignMinOp {
   using T = long long;
   using F = std::optional<long long>;
