@@ -34,6 +34,10 @@ class MinCostFlow {
     [[nodiscard]] Flow residual_cap() const { return cap - flow; }
   };
 
+  V_id n;
+  std::vector<std::vector<Edge>> g;
+  std::vector<Flow> b;
+
  public:
   class EdgePtr {
     friend class MinCostFlow;
@@ -70,12 +74,6 @@ class MinCostFlow {
     [[nodiscard]] Cost gain() const { return -edge().cost; }
   };
 
- private:
-  V_id n;
-  std::vector<std::vector<Edge>> g;
-  std::vector<Flow> b;
-
- public:
   MinCostFlow() : n(0) {}
 
   V_id add_vertex() {
@@ -94,6 +92,11 @@ class MinCostFlow {
     return ret;
   }
 
+  void add_supply(const V_id v, const Flow amount) { b[v] += amount; }
+
+  void add_demand(const V_id v, const Flow amount) { b[v] -= amount; }
+
+  // lower/upper: flow limit (inclusive).
   EdgePtr add_edge(const V_id src, const V_id dst, const Flow lower,
                    const Flow upper, const Cost cost) {
     const E_id e = g[src].size(), re = src == dst ? e + 1 : g[dst].size();
@@ -103,9 +106,74 @@ class MinCostFlow {
     return EdgePtr{this, src, e};
   }
 
-  void add_supply(const V_id v, const Flow amount) { b[v] += amount; }
+  // Solves the b flow problem.
+  std::pair<Status, Cost> solve() {
+    potential.resize(n);
+    for (auto &es : g) {
+      for (auto &e : es) {
+        const Flow rcap = e.residual_cap();
+        const Cost rcost = residual_cost(e.src, e.dst, e);
+        if (rcost < 0 || rcap < 0) {
+          push(e, rcap);
+          b[e.src] -= rcap;
+          b[e.dst] += rcap;
+        }
+      }
+    }
+    for (V_id v = 0; v < n; ++v) {
+      if (b[v] != 0) {
+        (b[v] > 0 ? excess_vs : deficit_vs).emplace_back(v);
+      }
+    }
+    while (dual()) primal();
+    Cost value = 0;
+    for (const auto &es : g) {
+      for (const auto &e : es) {
+        value += e.flow * e.cost;
+      }
+    }
+    value /= 2;
 
-  void add_demand(const V_id v, const Flow amount) { b[v] -= amount; }
+    if (excess_vs.empty() && deficit_vs.empty()) {
+      return {Status::OPTIMAL, value / objective};
+    } else {
+      return {Status::INFEASIBLE, value / objective};
+    }
+  }
+
+  // Solves the s-t flow problem.
+  //
+  // Computes the maximum flow from s to t, and also returns
+  // the minimum cost when the flow is maximum.
+  // Don't need to call add_supply()/add_demand() in advance.
+  std::tuple<Status, Cost, Flow> solve(const V_id s, const V_id t) {
+    assert(s != t);
+    Flow inf_flow = std::abs(b[s]);
+    for (const auto &e : g[s]) {
+      inf_flow += std::max(e.cap, static_cast<Flow>(0));
+    }
+
+    add_edge(t, s, 0, inf_flow, 0);
+    const auto [status, circulation_value] = solve();
+
+    if (status == Status::INFEASIBLE) {
+      g[s].pop_back();
+      g[t].pop_back();
+      return {status, circulation_value, 0};
+    }
+    inf_flow = std::abs(b[s]);
+    for (const auto &e : g[s]) {
+      inf_flow += e.residual_cap();
+    }
+    b[s] += inf_flow;
+    b[t] -= inf_flow;
+    const auto [mf_status, mf_value] = solve();
+    b[s] -= inf_flow;
+    b[t] += inf_flow;
+    g[s].pop_back();
+    g[t].pop_back();
+    return {Status::OPTIMAL, mf_value, b[t]};
+  }
 
  private:
   // Variables used in calculation
@@ -186,70 +254,6 @@ class MinCostFlow {
       b[t] += f;
       b[v] -= f;
     }
-  }
-
- public:
-  std::pair<Status, Cost> solve() {
-    potential.resize(n);
-    for (auto &es : g) {
-      for (auto &e : es) {
-        const Flow rcap = e.residual_cap();
-        const Cost rcost = residual_cost(e.src, e.dst, e);
-        if (rcost < 0 || rcap < 0) {
-          push(e, rcap);
-          b[e.src] -= rcap;
-          b[e.dst] += rcap;
-        }
-      }
-    }
-    for (V_id v = 0; v < n; ++v) {
-      if (b[v] != 0) {
-        (b[v] > 0 ? excess_vs : deficit_vs).emplace_back(v);
-      }
-    }
-    while (dual()) primal();
-    Cost value = 0;
-    for (const auto &es : g) {
-      for (const auto &e : es) {
-        value += e.flow * e.cost;
-      }
-    }
-    value /= 2;
-
-    if (excess_vs.empty() && deficit_vs.empty()) {
-      return {Status::OPTIMAL, value / objective};
-    } else {
-      return {Status::INFEASIBLE, value / objective};
-    }
-  }
-
-  std::tuple<Status, Cost, Flow> solve(const V_id s, const V_id t) {
-    assert(s != t);
-    Flow inf_flow = std::abs(b[s]);
-    for (const auto &e : g[s]) {
-      inf_flow += std::max(e.cap, static_cast<Flow>(0));
-    }
-
-    add_edge(t, s, 0, inf_flow, 0);
-    const auto [status, circulation_value] = solve();
-
-    if (status == Status::INFEASIBLE) {
-      g[s].pop_back();
-      g[t].pop_back();
-      return {status, circulation_value, 0};
-    }
-    inf_flow = std::abs(b[s]);
-    for (const auto &e : g[s]) {
-      inf_flow += e.residual_cap();
-    }
-    b[s] += inf_flow;
-    b[t] -= inf_flow;
-    const auto [mf_status, mf_value] = solve();
-    b[s] -= inf_flow;
-    b[t] += inf_flow;
-    g[s].pop_back();
-    g[t].pop_back();
-    return {Status::OPTIMAL, mf_value, b[t]};
   }
 };
 
