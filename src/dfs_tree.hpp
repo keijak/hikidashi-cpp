@@ -30,8 +30,12 @@ struct DFSTree {
     depth_[v] = d;
     set<int> non_neighbors;
     for (auto u : g_[v]) {
-      if (u == p) continue;
+      if (u == p) {
+        // parent
+        continue;
+      }
       if (depth_[u] == -1) {
+        // child
         dfs(u, v, d + 1);
         continue;
       }
