@@ -33,6 +33,7 @@ struct DFSTree {
       if (u == p) continue;
       if (depth_[u] == -1) {
         dfs(u, v, d + 1);
+        continue;
       }
       non_neighbors.insert(u);
       if (depth_[u] < d) {
