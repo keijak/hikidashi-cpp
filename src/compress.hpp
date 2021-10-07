@@ -11,9 +11,13 @@ struct Compressed {
 
   int size() const { return values.size(); }
 
-  int index(T x) const {
+  const T& value(int i) const { return values[i]; }
+
+  int index(const T& x) const {
     return std::lower_bound(values.begin(), values.end(), x) - values.begin();
   }
 
-  const T &value(int i) const { return values[i]; }
+  bool contains(const T& x) const {
+    return std::binary_search(values.begin(), values.end(), x);
+  }
 };
