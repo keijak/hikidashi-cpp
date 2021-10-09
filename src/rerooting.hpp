@@ -1,18 +1,35 @@
 #include <bits/stdc++.h>
+using namespace std;
 using i64 = long long;
 
 struct Edge {
   int to;
-  // int weight;
 };
 
-template <typename Task>
-class RerootingDP {
- private:
-  using NV = typename Task::NodeValue;
-  using EV = typename Task::EdgeValue;
+struct Task {
+  using NV = i64;  // Node Value
+  using EV = i64;  // Edge Value
 
-  Task task;
+  Task() {}
+
+  EV id() const { return 0; }
+
+  NV add_node(const EV &val, int node) const { return 0; }
+
+  EV add_edge(const NV &val, const Edge &edge) const { return 0; }
+
+  EV merge(const EV &x, const EV &y) const { return 0; }
+  // void merge_inplace(EV &agg, const EV &x) const {}
+  // void subtract_inplace(EV &agg, const EV &x) const {}
+};
+
+template <typename Rerootable = Task>
+class Rerooter {
+ private:
+  using NV = typename Rerootable::NV;
+  using EV = typename Rerootable::EV;
+
+  Rerootable task;
   int n;                             // number of nodes
   std::vector<std::vector<Edge>> g;  // graph (tree)
   std::vector<NV> sub;               // values for each subtree rooted at i
@@ -20,7 +37,8 @@ class RerootingDP {
   int base_root;                     // base root node where we start DFS
 
  public:
-  explicit RerootingDP(Task task, std::vector<std::vector<Edge>> g, int r = 0)
+  explicit Rerooter(Rerootable task, std::vector<std::vector<Edge>> g,
+                    int r = 0)
       : task(move(task)),
         n((int)g.size()),
         g(move(g)),
@@ -84,13 +102,13 @@ class RerootingDP {
   }
 };
 
-template <typename Task>
-class InplaceRerooting {
+template <typename Rerootable>
+class InplaceRerooter {
  private:
-  using NV = typename Task::NodeValue;
-  using EV = typename Task::EdgeValue;
+  using NV = typename Rerootable::NV;
+  using EV = typename Rerootable::EV;
 
-  Task task_;
+  Rerootable task_;
   int n_;                             // number of nodes
   std::vector<std::vector<Edge>> g_;  // graph (tree)
   std::vector<NV> sub_result_;        // values for each subtree rooted at i
@@ -98,8 +116,8 @@ class InplaceRerooting {
   int base_root_;                     // base root node where we start DFS
 
  public:
-  explicit InplaceRerooting(Task task, std::vector<std::vector<Edge>> g,
-                            int r = 0)
+  explicit InplaceRerooter(Rerootable task, std::vector<std::vector<Edge>> g,
+                           int r = 0)
       : task_(move(task)),
         n_((int)g.size()),
         g_(move(g)),
@@ -154,6 +172,10 @@ class InplaceRerooting {
   }
 };
 
+//
+// Task Examples
+//
+
 // https://atcoder.jp/contests/abc220/tasks/abc220_f
 struct DistanceSums2Task {
   struct T {
@@ -161,28 +183,28 @@ struct DistanceSums2Task {
     i64 edge_count;
     T(i64 nc = 0, i64 ec = 0) : node_count(nc), edge_count(ec) {}
   };
-  using NodeValue = T;
-  using EdgeValue = T;
+  using NV = T;
+  using EV = T;
 
-  EdgeValue id() const { return {0, 0}; }
+  EV id() const { return {0, 0}; }
 
-  NodeValue add_node(EdgeValue val, int node) const {
+  NV add_node(EV val, int node) const {
     val.node_count += 1;
     return val;
   }
 
-  EdgeValue add_edge(const NodeValue &val, const Edge &edge) const {
-    EdgeValue res = val;
+  EV add_edge(const NV &val, const Edge &edge) const {
+    EV res = val;
     res.edge_count += val.node_count;
     return res;
   }
 
-  void merge_inplace(EdgeValue &agg, const EdgeValue &x) const {
+  void merge_inplace(EV &agg, const EV &x) const {
     agg.node_count += x.node_count;
     agg.edge_count += x.edge_count;
   }
 
-  void subtract_inplace(EdgeValue &agg, const EdgeValue &x) const {
+  void subtract_inplace(EV &agg, const EV &x) const {
     agg.node_count -= x.node_count;
     agg.edge_count -= x.edge_count;
   }
@@ -193,14 +215,14 @@ struct XorDistancesTask {
   static constexpr int M = 60;
   using Mint = double;
   using Table = std::array<Mint, M * 2>;  // copy is expensive
-  using NodeValue = Table;
-  using EdgeValue = Table;
+  using NV = Table;
+  using EV = Table;
 
-  EdgeValue id() const { return Table{0}; }
+  EV id() const { return Table{0}; }
 
-  NodeValue add_node(EdgeValue val, int node) const { return std::move(val); }
+  NV add_node(EV val, int node) const { return std::move(val); }
 
-  EdgeValue add_edge(const NodeValue &val, const Edge &edge) const {
+  EV add_edge(const NV &val, const Edge &edge) const {
     auto res = Table{};
     for (int i = 0; i < M; ++i) {
       if (edge.len >> i & 1) {
@@ -214,13 +236,13 @@ struct XorDistancesTask {
     return res;
   }
 
-  void merge_inplace(EdgeValue &agg, const EdgeValue &x) const {
+  void merge_inplace(EV &agg, const EV &x) const {
     for (int i = 0; i < M * 2; ++i) {
       agg[i] += x[i];
     }
   }
 
-  void subtract_inplace(EdgeValue &agg, const EdgeValue &x) const {
+  void subtract_inplace(EV &agg, const EV &x) const {
     for (int i = 0; i < M * 2; ++i) {
       agg[i] -= x[i];
     }
