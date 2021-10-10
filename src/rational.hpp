@@ -28,8 +28,11 @@ struct Rational {
         n /= g;
         d /= g;
       }
-      assert(n <= std::numeric_limits<T>::max());
-      assert(d <= std::numeric_limits<T>::max());
+
+      // In Codeforces, numeric_limits<__int128_t>::max() returns 0 :-(
+      // assert(n <= std::numeric_limits<T>::max());
+      // assert(d <= std::numeric_limits<T>::max());
+
       n *= sign;
     }
     nume = static_cast<T>(n);
@@ -41,8 +44,10 @@ struct Rational {
   Rational &operator=(const Rational &x) = default;
   Rational &operator=(Rational &&x) = default;
 
-  operator double() const { return (double)nume / (double)deno; }
-  operator long double() const { return (long double)nume / (long double)deno; }
+  explicit operator double() const { return (double)nume / (double)deno; }
+  explicit operator long double() const {
+    return (long double)nume / (long double)deno;
+  }
 
   Rational operator+() const { return *this; }
   Rational operator-() const { return Rational(-nume, deno); }
@@ -102,18 +107,19 @@ struct Rational {
  private:
   template <typename U>
   static inline U abs_(const U &x) {
-    return (x < 0) ? -x : x;
+    return std::abs(x);
+    // return (x < 0) ? -x : x;
   }
   template <typename U>
-  static U gcd_(const U &a, const U &b) {
-    return (b == 0) ? a : gcd_(b, a % b);
+  static inline U gcd_(const U &a, const U &b) {
+    return std::gcd(a, b);
+    // return (b == 0) ? a : gcd_(b, a % b);
   }
 };
 using Rat = Rational<long long>;
-// using Rat = Rational<__int128_t>;
 // using Rat = Rational<multip::checked_int128_t>; // for testing overflow
 
-// Reads a rational number from the input parsing decimal representation.
+// Parse a decimal number into a rational.
 // (e.g. "0.2029" => 2029/10000 )
 std::istream &operator>>(std::istream &is, Rat &x) {
   long long nume = 0, deno = 1;
