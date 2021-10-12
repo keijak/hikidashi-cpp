@@ -212,26 +212,24 @@ struct DenseFPS {
     return DenseFPS(x) += scalar;
   }
   DenseFPS &operator+=(const DenseFPS &other) {
-    if (size() < other.size()) {
-      coeff_.resize(other.size());
-    }
+    if (size() < other.size()) coeff_.resize(other.size());
     for (int i = 0; i < other.size(); ++i) coeff_[i] += other[i];
     return *this;
   }
   friend DenseFPS operator+(const DenseFPS &x, const DenseFPS &y) {
-    return DenseFPS(x) -= y;
+    return DenseFPS(x) += y;
   }
 
   DenseFPS &operator-=(const DenseFPS &other) {
-    if (size() < other.size()) {
-      coeff_.resize(other.size());
-    }
+    if (size() < other.size()) coeff_.resize(other.size());
     for (int i = 0; i < other.size(); ++i) coeff_[i] -= other[i];
     return *this;
   }
   friend DenseFPS operator-(const DenseFPS &x, const DenseFPS &y) {
     return DenseFPS(x) -= y;
   }
+
+  DenseFPS operator-() const { return *this * -1; }
 
   DenseFPS &operator*=(const T &scalar) {
     for (auto &x : coeff_) x *= scalar;
