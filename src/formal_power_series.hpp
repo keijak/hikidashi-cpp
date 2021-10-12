@@ -527,3 +527,13 @@ FPS integral(const FPS &x, const T &c) {
   }
   return FPS(std::move(res));
 }
+
+// (1 - x)^-n in O(D)
+template <typename Factorials, typename FPS, typename T = typename FPS::T>
+FPS negative_binom(int n, const Factorials &fs) {
+  std::vector<T> coeff(FPS::dmax() + 1);
+  for (int i = 0; i < (int)coeff.size(); ++i) {
+    coeff[i] = fs.C(n - 1 + i, i);
+  }
+  return FPS(std::move(coeff));
+}
