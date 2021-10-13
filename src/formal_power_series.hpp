@@ -308,6 +308,37 @@ struct DenseFPS {
     return res;
   }
 
+  // Multiplies by x^k.
+  void shift_inplace(int k) {
+    if (k > 0) {
+      if (size() <= dmax()) {
+        coeff_.resize(min(size() + k, dmax() + 1), 0);
+      }
+      for (int i = size() - 1; i >= k; --i) {
+        coeff_[i] = coeff_[i - k];
+      }
+      for (int i = k - 1; i >= 0; --i) {
+        coeff_[i] = 0;
+      }
+    } else if (k < 0) {
+      k *= -1;
+      for (int i = k; i < size(); ++i) {
+        coeff_[i - k] = coeff_[i];
+      }
+      for (int i = size() - k; i < size(); ++i) {
+        // If coefficients of degrees higher than dmax() were truncated
+        // beforehand, you lose the information. Ensure dmax() is big enough.
+        coeff_[i] = 0;
+      }
+    }
+  }
+  // Multiplies by x^k.
+  DenseFPS shift(int k) const {
+    DenseFPS res = *this;
+    res.shift_inplace(k);
+    return res;
+  }
+
   T eval(const T &a) const {
     T res = 0, x = 1;
     for (auto c : coeff_) {
