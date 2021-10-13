@@ -75,17 +75,6 @@ T power(T b, i64 e) {
   return x;
 }
 
-template <typename T>
-T arithmetic_progression_sum(T a1, T d, T n) {
-  T an = a1 + d * (n - 1);
-  return n * (a1 + an) / 2;
-}
-
-template <typename T>
-T geometric_progression_sum(T a1, T r, T n) {
-  return a1 * (power(r, n) - 1) / (r - 1);
-}
-
 // [1, x, x^2, x^3, ..., x^n]
 template <typename T>
 std::vector<T> pow_seq(int n, int base = 2) {
@@ -96,6 +85,17 @@ std::vector<T> pow_seq(int n, int base = 2) {
     p[i + 1] = p[i] * base;
   }
   return p;
+}
+
+template <typename T>
+T arithmetic_progression_sum(T a1, T d, T n) {
+  T an = a1 + d * (n - 1);
+  return n * (a1 + an) / 2;
+}
+
+template <typename T>
+T geometric_progression_sum(T a1, T r, T n) {
+  return a1 * (power(r, n) - 1) / (r - 1);
 }
 
 // [floor(n/1),  floor(n/2), ..., floor(n/n)]
