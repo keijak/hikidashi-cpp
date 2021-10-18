@@ -208,16 +208,16 @@ struct DenseFPS {
     coeff_[0] += scalar;
     return *this;
   }
-  friend DenseFPS operator+(const DenseFPS &x, const T &scalar) {
-    return DenseFPS(x) += scalar;
+  friend DenseFPS operator+(const DenseFPS &f, const T &scalar) {
+    return DenseFPS(f) += scalar;
   }
   DenseFPS &operator+=(const DenseFPS &other) {
     if (size() < other.size()) coeff_.resize(other.size());
     for (int i = 0; i < other.size(); ++i) coeff_[i] += other[i];
     return *this;
   }
-  friend DenseFPS operator+(const DenseFPS &x, const DenseFPS &y) {
-    return DenseFPS(x) += y;
+  friend DenseFPS operator+(const DenseFPS &f, const DenseFPS &g) {
+    return DenseFPS(f) += g;
   }
 
   DenseFPS &operator-=(const DenseFPS &other) {
@@ -225,8 +225,8 @@ struct DenseFPS {
     for (int i = 0; i < other.size(); ++i) coeff_[i] -= other[i];
     return *this;
   }
-  friend DenseFPS operator-(const DenseFPS &x, const DenseFPS &y) {
-    return DenseFPS(x) -= y;
+  friend DenseFPS operator-(const DenseFPS &f, const DenseFPS &g) {
+    return DenseFPS(f) -= g;
   }
 
   DenseFPS operator-() const { return *this * -1; }
@@ -235,35 +235,35 @@ struct DenseFPS {
     for (auto &x : coeff_) x *= scalar;
     return *this;
   }
-  friend DenseFPS operator*(const DenseFPS &x, const T &scalar) {
-    return DenseFPS(x) *= scalar;
+  friend DenseFPS operator*(const DenseFPS &f, const T &scalar) {
+    return DenseFPS(f) *= scalar;
   }
-  friend DenseFPS operator*(const T &scalar, const DenseFPS &y) {
-    return DenseFPS{scalar} *= y;
+  friend DenseFPS operator*(const T &scalar, const DenseFPS &g) {
+    return DenseFPS{scalar} *= g;
   }
   DenseFPS &operator*=(const DenseFPS &other) {
     return *this =
                DenseFPS(Mult::multiply(std::move(this->coeff_), other.coeff_));
   }
-  friend DenseFPS operator*(const DenseFPS &x, const DenseFPS &y) {
-    return DenseFPS(Mult::multiply(x.coeff_, y.coeff_));
+  friend DenseFPS operator*(const DenseFPS &f, const DenseFPS &g) {
+    return DenseFPS(Mult::multiply(f.coeff_, g.coeff_));
   }
 
   DenseFPS &operator/=(const T &scalar) {
     for (auto &x : coeff_) x /= scalar;
     return *this;
   }
-  friend DenseFPS operator/(const DenseFPS &x, const T &scalar) {
-    return DenseFPS(x) /= scalar;
+  friend DenseFPS operator/(const DenseFPS &f, const T &scalar) {
+    return DenseFPS(f) /= scalar;
   }
-  friend DenseFPS operator/(const T &scalar, const DenseFPS &y) {
-    return DenseFPS{scalar} /= y;
+  friend DenseFPS operator/(const T &scalar, const DenseFPS &g) {
+    return DenseFPS{scalar} /= g;
   }
   DenseFPS &operator/=(const DenseFPS &other) {
     return *this *= DenseFPS(Mult::invert(other.coeff_));
   }
-  friend DenseFPS operator/(const DenseFPS &x, const DenseFPS &y) {
-    return x * DenseFPS(Mult::invert(y.coeff_));
+  friend DenseFPS operator/(const DenseFPS &f, const DenseFPS &g) {
+    return f * DenseFPS(Mult::invert(g.coeff_));
   }
 
   DenseFPS pow(i64 t) const {
@@ -401,8 +401,8 @@ struct SparseFPS {
     for (auto &x : coeff_) x += scalar;
     return *this;
   }
-  friend SparseFPS operator+(const SparseFPS &x, const T &scalar) {
-    SparseFPS res = x;
+  friend SparseFPS operator+(const SparseFPS &f, const T &scalar) {
+    SparseFPS res = f;
     res += scalar;
     return res;
   }
@@ -410,16 +410,16 @@ struct SparseFPS {
     *this = this->add(other);
     return *this;
   }
-  friend SparseFPS operator+(const SparseFPS &x, const SparseFPS &y) {
-    return x.add(y);
+  friend SparseFPS operator+(const SparseFPS &f, const SparseFPS &g) {
+    return f.add(g);
   }
 
   SparseFPS &operator*=(const T &scalar) {
     for (auto &x : coeff_) x *= scalar;
     return *this;
   }
-  friend SparseFPS operator*(const SparseFPS &x, const T &scalar) {
-    SparseFPS res = x;
+  friend SparseFPS operator*(const SparseFPS &f, const T &scalar) {
+    SparseFPS res = f;
     res *= scalar;
     return res;
   }
@@ -428,8 +428,8 @@ struct SparseFPS {
     *this = this->add(other * -1);
     return *this;
   }
-  friend SparseFPS operator-(const SparseFPS &x, const SparseFPS &y) {
-    return x.add(y * -1);
+  friend SparseFPS operator-(const SparseFPS &f, const SparseFPS &g) {
+    return f.add(g * -1);
   }
 
  private:
@@ -459,102 +459,108 @@ struct SparseFPS {
 
 // Polynomial addition (dense + sparse).
 template <typename FPS, typename T = typename FPS::T>
-FPS &operator+=(FPS &x, const SparseFPS<T> &y) {
-  for (int i = 0; i < y.size(); ++i) {
-    if (y.degree(i) > FPS::dmax()) break;  // ignore
-    x.coeff_[y.degree(i)] += y.coeff(i);
+FPS &operator+=(FPS &f, const SparseFPS<T> &g) {
+  for (int i = 0; i < g.size(); ++i) {
+    if (g.degree(i) > FPS::dmax()) break;  // ignore
+    f.coeff_[g.degree(i)] += g.coeff(i);
   }
-  return x;
+  return f;
 }
 template <typename FPS, typename T = typename FPS::T>
-FPS operator+(const FPS &x, const SparseFPS<T> &y) {
-  auto res = x;
-  res += y;
+FPS operator+(const FPS &f, const SparseFPS<T> &g) {
+  auto res = f;
+  res += g;
   return res;
 }
 template <typename FPS, typename T = typename FPS::T>
-FPS operator+(const SparseFPS<T> &x, const FPS &y) {
-  return y + x;  // commutative
+FPS operator+(const SparseFPS<T> &f, const FPS &g) {
+  return g + f;  // commutative
 }
 
 // Polynomial multiplication (dense * sparse).
 template <typename FPS, typename T = typename FPS::T>
-FPS &operator*=(FPS &x, const SparseFPS<T> &y) {
-  if (y.size() == 0) {
-    return x *= 0;
+FPS &operator*=(FPS &f, const SparseFPS<T> &g) {
+  if (g.size() == 0) {
+    return f *= 0;
   }
-  const int yd_max = y.degree(y.size() - 1);
-  const int xd_max = x.size() - 1;
-  const int n = std::min(xd_max + yd_max, FPS::dmax()) + 1;
-  if (x.size() < n) x.coeff_.resize(n);
+  const int gd_max = g.degree(g.size() - 1);
+  const int fd_max = f.size() - 1;
+  const int n = std::min(fd_max + gd_max, FPS::dmax()) + 1;
+  if (f.size() < n) f.coeff_.resize(n);
 
   T c0 = 0;
   int j0 = 0;
-  if (y.degree(0) == 0) {
-    c0 = y.coeff(0);
+  if (g.degree(0) == 0) {
+    c0 = g.coeff(0);
     j0 = 1;
   }
 
-  for (int xd = n - 1; xd >= 0; --xd) {
-    x.coeff_[xd] *= c0;
-    for (int j = j0; j < y.size(); ++j) {
-      int yd = y.degree(j);
-      if (yd > xd) break;
-      x.coeff_[xd] += x[xd - yd] * y.coeff(j);
+  for (int fd = n - 1; fd >= 0; --fd) {
+    f.coeff_[fd] *= c0;
+    for (int j = j0; j < g.size(); ++j) {
+      int gd = g.degree(j);
+      if (gd > fd) break;
+      f.coeff_[fd] += f[fd - gd] * g.coeff(j);
     }
   }
-  return x;
+  return f;
 }
 template <typename FPS, typename T = typename FPS::T>
-FPS operator*(const FPS &x, const SparseFPS<T> &y) {
-  auto res = x;
-  res *= y;
+FPS operator*(const FPS &f, const SparseFPS<T> &g) {
+  auto res = f;
+  res *= g;
   return res;
 }
 template <typename FPS, typename T = typename FPS::T>
-FPS operator*(const SparseFPS<T> &x, const FPS &y) {
-  return y * x;  // commutative
+FPS operator*(const SparseFPS<T> &f, const FPS &g) {
+  return g * f;  // commutative
 }
 
 // Polynomial division (dense / sparse).
 template <typename FPS, typename T = typename FPS::T>
-FPS &operator/=(FPS &x, const SparseFPS<T> &y) {
-  assert(y.size() > 0 and y.degree(0) == 0 and y.coeff(0) != 0);
-  const auto ic0 = y.coeff(0).inv();
-  for (int xd = 0; xd < x.size(); ++xd) {
-    for (int j = 1; j < y.size(); ++j) {
-      int yd = y.degree(j);
-      if (xd < yd) break;
-      x.coeff_[xd] -= x.coeff_[xd - yd] * y.coeff(j);
+FPS &operator/=(FPS &f, const SparseFPS<T> &g) {
+  assert(g.size() > 0 and g.degree(0) == 0 and g.coeff(0) != 0);
+  const auto ic0 = g.coeff(0).inv();
+  for (int fd = 0; fd < f.size(); ++fd) {
+    for (int j = 1; j < g.size(); ++j) {
+      int gd = g.degree(j);
+      if (fd < gd) break;
+      f.coeff_[fd] -= f.coeff_[fd - gd] * g.coeff(j);
     }
-    x.coeff_[xd] *= ic0;
+    f.coeff_[fd] *= ic0;
   }
-  return x;
+  return f;
 }
 template <typename FPS, typename T = typename FPS::T>
-FPS operator/(const FPS &x, const SparseFPS<T> &y) {
-  FPS res = x;
-  res /= y;
+FPS operator/(const FPS &f, const SparseFPS<T> &g) {
+  FPS res = f;
+  res /= g;
   return res;
 }
 
 template <typename FPS, typename T = typename FPS::T>
-FPS derivative(const FPS &x) {
-  std::vector<T> res(x.size() - 1);
-  for (int i = 1; i < x.size(); ++i) {
-    res[i - 1] = x[i] * i;
+FPS derivative(const FPS &f) {
+  std::vector<T> res(f.size() - 1);
+  for (int i = 1; i < f.size(); ++i) {
+    res[i - 1] = f[i] * i;
   }
   return FPS(std::move(res));
 }
 
 template <typename FPS, typename T = typename FPS::T>
-FPS integral(const FPS &x, const T &c) {
-  std::vector<T> res(x.size() + 1);
+FPS integral(const FPS &f, const T &c) {
+  std::vector<T> res(f.size() + 1);
   res[0] = c;
-  for (int i = 1; i <= x.size(); ++i) {
-    res[i] = x[i - 1] / i;
+  for (int i = 1; i <= f.size(); ++i) {
+    res[i] = f[i - 1] / i;
   }
   return FPS(std::move(res));
+}
+
+// log(f(x)) = ∫ f'(x)/f(x) dx
+template <typename FPS, typename T = typename FPS::T>
+FPS log(const FPS &f) {
+  return integral(derivative(f) / f);
 }
 
 // (1 - x)^-n in O(D)
