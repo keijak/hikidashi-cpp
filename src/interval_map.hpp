@@ -7,13 +7,10 @@ class ClosedIntervalMap : public std::map<i64, i64> {
  private:
   // If true, automatically merges [l, c] and [c+1, r].
   bool merge_adjacent;
-  i64 length_sum_;
 
  public:
   ClosedIntervalMap(bool merge_adjacent = true)
-      : merge_adjacent(merge_adjacent), length_sum_(0) {}
-
-  i64 length_sum() const { return length_sum_; }
+      : merge_adjacent(merge_adjacent) {}
 
   // Returns the interval [l, r] which contains p if available.
   // Otherwise returns this->end().
@@ -33,12 +30,10 @@ class ClosedIntervalMap : public std::map<i64, i64> {
       l = std::min(l, itl->first);
       r = std::max(r, std::prev(itr)->second);
       for (auto it = itl; it != itr;) {
-        length_sum_ -= it->second - it->first;
         it = erase(it);
       }
     }
     (*this)[l] = r;
-    length_sum_ += r - l;
   }
 
   // Removes interval [l, r]
@@ -51,16 +46,13 @@ class ClosedIntervalMap : public std::map<i64, i64> {
     i64 tl = std::min(l, itl->first);
     i64 tr = std::max(r, std::prev(itr)->second);
     for (auto it = itl; it != itr;) {
-      length_sum_ -= it->second - it->first;
       it = erase(it);
     }
     if (tl < l) {
       (*this)[tl] = l - 1;
-      length_sum_ += (l - 1) - tl;
     }
     if (r < tr) {
       (*this)[r + 1] = tr;
-      length_sum_ += tr - (r + 1);
     }
   }
 
@@ -83,9 +75,13 @@ class IntervalMap : public std::map<i64, i64> {
  private:
   // If true, automatically merges [l, c) and [c, r).
   bool merge_adjacent;
+  i64 length_sum_;
 
  public:
-  IntervalMap(bool merge_adjacent = true) : merge_adjacent(merge_adjacent) {}
+  IntervalMap(bool merge_adjacent = true)
+      : merge_adjacent(merge_adjacent), length_sum_(0) {}
+
+  i64 length_sum() const { return length_sum_; }
 
   // Returns the interval [l, r) which contains p if available.
   // Otherwise returns this->end().
@@ -108,9 +104,13 @@ class IntervalMap : public std::map<i64, i64> {
     if (itl != itr) {
       l = std::min(l, itl->first);
       r = std::max(r, std::prev(itr)->second);
-      erase(itl, itr);
+      for (auto it = itl; it != itr;) {
+        length_sum_ -= it->second - it->first;
+        it = erase(it);
+      }
     }
     (*this)[l] = r;
+    length_sum_ += r - l;
   }
 
   // Removes interval [l, r)
@@ -123,9 +123,18 @@ class IntervalMap : public std::map<i64, i64> {
     if (itl == itr) return;
     i64 tl = std::min(l, itl->first);
     i64 tr = std::max(r, std::prev(itr)->second);
-    erase(itl, itr);
-    if (tl < l) (*this)[tl] = l;
-    if (r < tr) (*this)[r] = tr;
+    for (auto it = itl; it != itr;) {
+      length_sum_ -= it->second - it->first;
+      it = erase(it);
+    }
+    if (tl < l) {
+      (*this)[tl] = l;
+      length_sum_ += l - tl;
+    }
+    if (r < tr) {
+      (*this)[r] = tr;
+      length_sum_ += tr - r;
+    }
   }
 
   // Are p and q in the same interval?
