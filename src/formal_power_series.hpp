@@ -38,7 +38,7 @@ struct NaiveMult {
 
   static std::vector<T> invert(const std::vector<T> &x) {
     std::vector<T> res(DMAX + 1);
-    res[0] = x[0].inv();
+    res[0] = T(1) / x[0];
     for (int i = 1; i <= DMAX; ++i) {
       T s = 0;
       const int mj = std::min<int>(i + 1, x.size());
@@ -71,7 +71,7 @@ struct NTTMult {
     assert(x[0].val() != 0);  // must be invertible
     const int n = x.size();
     std::vector<T> res(n);
-    res[0] = x[0].inv();
+    res[0] = T(1) / x[0];
     for (int i = 1; i < n; i <<= 1) {
       const int m = std::min(2 * i, n);
       std::vector<T> f(2 * i), g(2 * i);
@@ -167,7 +167,7 @@ struct ArbitraryModMult {
     assert(x[0].val() != 0);  // must be invertible
     const int n = x.size();
     std::vector<T> res(n);
-    res[0] = x[0].inv();
+    res[0] = T(1) / x[0];
     for (int i = 1; i < n; i <<= 1) {
       const int m = std::min(2 * i, n);
       std::vector<T> f(2 * i), g(2 * i);
@@ -284,7 +284,7 @@ struct DenseFPS {
     return f * DenseFPS(Mult::invert(g.coeff_));
   }
 
-  DenseFPS pow(i64 t) const {
+  DenseFPS pow(long long t) const {
     assert(t >= 0);
     DenseFPS res = {1}, base = *this;
     while (t) {
@@ -538,7 +538,7 @@ FPS operator*(const SparseFPS<T> &f, const FPS &g) {
 template <typename FPS, typename T = typename FPS::T>
 FPS &operator/=(FPS &f, const SparseFPS<T> &g) {
   assert(g.size() > 0 and g.degree(0) == 0 and g.coeff(0) != 0);
-  const auto ic0 = g.coeff(0).inv();
+  const auto ic0 = T(1) / g.coeff(0);
   for (int fd = 0; fd < f.size(); ++fd) {
     for (int j = 1; j < g.size(); ++j) {
       int gd = g.degree(j);
