@@ -104,6 +104,24 @@ struct IntMult {
   }
 };
 
+template <int DMAX>
+struct FloatMult {
+  using value_type = double;
+  static constexpr int dmax() { return DMAX; }
+
+  static std::vector<value_type> multiply(const std::vector<value_type> &x,
+                                          const std::vector<value_type> &y) {
+    FastFourierTransform<Real> fft;
+    auto res = fft.multiply(x, y);
+    if (int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
+    return res;
+  }
+
+  static std::vector<value_type> invert(const std::vector<value_type> &x) {
+    assert(false);  // not implemented
+  }
+};
+
 // T: modint
 template <typename T, int DMAX>
 struct ArbitraryModMult {
