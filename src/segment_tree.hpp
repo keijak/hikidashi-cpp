@@ -4,7 +4,7 @@
 #include <vector>
 
 template <typename Monoid>
-struct SegTree {
+struct SegmentTree {
   using T = typename Monoid::T;
 
   int n_;                // number of valid leaves.
@@ -14,13 +14,13 @@ struct SegTree {
   inline int size() const { return n_; }
   inline int offset() const { return offset_; }
 
-  explicit SegTree(int n) : n_(n) {
+  explicit SegmentTree(int n) : n_(n) {
     offset_ = 1;
     while (offset_ < n_) offset_ <<= 1;
     data_.assign(2 * offset_, Monoid::id());
   }
 
-  explicit SegTree(const std::vector<T> &leaves) : n_(leaves.size()) {
+  explicit SegmentTree(const std::vector<T> &leaves) : n_(leaves.size()) {
     offset_ = 1;
     while (offset_ < n_) offset_ <<= 1;
     data_.assign(2 * offset_, Monoid::id());
@@ -60,7 +60,7 @@ struct SegTree {
   // Returns i-th value (0-indexed).
   T operator[](int i) const { return data_[offset_ + i]; }
 
-  friend std::ostream &operator<<(std::ostream &os, const SegTree &st) {
+  friend std::ostream &operator<<(std::ostream &os, const SegmentTree &st) {
     os << "[";
     for (int i = 0; i < st.size(); ++i) {
       if (i != 0) os << ", ";
@@ -73,7 +73,7 @@ struct SegTree {
 
 // Fix the left bound, extend the right bound as much as possible.
 template <class M, class F>
-int max_right(const SegTree<M> &seg, int l, F pred) {
+int max_right(const SegmentTree<M> &seg, int l, F pred) {
   static_assert(std::is_invocable_r_v<bool, F, typename M::T>,
                 "predicate must be invocable on the value type");
   assert(0 <= l && l <= seg.size());
@@ -101,7 +101,7 @@ int max_right(const SegTree<M> &seg, int l, F pred) {
 
 // Fix the right bound, extend the left bound as much as possible.
 template <class M, class F>
-int min_left(const SegTree<M> &seg, int r, F pred) {
+int min_left(const SegmentTree<M> &seg, int r, F pred) {
   static_assert(std::is_invocable_r_v<bool, F, typename M::T>,
                 "predicate must be invocable on the value type");
   assert(0 <= r && r <= seg.size());
