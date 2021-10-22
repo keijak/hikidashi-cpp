@@ -12,9 +12,10 @@ template <class T>
 using MinHeap = priority_queue<T, vector<T>, greater<T>>;
 
 struct Edge {
-  i64 cost;
   int to;
+  i64 cost;
 };
+using Graph = std::vector<std::vector<Edge>>;
 
 struct State {
   i64 cost;
@@ -23,7 +24,7 @@ struct State {
 bool operator>(const State &x, const State &y) { return x.cost > y.cost; }
 
 // Returns min distance from the start node to each node (if exists).
-auto search_shortest_path(const vector<vector<Edge>> &g, int start, int goal) {
+auto search_shortest_path(const Graph &g, int start, int goal) {
   const int n = g.size();
   auto mincost = vector(n, kBig);
   MinHeap<State> que;
