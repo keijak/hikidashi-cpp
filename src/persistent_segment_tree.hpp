@@ -67,7 +67,7 @@ struct PersistentSegmentTree {
   NodePtr build(const std::vector<T> &v) { return build(0, (i64)v.size(), v); }
 
   NodePtr build(i64 l, i64 r, const std::vector<T> &v) {
-    if (l + 1 == r) return my_new(v[l]);
+    if (l + 1 == r) return make_leaf(v[l]);
     i64 m = (l + r) >> 1;
     return merge(build(l, m, v), build(m, r, v));
   }
