@@ -1,33 +1,15 @@
 #include <bits/stdc++.h>
 
 struct RollingHash {
-  using u64 = unsigned long long;
+  using u64 = std::uint64_t;
   using u128 = __uint128_t;
-  static const u64 mod = (1ULL << 61) - 1;
-  std::vector<u64> cum_hash, pow_base;
+  static const u64 kMod = (1ULL << 61) - 1;
 
-  explicit RollingHash(std::string_view s)
-      : cum_hash(s.size() + 1), pow_base(s.size() + 1) {
-    const int n = s.size();
-    pow_base[0] = 1;
-    for (int i = 0; i < n; i++) {
-      pow_base[i + 1] = mul(pow_base[i], base());
-      cum_hash[i + 1] = add(mul(cum_hash[i], base()), u64(s[i]));
-    }
-  }
-
-  // Returns the hash value of the substring s[l:r].
-  u64 get(int l, int r) {
-    // Compute `hash(s[0:r]) - hash(s[0:l]) * B^(r-l) (mod M)`
-    return add(cum_hash[r], mod - mul(cum_hash[l], pow_base[r - l]));
-  }
-
- private:
   static u64 base() {
-    static const u64 kBase = []() -> u64 {
+    static const auto kBase = []() -> u64 {
       std::random_device seed_gen;
       std::mt19937_64 engine(seed_gen());
-      std::uniform_int_distribution<u64> rand(1, mod - 1);
+      std::uniform_int_distribution<u64> rand(1, kMod - 1);
       return rand(engine);
     }();
     return kBase;
@@ -35,26 +17,96 @@ struct RollingHash {
 
   static inline u64 add(u64 a, u64 b) {
     a += b;
-    return (a >= mod) ? (a - mod) : a;
+    return (a >= kMod) ? (a - kMod) : a;
   }
+
+  static inline u64 sub(u64 a, u64 b) { return add(a, kMod - b); }
 
   static inline u64 mul(u64 a, u64 b) {
     u128 t = u128(a) * b;
     u64 na = u64(t >> 61);
-    u64 nb = u64(t & mod);
+    u64 nb = u64(t & kMod);
     na += nb;
-    return (na >= mod) ? (na - mod) : na;
+    return (na >= kMod) ? (na - kMod) : na;
+  }
+
+  static u64 pow_base(int i) {
+    static std::vector<u64> kPowBase(1, 1);
+    while (int(kPowBase.size()) <= i) {
+      u64 val = mul(kPowBase.back(), base());
+      kPowBase.push_back(val);
+    }
+    return kPowBase[i];
   }
 };
 
-struct RollingHash2d {
+struct SubstringHasher : public RollingHash {
+  std::vector<u64> cum_hash;
+
+  explicit SubstringHasher(std::string_view s) : cum_hash(s.size() + 1) {
+    const int n = s.size();
+    for (int i = 0; i < n; i++) {
+      cum_hash[i + 1] = add(mul(cum_hash[i], base()), u64(s[i]));
+    }
+  }
+
+  // Returns the hash value of the substring s[l:r].
+  u64 get(int l, int r) {
+    // Compute `hash(s[0:r]) - hash(s[0:l]) * B^(r-l) (mod M)`
+    return add(cum_hash[r], kMod - mul(cum_hash[l], pow_base(r - l)));
+  }
+};
+
+// Monoid for segment tree.
+struct RollingHashOp {
+  using u64 = std::uint64_t;
+  struct T {
+    u64 hash;
+    int width;
+  };
+  static T op(const T &x, const T &y) {
+    u64 hash = RollingHash::mul(x.hash, RollingHash::pow_base(y.width));
+    hash = RollingHash::add(hash, y.hash);
+    return T{hash, x.width + y.width};
+  }
+  static constexpr T id() { return {0, 0}; }
+};
+
+// Monoid for segment tree with lazy propagation.
+// https://www.codechef.com/problems/SUBINVER
+struct XorRollingHashOp {
+  using u64 = std::uint64_t;
+  struct T {
+    u64 hash;
+    int width;
+  };
+  using F = bool;
+
+  static T op(const T &x, const T &y) {
+    u64 hash = RollingHash::mul(x.hash, RollingHash::pow_base(y.width));
+    hash = RollingHash::add(hash, y.hash);
+    return T{hash, x.width + y.width};
+  }
+  static constexpr T id() { return {0, 0}; }
+
+  static T f_apply(const F &f, const T &x) {
+    if (f == 0) return x;
+    return {RollingHash::sub(
+                RollingHash::sub(RollingHash::pow_base(x.width), 1), x.hash),
+            x.width};
+  }
+  static F f_compose(const F &f, const F &g) { return f ^ g; }
+  static constexpr F f_id() { return 0; }
+};
+
+struct Range2dHasher {
   using u64 = unsigned long long;
   using u128 = __uint128_t;
-  static const u64 mod = (1ULL << 61) - 1;
+  static const u64 kMod = (1ULL << 61) - 1;
   std::vector<u64> pow_base1, pow_base2;
   std::vector<std::vector<u64>> cum_hash;
 
-  explicit RollingHash2d(const std::vector<std::string> &g) {
+  explicit Range2dHasher(const std::vector<std::string> &g) {
     const int n = g.size();
     const int m = g[0].size();
     cum_hash.assign(n + 1, std::vector<u64>(m + 1, 0));
@@ -95,7 +147,7 @@ struct RollingHash2d {
     static const auto kBase = []() -> std::pair<u64, u64> {
       std::random_device seed_gen;
       std::mt19937_64 engine(seed_gen());
-      std::uniform_int_distribution<u64> rand(1, mod - 1);
+      std::uniform_int_distribution<u64> rand(1, kMod - 1);
       return {rand(engine), rand(engine)};
     }();
     return kBase;
@@ -103,16 +155,16 @@ struct RollingHash2d {
 
   static inline u64 add(u64 a, u64 b) {
     a += b;
-    return (a >= mod) ? (a - mod) : a;
+    return (a >= kMod) ? (a - kMod) : a;
   }
 
-  static inline u64 sub(u64 a, u64 b) { return add(a, mod - b); }
+  static inline u64 sub(u64 a, u64 b) { return add(a, kMod - b); }
 
   static inline u64 mul(u64 a, u64 b) {
     u128 t = u128(a) * b;
     u64 na = u64(t >> 61);
-    u64 nb = u64(t & mod);
+    u64 nb = u64(t & kMod);
     na += nb;
-    return (na >= mod) ? (na - mod) : na;
+    return (na >= kMod) ? (na - kMod) : na;
   }
 };
