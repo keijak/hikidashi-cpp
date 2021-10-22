@@ -2,10 +2,10 @@
 
 // range-apply point-get.
 template <typename Monoid>
-struct DualSegTree {
+struct DualSegmentTree {
   using T = typename Monoid::T;
 
-  explicit DualSegTree(int n) : size_(n), data_(2 * n, Monoid::id()) {}
+  explicit DualSegmentTree(int n) : size_(n), data_(2 * n, Monoid::id()) {}
 
   inline int size() const { return size_; }
 
@@ -36,7 +36,7 @@ struct DualSegTree {
     }
   }
 
-  friend std::ostream &operator<<(std::ostream &os, const DualSegTree &st) {
+  friend std::ostream &operator<<(std::ostream &os, const DualSegmentTree &st) {
     os << "[";
     for (int i = 0; i < st.size(); ++i) {
       if (i != 0) os << ", ";
