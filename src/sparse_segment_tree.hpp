@@ -1,25 +1,25 @@
 #include <iostream>
 #include <unordered_map>
 
-// SegTree implemented with an unordered_map.
+// SegmentTree implemented with an unordered_map.
 // Lazily creates node values as necessary.
 // Supports a broad range of indices without compression.
 
 template <typename Monoid>
-struct SparseSegTree {
+struct SparseSegmentTree {
   using T = typename Monoid::T;
-  using i64 = long long;
+  using Int = long long;
 
  private:
-  i64 n_;                            // number of valid leaves.
-  i64 offset_;                       // where leaves start
-  std::unordered_map<i64, T> data_;  // data size: 2*offset_
+  Int n_;                            // number of valid leaves.
+  Int offset_;                       // where leaves start
+  std::unordered_map<Int, T> data_;  // data size: 2*offset_
 
  public:
-  inline i64 n() const { return n_; }
-  inline i64 offset() const { return offset_; }
+  inline Int size() const { return n_; }
+  inline Int offset() const { return offset_; }
 
-  explicit SparseSegTree(i64 n) : n_(n) {
+  explicit SparseSegmentTree(Int n) : n_(n) {
     offset_ = 1;
     while (offset_ < n_) offset_ <<= 1;
 
@@ -28,8 +28,8 @@ struct SparseSegTree {
   }
 
   // Sets i-th value (0-indexed) to x.
-  void set(i64 i, const T &x) {
-    i64 k = offset_ + i;
+  void set(Int i, const T &x) {
+    Int k = offset_ + i;
     if (x == Monoid::id()) {
       data_.erase(k);
     } else {
@@ -53,7 +53,7 @@ struct SparseSegTree {
   }
 
   // Queries by [l,r) range (0-indexed, half-open interval).
-  T fold(i64 l, i64 r) const {
+  T fold(Int l, Int r) const {
     l = std::max(l, 0LL) + offset_;
     r = std::min(r, offset_) + offset_;
     T vleft = Monoid::id(), vright = Monoid::id();
@@ -81,7 +81,7 @@ struct SparseSegTree {
   }
 
   // Returns i-th value (0-indexed).
-  T operator[](i64 i) const {
+  T operator[](Int i) const {
     if (auto it = data_.find(offset_ + i); it != data_.end()) {
       return it->second;
     } else {
@@ -89,15 +89,16 @@ struct SparseSegTree {
     }
   }
 
-  friend std::ostream &operator<<(std::ostream &os, const SparseSegTree &st) {
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const SparseSegmentTree &st) {
     static const int kMaxOutput = 100;
     os << "[";
-    for (i64 i = 0; i < std::min<i64>(st.n(), kMaxOutput); ++i) {
+    for (Int i = 0; i < std::min<Int>(st.size(), kMaxOutput); ++i) {
       if (i != 0) os << ", ";
       const auto &x = st[i];
       os << x;
     }
-    if (st.n() > kMaxOutput) {
+    if (st.size() > kMaxOutput) {
       os << ", ...";
     }
     return os << "]";
