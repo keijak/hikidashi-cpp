@@ -4,17 +4,17 @@
 #include <vector>
 
 template <typename LazyMonoid>
-struct LazySegTree {
+struct LazySegmentTree {
   using T = typename LazyMonoid::T;
   using F = typename LazyMonoid::F;
 
   inline int size() const { return n_; }
   inline int offset() const { return offset_; }
 
-  explicit LazySegTree(int n)
-      : LazySegTree(std::vector<T>(n, LazyMonoid::id())) {}
+  explicit LazySegmentTree(int n)
+      : LazySegmentTree(std::vector<T>(n, LazyMonoid::id())) {}
 
-  explicit LazySegTree(const std::vector<T> &v) : n_(int(v.size())) {
+  explicit LazySegmentTree(const std::vector<T> &v) : n_(int(v.size())) {
     offset_ = 1;
     for (bits_ = 0; offset_ < n_; ++bits_) {
       offset_ <<= 1;
@@ -106,7 +106,7 @@ struct LazySegTree {
     }
   }
 
-  friend std::ostream &operator<<(std::ostream &os, const LazySegTree &st) {
+  friend std::ostream &operator<<(std::ostream &os, const LazySegmentTree &st) {
     os << "[";
     for (int i = 0; i < st.size(); ++i) {
       if (i != 0) os << ", ";
@@ -140,7 +140,7 @@ struct LazySegTree {
 };
 
 template <class M, class F>
-int max_right(const LazySegTree<M> &seg, int l, F pred) {
+int max_right(const LazySegmentTree<M> &seg, int l, F pred) {
   static_assert(std::is_invocable_r_v<bool, F, typename M::T>,
                 "predicate must be invocable on the value type");
   assert(0 <= l && l <= seg.size());
@@ -171,7 +171,7 @@ int max_right(const LazySegTree<M> &seg, int l, F pred) {
 }
 
 template <class M, class F>
-int min_left(const LazySegTree<M> &seg, int r, F pred) {
+int min_left(const LazySegmentTree<M> &seg, int r, F pred) {
   static_assert(std::is_invocable_r_v<bool, F, typename M::T>,
                 "predicate must be invocable on the value type");
   assert(0 <= r && r <= seg.n_);
