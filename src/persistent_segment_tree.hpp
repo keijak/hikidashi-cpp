@@ -1,8 +1,8 @@
 #include <bits/stdc++.h>
-using i64 = long long;
 
 template <typename Monoid>
 struct PersistentSegmentTree {
+  using Int = long long;
   using T = typename Monoid::T;
   struct Node;
   using NodePtr = Node *;
@@ -40,35 +40,44 @@ struct PersistentSegmentTree {
 
   NodePtr nil_;
   NodePtr root_;
-  i64 size_;
+  Int size_;
   NodePool *pool_;
 
   explicit PersistentSegmentTree(const std::vector<T> &v,
                                  NodePool *pool = NO_DELETE())
-      : nil_(make_nil()), size_((i64)v.size()), pool_(pool) {
+      : nil_(make_nil()), size_((Int)v.size()), pool_(pool) {
     root_ = build(v);
   }
 
-  explicit PersistentSegmentTree(i64 n, NodePool *pool = NO_DELETE())
+  explicit PersistentSegmentTree(Int n, NodePool *pool = NO_DELETE())
       : nil_(make_nil()), root_(nil_), size_(n), pool_(pool) {}
 
-  PersistentSegmentTree set(i64 k, T x) const {
+  PersistentSegmentTree set(Int k, T x) const {
     NodePtr new_root = set_(k, std::move(x), root_, 0, size_);
     return {new_root, size_, pool_};
   }
 
-  T fold(i64 kl, i64 kr) const { return fold_(kl, kr, root_, 0, size_); }
-  T operator[](i64 k) const { return fold_(k, k + 1, root_, 0, size_); }
+  T fold(Int kl, Int kr) const { return fold_(kl, kr, root_, 0, size_); }
+  T operator[](Int k) const { return fold_(k, k + 1, root_, 0, size_); }
+
+  std::vector<T> to_vec(Int size = -1) const {
+    if (size < 0) size = size_;
+    std::vector<T> res((size_t)min(size, size_));
+    for (Int i = 0; i < size; ++i) {
+      res[i] = (*this)[i];
+    }
+    return res;
+  }
 
  private:
-  PersistentSegmentTree(NodePtr root, i64 n, NodePool *pool)
+  PersistentSegmentTree(NodePtr root, Int n, NodePool *pool)
       : nil_(make_nil()), root_(root), size_(n), pool_(pool) {}
 
-  NodePtr build(const std::vector<T> &v) { return build(0, (i64)v.size(), v); }
+  NodePtr build(const std::vector<T> &v) { return build(0, (Int)v.size(), v); }
 
-  NodePtr build(i64 l, i64 r, const std::vector<T> &v) {
+  NodePtr build(Int l, Int r, const std::vector<T> &v) {
     if (l + 1 == r) return make_leaf(v[l]);
-    i64 m = (l + r) >> 1;
+    Int m = (l + r) >> 1;
     return merge(build(l, m, v), build(m, r, v));
   }
 
@@ -93,18 +102,18 @@ struct PersistentSegmentTree {
     return p;
   }
 
-  NodePtr set_(i64 k, T val, NodePtr n, i64 l, i64 r) const {
+  NodePtr set_(Int k, T val, NodePtr n, Int l, Int r) const {
     if (l + 1 == r) return make_leaf(std::move(val));
-    i64 m = (l + r) >> 1;
+    Int m = (l + r) >> 1;
     if (k < m) return merge(set_(k, std::move(val), n->l, l, m), n->r);
     return merge(n->l, set_(k, std::move(val), n->r, m, r));
   }
 
-  T fold_(i64 kl, i64 kr, NodePtr n, i64 l, i64 r) const {
+  T fold_(Int kl, Int kr, NodePtr n, Int l, Int r) const {
     if (n == nil_) return Monoid::id();
     if (r <= kl or kr <= l) return Monoid::id();
     if (kl <= l and r <= kr) return n->data;
-    i64 m = (l + r) >> 1;
+    Int m = (l + r) >> 1;
     return Monoid::op(fold_(kl, kr, n->l, l, m), fold_(kl, kr, n->r, m, r));
   }
 

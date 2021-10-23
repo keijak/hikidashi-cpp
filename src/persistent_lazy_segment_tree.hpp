@@ -73,6 +73,15 @@ struct PersistentLazySegmentTree {
     return {new_root, size_, pool_};
   }
 
+  std::vector<T> to_vec(Int size = -1) const {
+    if (size < 0) size = size_;
+    std::vector<T> res((size_t)min(size, size_));
+    for (Int i = 0; i < size; ++i) {
+      res[i] = (*this)[i];
+    }
+    return res;
+  }
+
  private:
   PersistentLazySegmentTree(NodePtr root, Int n, NodePool *pool)
       : nil_(make_nil()), root_(root), size_(n), pool_(pool) {}
