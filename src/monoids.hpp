@@ -67,7 +67,7 @@ struct GCDOp {
 // 2 smallest items in an interval.
 struct Min2Op {
   using value_type = long long;
-  using T = std::array<value_type, 2>;
+  using T = std::array<value_type, 2>;  // [0] = smallest, [1] = second smallest
 
   static T op(const T &x, const T &y) {
     std::array<value_type, 4> a = {x[0], x[1], y[0], y[1]};
@@ -83,12 +83,12 @@ struct Min2Op {
 // 2 largest items in an interval.
 struct Max2Op {
   using value_type = long long;
-  using T = std::array<value_type, 2>;
+  using T = std::array<value_type, 2>;  // [0] = largest, [1] = second largest
 
   static T op(const T &x, const T &y) {
     std::array<value_type, 4> a = {x[0], x[1], y[0], y[1]};
-    std::sort(std::begin(a), std::end(a));
-    return {a[3], a[2]};
+    std::sort(std::rbegin(a), std::rend(a));
+    return {a[0], a[1]};
   }
   static constexpr T id() {
     return {std::numeric_limits<value_type>::lowest(),

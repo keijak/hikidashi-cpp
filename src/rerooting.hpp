@@ -1,26 +1,27 @@
 #include <bits/stdc++.h>
 using namespace std;
-using i64 = long long;
+using Int = long long;
 
 struct Edge {
   int to;
 };
+using Graph = vector<vector<Edge>>;
 
 struct Task {
-  using NV = i64;  // Node Value
-  using EV = i64;  // Edge Value
+  using NV = Int;  // Node Value
+  using EV = Int;  // Edge Value
 
   Task() {}
 
   EV id() const { return 0; }
 
-  NV add_node(const EV &val, int node) const { return 0; }
+  NV add_node(const EV &ev, int v) const { return 0; }
 
-  EV add_edge(const NV &val, const Edge &edge) const { return 0; }
+  EV add_edge(const NV &nv, const Edge &e) const { return 0; }
 
-  EV merge(const EV &x, const EV &y) const { return 0; }
-  // void merge_inplace(EV &agg, const EV &x) const {}
-  // void subtract_inplace(EV &agg, const EV &x) const {}
+  EV merge(const EV &ev1, const EV &ev2) const { return 0; }
+  // void merge_inplace(EV &agg, const EV &ev) const {}
+  // void subtract_inplace(EV &agg, const EV &ev) const {}
 };
 
 template <typename Rerootable = Task>
@@ -102,7 +103,7 @@ class Rerooter {
   }
 };
 
-template <typename Rerootable>
+template <typename Rerootable = Task>
 class InplaceRerooter {
  private:
   using NV = typename Rerootable::NV;
@@ -179,9 +180,9 @@ class InplaceRerooter {
 // https://atcoder.jp/contests/abc220/tasks/abc220_f
 struct DistanceSums2Task {
   struct T {
-    i64 node_count;
-    i64 edge_count;
-    T(i64 nc = 0, i64 ec = 0) : node_count(nc), edge_count(ec) {}
+    Int node_count;
+    Int edge_count;
+    T(Int nc = 0, Int ec = 0) : node_count(nc), edge_count(ec) {}
   };
   using NV = T;
   using EV = T;
