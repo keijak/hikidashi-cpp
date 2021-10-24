@@ -120,7 +120,7 @@ void enumerate_subsets(unsigned bits, std::function<void(unsigned)> func) {
   if (bits == 0) return;
   for (unsigned sub = bits;; sub = (sub - 1) & bits) {
     func(sub);
-    if (sub != 0) break;
+    if (sub == 0) break;
   }
 }
 

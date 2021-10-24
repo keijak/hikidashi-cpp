@@ -1,3 +1,4 @@
+#include <bits/stdc++.h>
 
 class PersistentUnionFind {
  public:
@@ -17,7 +18,7 @@ class PersistentUnionFind {
     const int y_size = -parent_[y].value_or(-1);
     // Ensure |x| >= |y|.
     if (x_size < y_size) std::swap(x, y);
-    int x_size = x_size + y_size;  // or x_rank = max(x_rank, y_rank+1)
+    int united_size = x_size + y_size;  // or = max(x_rank, y_rank+1)
     return PersistentUnionFind(parent_.set(x, -united_size).set(y, x));
   }
 
