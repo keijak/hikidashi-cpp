@@ -145,8 +145,6 @@ struct ConcatenatedStack : public PersistentStack<T> {
 // Banker's Queue
 template <typename T>
 struct PersistentQueue {
-  mutable std::shared_ptr<PersistentStack<T>> front_, rear_;
-
   PersistentQueue()
       : front_(LinkedList<T>::nil()), rear_(LinkedList<T>::nil()) {}
 
@@ -182,6 +180,8 @@ struct PersistentQueue {
   int size() const { return front_->size() + rear_->size(); }
 
  private:
+  mutable std::shared_ptr<PersistentStack<T>> front_, rear_;
+
   PersistentQueue(std::shared_ptr<PersistentStack<T>> f,
                   std::shared_ptr<PersistentStack<T>> r)
       : front_(std::move(f)), rear_(std::move(r)) {}
