@@ -75,18 +75,18 @@ struct UpdatableAggUnionFind : public AggUnionFind<Abelian> {
 };
 
 struct WeightedUnionFind {
-  using i64 = long long;
+  using Int = long long;
   int n_;
   std::vector<int> parent_;
   std::vector<int> rank_;
-  std::vector<i64> weight_;  // diff from the parent_ node
+  std::vector<Int> weight_;  // diff from the parent_ node
 
   explicit WeightedUnionFind(int n)
       : n_(n), parent_(n, -1), rank_(n, 0), weight_(n, 0) {
     std::iota(parent_.begin(), parent_.end(), 0);
   }
 
-  bool unite(int x, int y, i64 w) {
+  bool unite(int x, int y, Int w) {
     w += weight(x);
     w -= weight(y);
     x = find(x), y = find(y);
@@ -111,14 +111,14 @@ struct WeightedUnionFind {
   bool same(int x, int y) { return find(x) == find(y); }
 
   // Returns the relative weight from the component root.
-  i64 weight(int x) {
+  Int weight(int x) {
     find(x);
     return weight_[x];
   }
 
   // Returns the delta between two nodes.
   // Assumes x and y are in the same component.
-  i64 diff(int x, int y) { return weight(y) - weight(x); }
+  Int diff(int x, int y) { return weight(y) - weight(x); }
 };
 
 // Partially Persistent UnionFind.

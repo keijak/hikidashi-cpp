@@ -1,8 +1,8 @@
 #include <bits/stdc++.h>
-using i64 = long long;
+using Int = long long;
 
 // Binary search:
-//   auto ok_bound = bisect(ok, ng, [&](i64 x) -> bool { return ...; });
+//   auto ok_bound = bisect(ok, ng, [&](Int x) -> bool { return ...; });
 template <class T, class F>
 auto bisect(T true_x, T false_x, F pred) -> T {
   static_assert(std::is_invocable_r_v<bool, F, T>);

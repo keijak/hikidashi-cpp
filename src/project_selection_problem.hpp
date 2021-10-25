@@ -7,7 +7,7 @@
 // - sum(cost(v, *)) < kBigCost
 static const int kBigCost = 1e8;
 
-// T: flow capacity type (i32/i64)
+// T: flow capacity type (i32/Int)
 template <typename T>
 struct ProjectSelection {
  public:

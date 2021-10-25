@@ -9,7 +9,7 @@
 //   DF f = {1};
 
 #include <bits/stdc++.h>
-using i64 = long long;
+using Int = long long;
 using u64 = unsigned long long;
 
 #include <atcoder/convolution>
@@ -142,15 +142,15 @@ struct ArbitraryModMult {
     const auto z2 = atcoder::convolution<M2>(xv, yv);
     const auto z3 = atcoder::convolution<M3>(xv, yv);
 
-    const i64 m1_inv_m2 = atcoder::inv_mod(M1, M2);
-    const i64 m12_inv_m3 = atcoder::inv_mod(i64(M1) * M2, M3);
-    const i64 m12 = i64(M1) * M2 % T::mod();
+    const Int m1_inv_m2 = atcoder::inv_mod(M1, M2);
+    const Int m12_inv_m3 = atcoder::inv_mod(Int(M1) * M2, M3);
+    const Int m12 = Int(M1) * M2 % T::mod();
     const int n = std::min<int>(x.size() + y.size() - 1, size_limit);
     std::vector<T> res(n);
     for (int i = 0; i < n; ++i) {
       atcoder::static_modint<M2> v1 = z2[i] - z1[i];
       v1 *= m1_inv_m2;
-      const i64 w1 = v1.val() * i64(M1);
+      const Int w1 = v1.val() * Int(M1);
       atcoder::static_modint<M3> v2 = z3[i] - z1[i] - w1;
       v2 *= m12_inv_m3;
       res[i] = z1[i] + w1 + (v2.val() * m12);

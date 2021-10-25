@@ -1,31 +1,31 @@
 #include <bits/stdc++.h>
-using i64 = long long;
+using Int = long long;
 
 // line: y = k*x + m
 struct Line {
-  mutable i64 k, m, p;
+  mutable Int k, m, p;
   bool operator<(const Line& o) const { return k < o.k; }
-  bool operator<(i64 x) const { return p < x; }
+  bool operator<(Int x) const { return p < x; }
 };
 
 struct LineContainer : public std::multiset<Line, std::less<>> {
-  static const i64 INF = std::numeric_limits<i64>::max();
+  static const Int INF = std::numeric_limits<Int>::max();
 
-  void add(i64 k, i64 m) {
+  void add(Int k, Int m) {
     auto z = insert({k, m, 0}), y = z++, x = y;
     while (isect(y, z)) z = erase(z);
     if (x != begin() && isect(--x, y)) isect(x, y = erase(y));
     while ((y = x) != begin() && (--x)->p >= y->p) isect(x, erase(y));
   }
 
-  i64 query(i64 x) const {
+  Int query(Int x) const {
     assert(!empty());
     auto l = *lower_bound(x);
     return l.k * x + l.m;
   }
 
  private:
-  static i64 div(i64 a, i64 b) {  // floored division
+  static Int div(Int a, Int b) {  // floored division
     return a / b - ((a ^ b) < 0 && a % b);
   }
 

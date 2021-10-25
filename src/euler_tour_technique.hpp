@@ -1,7 +1,7 @@
 #include <tuple>
 #include <vector>
 using namespace std;
-using i64 = long long;
+using Int = long long;
 
 // tour: preorder node ids
 // The interval [in[v], out[v]) represents a subtree whose
@@ -82,7 +82,7 @@ pair<int, int> range_lca(const EulerTour::G &g, int l, int r) {
 // root is v.
 struct EulerTourOnEdge {
   struct Edge {
-    i64 cost;
+    Int cost;
     int to;
   };
   using G = vector<vector<Edge>>;
@@ -91,7 +91,7 @@ struct EulerTourOnEdge {
   G g;
 
   // Euler Tour on edges.
-  vector<pair<i64, bool>> tour;  // (edge cost, entering?)
+  vector<pair<Int, bool>> tour;  // (edge cost, entering?)
   vector<int> in;   // index in the tour on entering the subtree of v
   vector<int> out;  // index in the tour on exiting the subtree of v
   vector<int> depth;

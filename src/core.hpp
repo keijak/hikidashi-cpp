@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
-using i64 = long long;
+using Int = long long;
 
 template <typename T, typename U>
 inline bool chmax(T &a, U b) {
@@ -25,7 +25,7 @@ T floor_div(T x, T y) {
 }
 
 // Binary search:
-//   auto ok_bound = bisect(ok, ng, [&](i64 x) -> bool { return ...; });
+//   auto ok_bound = bisect(ok, ng, [&](Int x) -> bool { return ...; });
 template <class T, class F>
 T bisect(T true_x, T false_x, F pred) {
   static_assert(std::is_integral_v<T>);

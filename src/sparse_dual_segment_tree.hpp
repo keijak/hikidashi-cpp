@@ -4,18 +4,18 @@
 template <typename Monoid>
 struct SparseDualSegmentTree {
   using T = typename Monoid::T;
-  using i64 = long long;
+  using Int = long long;
 
-  i64 size_;
-  std::unordered_map<i64, T> data_;
+  Int size_;
+  std::unordered_map<Int, T> data_;
 
-  explicit SparseDualSegmentTree(i64 n) : size_(n) {}
+  explicit SparseDualSegmentTree(Int n) : size_(n) {}
 
-  inline i64 size() const { return size_; }
+  inline Int size() const { return size_; }
 
   // Returns i-th value.
-  T operator[](i64 i) const {
-    i64 k = size_ + i;
+  T operator[](Int i) const {
+    Int k = size_ + i;
     auto it = data_.find(k);
     T res = (it != data_.end()) ? it->second : Monoid::id();
     while (k > 1) {
@@ -29,7 +29,7 @@ struct SparseDualSegmentTree {
   }
 
   // Applies a value to [l,r) range.
-  void apply(i64 l, i64 r, T val) {
+  void apply(Int l, Int r, T val) {
     l += size_;
     r += size_;
     for (; l < r; l >>= 1, r >>= 1) {
@@ -56,7 +56,7 @@ struct SparseDualSegmentTree {
                                   const SparseDualSegmentTree &st) {
     static const int kMaxOutput = 100;
     os << "[";
-    for (i64 i = 0; i < std::min<i64>(st.n(), kMaxOutput); ++i) {
+    for (Int i = 0; i < std::min<Int>(st.n(), kMaxOutput); ++i) {
       if (i != 0) os << ", ";
       os << st[i];
     }

@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-using i64 = long long;
+using Int = long long;
 using Float = double;
 
 // Ternary search over a real-valued open interval.
@@ -27,16 +27,16 @@ Float find_min_ternary_search(Float low, Float high, F f) {
 // Note: If the input range size is 1 (e.g. [1, 2)), this function returns the
 // result without evaluating `f(x)` at all. To get the minimal value instead of
 // the argmin, memoise `f` and call `f(result)`.
-template <class F, class T = std::invoke_result_t<F, i64>>
-i64 find_min_ternary_search(i64 low, i64 high, F f) {
-  static_assert(std::is_invocable_v<F, i64>);
+template <class F, class T = std::invoke_result_t<F, Int>>
+Int find_min_ternary_search(Int low, Int high, F f) {
+  static_assert(std::is_invocable_v<F, Int>);
   std::less<T> compare;  // Change it to greater<T> if you want max.
 
   --low;  // Make it an open interval: (low, high).
-  i64 l = low, r = high;
+  Int l = low, r = high;
   while (r - l > 2) {
-    i64 ll = (l + l + r) / 3;
-    i64 rr = (l + r + r) / 3;
+    Int ll = (l + l + r) / 3;
+    Int rr = (l + r + r) / 3;
     if (compare(f(ll), f(rr))) {
       r = rr;
     } else {
@@ -49,13 +49,13 @@ i64 find_min_ternary_search(i64 low, i64 high, F f) {
 // Golden Section Search over an integer interval.
 // Finds x in [low, high) s.t. func(x) is minimal.
 // Unlike ternary search, `f(x)` is not required to be convex.
-template <class F, class T = std::invoke_result_t<F, i64>>
-i64 find_min_golden_section_search(i64 low, i64 high, F f) {
-  static_assert(std::is_invocable_v<F, i64>);
+template <class F, class T = std::invoke_result_t<F, Int>>
+Int find_min_golden_section_search(Int low, Int high, F f) {
+  static_assert(std::is_invocable_v<F, Int>);
   std::less<T> compare;  // Change it to greater<T> if you want max.
 
   --low;             // Make it an open interval: (low, high).
-  i64 l = 1, r = 1;  // Left and right offsets from `low`.
+  Int l = 1, r = 1;  // Left and right offsets from `low`.
   while (l + r < high - low) {
     l += r;
     std::swap(l, r);

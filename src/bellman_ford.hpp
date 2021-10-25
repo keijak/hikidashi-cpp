@@ -1,12 +1,12 @@
 #include <limits>
 #include <vector>
 
-using i64 = long long;
+using Int = long long;
 
-const i64 INF = std::numeric_limits<i64>::max() / 2;
+const Int INF = std::numeric_limits<Int>::max() / 2;
 
 struct Edge {
-  i64 cost;
+  Int cost;
   int to;
 };
 
@@ -16,12 +16,12 @@ struct Edge {
 // the start node.
 auto bellman_ford(const std::vector<std::vector<Edge>>& adj, const int start) {
   const int n = int(adj.size());
-  std::vector<i64> mincost(n, INF);
+  std::vector<Int> mincost(n, INF);
   mincost[start] = 0;
 
   for (int k = 0; k < n - 1; ++k) {
     for (int i = 0; i < n; ++i) {
-      const i64 di = mincost[i];
+      const Int di = mincost[i];
       if (di == INF) continue;  // Haven't reached i yet.
       for (const Edge& e : adj[i]) {
         if (mincost[e.to] > di + e.cost) {
@@ -38,7 +38,7 @@ auto bellman_ford(const std::vector<std::vector<Edge>>& adj, const int start) {
   for (int k = 0; k < n; ++k) {
     bool updated = false;
     for (int i = 0; i < n; ++i) {
-      const i64 di = mincost[i];
+      const Int di = mincost[i];
       if (di == INF) continue;
       const bool in_negative_cycle = (di == -INF);
       for (const Edge& e : adj[i]) {

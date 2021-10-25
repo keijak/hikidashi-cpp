@@ -261,20 +261,20 @@ struct ChmaxMaxOp {
 
 // ref. https://null-mn.hatenablog.com/entry/2021/08/22/064325
 struct AssignArithmeticProgressionOp {
-  using i64 = long long;
-  static constexpr i64 kBig = std::numeric_limits<i64>::max() / 2;
+  using Int = long long;
+  static constexpr Int kBig = std::numeric_limits<Int>::max() / 2;
 
   struct T {
-    i64 min;
-    i64 max;
-    i64 sum;
+    Int min;
+    Int max;
+    Int sum;
     // closed interval [l, r]
     int l;
     int r;
   };
   struct Line {  // a*x + b
-    i64 a;
-    i64 b;
+    Int a;
+    Int b;
   };
   using F = std::optional<Line>;
 
@@ -291,9 +291,9 @@ struct AssignArithmeticProgressionOp {
   static T f_apply(const F &f, const T &x) {
     if (not f) return x;
     auto [a, b] = *f;
-    i64 width = x.r - x.l;
-    i64 lval = a * x.l + b;
-    i64 rval = a * x.r + b;
+    Int width = x.r - x.l;
+    Int lval = a * x.l + b;
+    Int rval = a * x.r + b;
     return T{std::min(lval, rval), std::max(lval, rval),
              (width + 1) * (lval + rval) / 2, x.l, x.r};
   }

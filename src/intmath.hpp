@@ -4,7 +4,7 @@
 
 #include <atcoder/math>
 
-using i64 = long long;
+using Int = long long;
 
 template <class T>
 T saturating_mul(T x, T y) {
@@ -20,20 +20,20 @@ T saturating_mul(T x, T y) {
 }
 
 // Returns floor(sqrt(x)).
-i64 floor_sqrt(i64 x) {
+Int floor_sqrt(Int x) {
   assert(x >= 0);
   if (x <= 1) return x;
-  i64 r = std::floor(sqrtl((long double)x));
+  Int r = std::floor(sqrtl((long double)x));
   while (r * r < x) ++r;
   while (r * r > x) --r;
   return r;
 }
 
 // Returns ceil(sqrt(x)).
-i64 ceil_sqrt(i64 x) {
+Int ceil_sqrt(Int x) {
   assert(x >= 0);
   if (x <= 1) return x;
-  i64 r = std::ceil(sqrtl((long double)x));
+  Int r = std::ceil(sqrtl((long double)x));
   while (r * r > x) --r;
   while (r * r < x) ++r;
   return r;
@@ -64,7 +64,7 @@ T floor_div(T x, T y) {
 }
 
 template <typename T>
-T power(T b, i64 e) {
+T power(T b, Int e) {
   assert(e >= 0);
   T x = 1;
   while (e > 0) {
@@ -103,11 +103,11 @@ T geometric_progression_sum(T a1, T r, T n) {
 //
 // Returns (value, l, r) for each distinct value, such that
 // value = floor(n/x) for l <= x < r
-auto floor_harmonic_sequence(i64 n) {
-  std::vector<std::tuple<i64, i64, i64>> ret;
-  i64 l = 1;
+auto floor_harmonic_sequence(Int n) {
+  std::vector<std::tuple<Int, Int, Int>> ret;
+  Int l = 1;
   while (l <= n) {
-    i64 r = n / (n / l) + 1;
+    Int r = n / (n / l) + 1;
     // floor(n/x) yields the same value for l <= x < r.
     ret.emplace_back(n / l, l, r);
     l = r;
@@ -118,7 +118,7 @@ auto floor_harmonic_sequence(i64 n) {
 // Etended Euclidean algorithm.
 // Returns [g, x, y] where g = a*x + b*y = GCD(a, b).
 // Note that g, x, y can be negative.
-std::array<i64, 3> ext_gcd(i64 a, i64 b) {
+std::array<Int, 3> ext_gcd(Int a, Int b) {
   if (b == 0) return {a, 1LL, 0LL};
   auto res = ext_gcd(b, a % b);  // = (g, x, y)
   res[1] -= (a / b) * res[2];
@@ -129,7 +129,7 @@ std::array<i64, 3> ext_gcd(i64 a, i64 b) {
 // Linear Diophantine equation (Bezout equation).
 // Solves a*x + b*y = c (a,b,c: positive integers).
 // Returns [x, y] where 0 <= x < b/gcd(a,b).
-std::optional<std::array<i64, 2>> linear_diophantine(i64 a, i64 b, i64 c) {
+std::optional<std::array<Int, 2>> linear_diophantine(Int a, Int b, Int c) {
   auto [g, x, y] = ext_gcd(a, b);
   if (g < 0) {
     g *= -1, x *= -1, y *= -1;
@@ -147,7 +147,7 @@ std::optional<std::array<i64, 2>> linear_diophantine(i64 a, i64 b, i64 c) {
 // Discrete logarithm (Baby-step Giant-step algorithm).
 // Returns the smallest x that satisfies a^x ≡ b (mod m).
 // m is assumed to be a prime number.
-std::optional<int> log_mod(i64 a, i64 b, const int m) {
+std::optional<int> log_mod(Int a, Int b, const int m) {
   const int L = ceil_sqrt(m);  // block size
   a %= m, b %= m;
 

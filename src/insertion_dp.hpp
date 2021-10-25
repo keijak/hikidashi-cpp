@@ -1,7 +1,7 @@
 Mint count_permutations_no_neighbors_from_same_group(
     const std::vector<int> &freq) {
   const int n = freq.size();
-  const i64 max_slots = std::accumulate(ALL(freq), 0LL) + 1;
+  const Int max_slots = std::accumulate(ALL(freq), 0LL) + 1;
 
   Factorials<Mint> fs(max_slots);
   auto dp = vector(n + 1, vector(max_slots + 1, Mint(0)));

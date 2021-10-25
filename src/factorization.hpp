@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-using i64 = long long;
+using Int = long long;
 
 struct PrimeSieve {
   std::vector<int> spf;  // smallest prime factors table.
@@ -23,7 +23,7 @@ struct PrimeSieve {
 
   auto factorize(int n) const {
     assert(0 < n and n < int(spf.size()));
-    std::vector<std::pair<i64, int>> res;
+    std::vector<std::pair<Int, int>> res;
     while (n > 1) {
       const int p = spf[n];
       int count = 0;
@@ -36,9 +36,9 @@ struct PrimeSieve {
     return res;
   }
 
-  i64 divisor_count(int n) const {
+  Int divisor_count(int n) const {
     assert(0 < n and n < int(spf.size()));
-    i64 res = 1;
+    Int res = 1;
     while (n > 1) {
       const int p = spf[n];
       int count = 0;
@@ -51,12 +51,12 @@ struct PrimeSieve {
     return res;
   }
 
-  i64 divisor_sum(int n) const {
+  Int divisor_sum(int n) const {
     assert(0 < n and n < int(spf.size()));
-    i64 res = 1;
+    Int res = 1;
     while (n > 1) {
       const int p = spf[n];
-      i64 power = 1, psum = 1;
+      Int power = 1, psum = 1;
       do {
         n /= p;
         power *= p;
@@ -97,7 +97,7 @@ struct PrimeSieve {
   // Euler's phi function.
   int totient(int n) const {
     assert(0 < n and n < int(spf.size()));
-    i64 res = n;
+    Int res = n;
     while (n > 1) {
       const int p = spf[n];
       do {
@@ -111,12 +111,12 @@ struct PrimeSieve {
 };
 
 // Returns all divisors of n. O(sqrt(n)) + sorting.
-std::vector<i64> divisors(i64 n) {
-  std::vector<i64> res;
-  for (i64 k = 1; k * k <= n; ++k) {
+std::vector<Int> divisors(Int n) {
+  std::vector<Int> res;
+  for (Int k = 1; k * k <= n; ++k) {
     if (n % k != 0) continue;
     res.push_back(k);
-    i64 q = n / k;
+    Int q = n / k;
     if (q != k) res.push_back(q);
   }
   std::sort(res.begin(), res.end());
@@ -138,10 +138,10 @@ std::vector<int> divisor_count_table(int n) {
 }
 
 // Factorizes a number into {prime, count} pairs. O(sqrt(n)).
-std::vector<std::pair<i64, int>> factorize(i64 n) {
+std::vector<std::pair<Int, int>> factorize(Int n) {
   assert(n > 0);
-  std::vector<std::pair<i64, int>> res;
-  for (i64 k = 2; k * k <= n; ++k) {
+  std::vector<std::pair<Int, int>> res;
+  for (Int k = 2; k * k <= n; ++k) {
     if (n % k != 0) continue;
     int count = 0;
     do {
@@ -158,13 +158,13 @@ std::vector<std::pair<i64, int>> factorize(i64 n) {
 
 // Enumerates divisors from prime factorization.
 // O(d(n)) + sorting
-std::vector<i64> enumerate_divisors(
-    const std::vector<std::pair<i64, int>> &fac) {
-  std::vector<i64> res = {1};
+std::vector<Int> enumerate_divisors(
+    const std::vector<std::pair<Int, int>> &fac) {
+  std::vector<Int> res = {1};
   for (auto [p, k] : fac) {
     int sz = res.size();
     for (int i = 0; i < sz; ++i) {
-      i64 pp = 1;
+      Int pp = 1;
       for (int j = 0; j < k; ++j) {
         pp *= p;
         res.push_back(res[i] * pp);
@@ -176,12 +176,12 @@ std::vector<i64> enumerate_divisors(
 }
 
 // On a large N, often faster than simple `divisors()`.
-std::vector<i64> divisors2(i64 n) { return enumerate_divisors(factorize(n)); }
+std::vector<Int> divisors2(Int n) { return enumerate_divisors(factorize(n)); }
 
 // Euler's phi function.
 // Number of integers coprime to n (between 1 and n inclusive).
-i64 totient(i64 n) {
-  i64 res = n;
+Int totient(Int n) {
+  Int res = n;
   for (auto [p, _] : factorize(n)) {
     res /= p;
     res *= p - 1;
@@ -203,8 +203,8 @@ std::vector<bool> prime_sieve(int n) {
 
 // Returns a prime table of the segment [L, R).
 // (table[x-L] != 0) ⇔ x is a prime number.
-std::vector<i64> segment_sieve(i64 L, i64 R) {
-  static const i64 SQRTN = 1LL << 20;  // upper bound of sqrt(R)
+std::vector<Int> segment_sieve(Int L, Int R) {
+  static const Int SQRTN = 1LL << 20;  // upper bound of sqrt(R)
   static int p[SQRTN], lookup = 0;
   assert(R <= SQRTN * SQRTN);
   if (!lookup) {
@@ -215,14 +215,14 @@ std::vector<i64> segment_sieve(i64 L, i64 R) {
     std::remove(p, p + SQRTN, 0);
     lookup = 1;
   }
-  std::vector<i64> table(R - L);
-  for (i64 i = L; i < R; ++i) {
+  std::vector<Int> table(R - L);
+  for (Int i = L; i < R; ++i) {
     table[i - L] = i;
   }
-  for (int i = 0; i64(p[i]) * p[i] < R; ++i) {  // O( \sqrt(R) )
-    i64 j;
+  for (int i = 0; Int(p[i]) * p[i] < R; ++i) {  // O( \sqrt(R) )
+    Int j;
     if (p[i] >= L) {
-      j = i64(p[i]) * p[i];
+      j = Int(p[i]) * p[i];
     } else if (L % p[i] == 0) {
       j = L;
     } else {
