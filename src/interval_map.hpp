@@ -1,9 +1,9 @@
 #include <bits/stdc++.h>
 using namespace std;
-using i64 = long long;
+using Int = long long;
 
 // Disjoint closed intervals [l, r] (mapping l to r).
-class ClosedIntervalMap : public std::map<i64, i64> {
+class ClosedIntervalMap : public std::map<Int, Int> {
  private:
   // If true, automatically merges [l, c] and [c+1, r].
   bool merge_adjacent;
@@ -14,14 +14,14 @@ class ClosedIntervalMap : public std::map<i64, i64> {
 
   // Returns the interval [l, r] which contains p if available.
   // Otherwise returns this->end().
-  std::map<i64, i64>::iterator find_interval(i64 p) {
+  std::map<Int, Int>::iterator find_interval(Int p) {
     auto it = upper_bound(p);
     if (it == begin() || (--it)->second < p) return end();
     return it;
   }
 
   // Inserts interval [l, r]
-  void add_interval(i64 l, i64 r) {
+  void add_interval(Int l, Int r) {
     auto itl = upper_bound(l), itr = upper_bound(r + merge_adjacent);
     if (itl != begin()) {
       if ((--itl)->second < l - merge_adjacent) ++itl;
@@ -37,14 +37,14 @@ class ClosedIntervalMap : public std::map<i64, i64> {
   }
 
   // Removes interval [l, r]
-  void remove_interval(i64 l, i64 r) {
+  void remove_interval(Int l, Int r) {
     auto itl = upper_bound(l), itr = upper_bound(r);
     if (itl != begin()) {
       if ((--itl)->second < l) ++itl;
     }
     if (itl == itr) return;
-    i64 tl = std::min(l, itl->first);
-    i64 tr = std::max(r, std::prev(itr)->second);
+    Int tl = std::min(l, itl->first);
+    Int tr = std::max(r, std::prev(itr)->second);
     for (auto it = itl; it != itr;) {
       it = erase(it);
     }
@@ -57,13 +57,13 @@ class ClosedIntervalMap : public std::map<i64, i64> {
   }
 
   // Are p and q in the same interval?
-  bool same(i64 p, i64 q) {
+  bool same(Int p, Int q) {
     const auto it = find_interval(p);
     return it != end() and it->first <= q and q <= it->second;
   }
 
   // Minimum excluded value greater than or equal to X.
-  i64 mex(int bottom = 0) {
+  Int mex(int bottom = 0) {
     const auto it = find_interval(bottom);
     if (it == end()) return bottom;
     return it->second + 1;
@@ -71,21 +71,21 @@ class ClosedIntervalMap : public std::map<i64, i64> {
 };
 
 // Disjoint half-open intervals [l, r) (mapping l to r).
-class IntervalMap : public std::map<i64, i64> {
+class IntervalMap : public std::map<Int, Int> {
  private:
   // If true, automatically merges [l, c) and [c, r).
   bool merge_adjacent;
-  i64 length_sum_;
+  Int length_sum_;
 
  public:
   IntervalMap(bool merge_adjacent = true)
       : merge_adjacent(merge_adjacent), length_sum_(0) {}
 
-  i64 length_sum() const { return length_sum_; }
+  Int length_sum() const { return length_sum_; }
 
   // Returns the interval [l, r) which contains p if available.
   // Otherwise returns this->end().
-  std::map<i64, i64>::iterator find_interval(i64 p) {
+  std::map<Int, Int>::iterator find_interval(Int p) {
     auto it = upper_bound(p);
     if (it != begin()) {
       --it;
@@ -95,7 +95,7 @@ class IntervalMap : public std::map<i64, i64> {
   }
 
   // Inserts interval [l, r)
-  void add_interval(i64 l, i64 r) {
+  void add_interval(Int l, Int r) {
     auto itl = upper_bound(l), itr = lower_bound(r + merge_adjacent);
     if (itl != begin()) {
       --itl;
@@ -114,15 +114,15 @@ class IntervalMap : public std::map<i64, i64> {
   }
 
   // Removes interval [l, r)
-  void remove_interval(i64 l, i64 r) {
+  void remove_interval(Int l, Int r) {
     auto itl = upper_bound(l), itr = lower_bound(r);
     if (itl != begin()) {
       --itl;
       if (itl->second <= l) ++itl;
     }
     if (itl == itr) return;
-    i64 tl = std::min(l, itl->first);
-    i64 tr = std::max(r, std::prev(itr)->second);
+    Int tl = std::min(l, itl->first);
+    Int tr = std::max(r, std::prev(itr)->second);
     for (auto it = itl; it != itr;) {
       length_sum_ -= it->second - it->first;
       it = erase(it);
@@ -138,13 +138,13 @@ class IntervalMap : public std::map<i64, i64> {
   }
 
   // Are p and q in the same interval?
-  bool same(i64 p, i64 q) {
+  bool same(Int p, Int q) {
     const auto it = find_interval(p);
     return it != end() and it->first <= q and q < it->second;
   }
 
   // Minimum excluded value greater than or equal to X.
-  i64 mex(int bottom = 0) {
+  Int mex(int bottom = 0) {
     const auto it = find_interval(bottom);
     if (it == end()) return bottom;
     return it->second;
