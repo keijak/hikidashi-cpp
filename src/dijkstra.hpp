@@ -65,7 +65,7 @@ auto search_shortest_path_on_grid(const vector<string> &g,
   const int H = g.size();
   const int W = g[0].size();
   const array<int, 4> dx = {0, 1, 0, -1}, dy = {1, 0, -1, 0};
-  auto mincost = vector(H, vector(W, kBig));
+  auto mincost = vector(H, vector(W, (Int)kBig));
   MinHeap<GridState> que;
   auto push = [&](Int cost, int r, int c) -> bool {
     if (r < 0 or r >= H or c < 0 or c >= W) return false;

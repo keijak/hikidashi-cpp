@@ -28,11 +28,12 @@ struct SimpleFunctionalGraph {
     }
   }
 
-  // Sets `j` as the next position of node `i`.
-  void set_next(int i, int j) { next_pos[0][i] = j; }
+  // Sets `next` as the next position of node `pos`.
+  void set_next(int pos, int next) { next_pos[0][pos] = next; }
 
   // Builds the transition table.
   void build() {
+    if (build_done_) return;
     for (int d = 0; d + 1 < kMaxBits; ++d) {
       for (int i = 0; i < size; ++i) {
         int p = next_pos[d][i];
@@ -44,10 +45,10 @@ struct SimpleFunctionalGraph {
 
   // Starting from `start`, `steps` times goes forward and returns where it
   // ends up.
-  int go(int start, long long steps) const {
-    assert(build_done_);
+  int go(int start, long long steps) {
     // steps >= 2^kMaxBits is not supported.
     assert(steps < (1LL << kMaxBits));
+    build();
 
     int i = start;
     for (int d = kMaxBits - 1; d >= 0; --d) {
@@ -59,9 +60,9 @@ struct SimpleFunctionalGraph {
   }
 
   template <class F>
-  long long min_steps(int start, F pred) const {
+  long long min_steps(int start, F pred) {
     static_assert(std::is_invocable_r_v<bool, F, int>);
-    assert(build_done_);
+    build();
     long long max_false = 0;
     int i = start;
     for (int d = kMaxBits - 1; d >= 0; --d) {
@@ -79,13 +80,13 @@ template <typename Monoid>
 struct AggFunctionalGraph {
  private:
   using T = typename Monoid::T;
-  static const int kMaxBits = 60;
+  static const int kMaxBits = 32;
 
   // number of nodes.
   int size;
 
   // acc_value[d][i] := starting from i, what's the value accumulated after 2^d
-  // steps.
+  // steps. Be careful about overflow!
   std::vector<std::vector<T>> acc_value;
 
   // next_pos[d][i] := starting from i, what's the position after 2^d steps.
@@ -106,14 +107,15 @@ struct AggFunctionalGraph {
     }
   }
 
-  // Sets value `x` at node `i`.
-  void set_value(int i, T x) { acc_value[0][i] = x; }
+  // Sets `next` as the next position of node `pos`.
+  void set_next(int pos, int next) { next_pos[0][pos] = next; }
 
-  // Sets `j` as the next position of node `i`.
-  void set_next(int i, int j) { next_pos[0][i] = j; }
+  // Sets value `x` at node `pos`.
+  void set_value(int pos, T value) { acc_value[0][pos] = value; }
 
   // Builds transition tables.
   void build() {
+    if (build_done_) return;
     for (int d = 0; d + 1 < kMaxBits; ++d) {
       for (int i = 0; i < size; ++i) {
         int p = next_pos[d][i];
@@ -126,7 +128,7 @@ struct AggFunctionalGraph {
 
   // Starting from `start`, `steps` times goes forward and accumulates values.
   std::pair<T, int> go(int start, long long steps) const {
-    assert(build_done_);
+    build();
     // steps >= 2^kMaxBits is not supported.
     assert(steps < (1LL << kMaxBits));
 
@@ -143,7 +145,7 @@ struct AggFunctionalGraph {
 
   long long min_steps(int start,
                       std::function<bool(const T &, int)> pred) const {
-    assert(build_done_);
+    build();
     long long max_false = 0;
     T val = Monoid::id();
     int i = start;

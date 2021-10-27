@@ -20,12 +20,12 @@ struct SlideMinQueue {
     r = std::min(r, (int)vals.size());
     assert(l >= left);
     assert(r >= right);
-    pop_left(l);
-    left = l;
     for (int i = right; i < r; ++i) {
       push_right(i);
     }
     right = r;
+    pop_left(l);
+    left = l;
   }
 
   // Returns the minimum value in [left, right).
