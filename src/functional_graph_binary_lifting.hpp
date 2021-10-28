@@ -5,11 +5,11 @@
 // itself.
 // https://mathworld.wolfram.com/FunctionalGraph.html
 
-// Computes node transition only.
+// Node transition only.
+// Precomputes every (2^d)-th step (0 <= d < kMaxBits).
+template <int kMaxBits = 60>
 struct SimpleFunctionalGraph {
  private:
-  static const int kMaxBits = 60;
-
   // number of nodes.
   int size;
 
@@ -75,18 +75,20 @@ struct SimpleFunctionalGraph {
   }
 };
 
-// Computes node transition and aggregates values along transition.
-template <typename Monoid>
+// Node transition and aggregated values along transition.
+//
+// Precomputes every (2^d)-th step (0 <= d < kMaxBits).
+// Be careful about overflow!
+template <typename Monoid, int kMaxBits = 40>
 struct AggFunctionalGraph {
  private:
   using T = typename Monoid::T;
-  static const int kMaxBits = 32;
 
   // number of nodes.
   int size;
 
   // acc_value[d][i] := starting from i, what's the value accumulated after 2^d
-  // steps. Be careful about overflow!
+  // steps.
   std::vector<std::vector<T>> acc_value;
 
   // next_pos[d][i] := starting from i, what's the position after 2^d steps.
