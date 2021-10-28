@@ -79,7 +79,7 @@ struct SimpleFunctionalGraph {
 //
 // Precomputes every (2^d)-th step (0 <= d < kMaxBits).
 // Be careful about overflow!
-template <typename Monoid, int kMaxBits = 40>
+template <typename Monoid, int kMaxBits = 32>
 struct AggFunctionalGraph {
  private:
   using T = typename Monoid::T;
