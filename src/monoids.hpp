@@ -14,14 +14,20 @@ struct MaxOp {
 
 struct SumOp {
   using T = long long;
-  static T op(const T &x, const T &y) { return x + y; }
+  static T op(const T &x, const T &y) {
+    return x + y;
+    // alt: saturating_add(x, y)
+  }
   static constexpr T id() { return 0; }
   static T invert(const T &x) { return -x; }
 };
 
 struct ProdOp {
   using T = long long;
-  static T op(const T &x, const T &y) { return x * y; }
+  static T op(const T &x, const T &y) {
+    return x * y;
+    // alt: saturating_mul(x, y)
+  }
   static constexpr T id() { return 1; }
 };
 

@@ -9,26 +9,30 @@ using Int = long long;
 template <class T>
 T saturating_add(T x, T y) {
   static_assert(std::is_integral<T>::value);
-  T res;
-  if (not __builtin_add_overflow(x, y, &res)) {
+  static constexpr T kMin = std::numeric_limits<T>::lowest();
+  static constexpr T kMax = std::numeric_limits<T>::max();
+  static_assert(kMax != 0);
+  if (T res; not __builtin_add_overflow(x, y, &res)) {
     return res;
-  } else if (x < 0) {
-    return std::numeric_limits<T>::lowest();
+  } else if constexpr (not std::is_signed<T>::value) {
+    return kMax;
   } else {
-    return std::numeric_limits<T>::max();
+    return (x < 0) ? kMin : kMax;
   }
 }
 
 template <class T>
 T saturating_mul(T x, T y) {
   static_assert(std::is_integral<T>::value);
-  T res;
-  if (not __builtin_mul_overflow(x, y, &res)) {
+  static constexpr T kMin = std::numeric_limits<T>::lowest();
+  static constexpr T kMax = std::numeric_limits<T>::max();
+  static_assert(kMax != 0);
+  if (T res; not __builtin_mul_overflow(x, y, &res)) {
     return res;
-  } else if ((x ^ y) < 0) {
-    return std::numeric_limits<T>::lowest();
+  } else if constexpr (not std::is_signed<T>::value) {
+    return kMax;
   } else {
-    return std::numeric_limits<T>::max();
+    return ((x ^ y) < 0) ? kMin : kMax;
   }
 }
 
