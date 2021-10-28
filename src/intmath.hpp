@@ -7,10 +7,23 @@
 using Int = long long;
 
 template <class T>
-T saturating_mul(T x, T y) {
-  static_assert(std::is_integral_v<T>);
+T saturating_add(T x, T y) {
+  static_assert(std::is_integral<T>::value);
   T res;
-  if (__builtin_mul_overflow(x, y, &res)) {
+  if (not __builtin_add_overflow(x, y, &res)) {
+    return res;
+  } else if (x < 0) {
+    return std::numeric_limits<T>::lowest();
+  } else {
+    return std::numeric_limits<T>::max();
+  }
+}
+
+template <class T>
+T saturating_mul(T x, T y) {
+  static_assert(std::is_integral<T>::value);
+  T res;
+  if (not __builtin_mul_overflow(x, y, &res)) {
     return res;
   } else if ((x ^ y) < 0) {
     return std::numeric_limits<T>::lowest();
