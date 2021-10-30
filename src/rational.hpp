@@ -3,11 +3,12 @@
 // #include <boost/multiprecision/cpp_int.hpp>
 // using multip = boost::multiprecision;
 
+// Rational number (allowing infinity)
 template <typename T>
 struct Rational {
  public:
   using BigInt = __int128_t;
-  // using BigInt = multip::checked_int128_t; // for testing overflow
+  // using BigInt = boost::multiprecision::checked_int128_t;
 
   T nume, deno;
 
@@ -16,8 +17,10 @@ struct Rational {
   Rational(T n) : nume(n), deno(1) {}
 
   Rational(BigInt n, BigInt d) {
-    assert(d != 0);
-    if (n == 0) {
+    assert(d != 0 or n != 0);
+    if (d == 0) {
+      n = (n >= 0) ? 1 : -1;  // infinity
+    } else if (n == 0) {
       d = 1;
     } else {
       const int sign = ((n < 0) xor (d < 0)) ? -1 : 1;
@@ -107,13 +110,13 @@ struct Rational {
  private:
   template <typename U>
   static inline U abs_(const U &x) {
-    return std::abs(x);
-    // return (x < 0) ? -x : x;
+    // return std::abs(x);
+    return (x < 0) ? -x : x;
   }
   template <typename U>
   static inline U gcd_(const U &a, const U &b) {
-    return std::gcd(a, b);
-    // return (b == 0) ? a : gcd_(b, a % b);
+    // return std::gcd(a, b);
+    return (b == 0) ? a : gcd_(b, a % b);
   }
 };
 using Rat = Rational<long long>;

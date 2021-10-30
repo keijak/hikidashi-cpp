@@ -62,13 +62,17 @@ bool operator>(const GridState &x, const GridState &y) {
 auto search_shortest_path_on_grid(const vector<string> &g,
                                   const pair<int, int> &start,
                                   const pair<int, int> &goal) {
+  static const int dx[4] = {1, 0, -1, 0};
+  static const int dy[4] = {0, 1, 0, -1};
   const int H = g.size();
   const int W = g[0].size();
-  const array<int, 4> dx = {0, 1, 0, -1}, dy = {1, 0, -1, 0};
+  auto inside = [&](int i, int j) -> bool {
+    return 0 <= i and i < H and 0 <= j and j < W;
+  };
   auto mincost = vector(H, vector(W, (Int)kBig));
   MinHeap<GridState> que;
   auto push = [&](Int cost, int r, int c) -> bool {
-    if (r < 0 or r >= H or c < 0 or c >= W) return false;
+    if (not inside(r, c)) return false;
     if (g[r][c] == '#') return false;
     if (not chmin(mincost[r][c], cost)) return false;
     que.push(GridState{cost, r, c});
