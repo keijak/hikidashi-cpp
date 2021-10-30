@@ -2,15 +2,15 @@
 
 #include <atcoder/maxflow>
 
-// For each node v, make sure:
-// - sum(cost(*, v)) < kBigCost
-// - sum(cost(v, *)) < kBigCost
-static const int kBigCost = 1e8;
-
-// T: flow capacity type (i32/Int)
+// T: flow capacity type (int or long long)
 template <typename T>
 struct ProjectSelection {
  public:
+  // For each node v, make sure:
+  // - sum(cost(*, v)) < kBigCost
+  // - sum(cost(v, *)) < kBigCost
+  static constexpr T kBigCost = std::numeric_limits<T>::max() / 10;
+
   // Assign true to kSource and false to kSink.
   const int kSource, kSink;
   const int n_;  // number of initial nodes
@@ -43,7 +43,7 @@ struct ProjectSelection {
   }
 
   // Returns the maximum gain.
-  T max_gain() const { return -min_cost(); }
+  T max_gain() { return -min_cost(); }
 
   // === constraint API ===
 
