@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 
 // Rational number
+// Positive/negative infinity can be allowed.
 template <typename T, bool allow_infinity = false>
 struct Rational {
  public:
