@@ -45,13 +45,20 @@ struct Rational {
   Rational &operator=(const Rational &x) = default;
   Rational &operator=(Rational &&x) = default;
 
-  explicit operator double() const { return (double)nume / (double)deno; }
-  explicit operator long double() const {
-    return (long double)nume / (long double)deno;
+  // Cast to a floating point number.
+  template <typename Float>
+  explicit operator Float() const {
+    static_assert(std::is_floating_point<Float>::value);
+    return (Float)nume / (Float)deno;
   }
 
   Rational operator+() const { return *this; }
-  Rational operator-() const { return Rational(-nume, deno); }
+  Rational operator-() const {
+    Rational ret;
+    ret.nume = -nume;
+    ret.deno = deno;
+    return ret;
+  }
 
   friend bool operator==(const Rational &x, const Rational &y) {
     return (x.nume == y.nume) and (x.deno == y.deno);
@@ -60,6 +67,9 @@ struct Rational {
     return not(x == y);
   }
   friend bool operator<(const Rational &x, const Rational &y) {
+    if constexpr (allow_infinity) {
+      if (x.deno == 0 and y.deno == 0) return x.nume < y.nume;
+    }
     return static_cast<BigInt>(x.nume) * y.deno <
            static_cast<BigInt>(y.nume) * x.deno;
   }
@@ -72,10 +82,19 @@ struct Rational {
   }
 
   friend Rational operator+(const Rational &x, const Rational &y) {
+    if constexpr (allow_infinity) {
+      if (x.deno == 0 and y.deno == 0) {
+        assert(x.nume == y.nume);  // (infinity - infinity) is undefined
+        return x;
+      }
+      if (x.deno == 0) return x;
+      if (y.deno == 0) return y;
+    }
     auto g = gcd_(x.deno, y.deno);
-    auto zn = (static_cast<BigInt>(x.nume) * (y.deno / g)) +
-              (static_cast<BigInt>(y.nume) * (x.deno / g));
-    auto zd = static_cast<BigInt>(x.deno / g) * y.deno;
+    BigInt xd = x.deno / g;
+    BigInt yd = y.deno / g;
+    BigInt zn = x.nume * yd + y.nume * xd;
+    BigInt zd = xd * y.deno;
     return Rational(std::move(zn), std::move(zd));
   }
   Rational &operator+=(const Rational &x) { return (*this = *this + x); }
