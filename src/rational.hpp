@@ -1,14 +1,13 @@
 #include <bits/stdc++.h>
 
-// #include <boost/multiprecision/cpp_int.hpp>
-// using multip = boost::multiprecision;
-
-// Rational number (allowing infinity)
-template <typename T>
+// Rational number
+template <typename T, bool allow_infinity = false>
 struct Rational {
  public:
-  using BigInt = __int128_t;
+  // #include <boost/multiprecision/cpp_int.hpp>
+  // using multip = boost::multiprecision;
   // using BigInt = boost::multiprecision::checked_int128_t;
+  using BigInt = __int128_t;
 
   T nume, deno;
 
@@ -17,9 +16,13 @@ struct Rational {
   Rational(T n) : nume(n), deno(1) {}
 
   Rational(BigInt n, BigInt d) {
-    assert(d != 0 or n != 0);
-    if (d == 0) {
-      n = (n >= 0) ? 1 : -1;  // infinity
+    if constexpr (allow_infinity) {
+      assert(d != 0 or n != 0);  // 0/0 is undefined
+    } else {
+      assert(d != 0);
+    }
+    if (allow_infinity and d == 0) {
+      n = (n < 0) ? -1 : 1;  // infinity
     } else if (n == 0) {
       d = 1;
     } else {
@@ -31,11 +34,6 @@ struct Rational {
         n /= g;
         d /= g;
       }
-
-      // In Codeforces, numeric_limits<__int128_t>::max() returns 0 :-(
-      // assert(n <= std::numeric_limits<T>::max());
-      // assert(d <= std::numeric_limits<T>::max());
-
       n *= sign;
     }
     nume = static_cast<T>(n);
@@ -111,15 +109,16 @@ struct Rational {
   template <typename U>
   static inline U abs_(const U &x) {
     // return std::abs(x);
+    // return boost::multiprecision::abs(x);
     return (x < 0) ? -x : x;
   }
   template <typename U>
-  static inline U gcd_(const U &a, const U &b) {
+  static U gcd_(const U &a, const U &b) {
     // return std::gcd(a, b);
     return (b == 0) ? a : gcd_(b, a % b);
   }
 };
-using Rat = Rational<long long>;
+using Rat = Rational<long long, false>;
 // using Rat = Rational<multip::checked_int128_t>; // for testing overflow
 
 // Parse a decimal number into a rational.
