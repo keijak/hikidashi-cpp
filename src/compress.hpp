@@ -4,7 +4,7 @@ template <typename T>
 struct Compressed {
   std::vector<T> values;
 
-  explicit Compressed(std::vector<T> v) : values(v) {
+  explicit Compressed(std::vector<T> v) : values(std::move(v)) {
     std::sort(values.begin(), values.end());
     values.erase(std::unique(values.begin(), values.end()), values.end());
   }
