@@ -14,27 +14,38 @@ struct StaticSegmentTree2d {
   vector<pair<Int, Int>> xy_;
 
   // [(x,y) => value]
-  explicit StaticSegmentTree2d(const vector<pair<Int, Int>> &xy,
-                               const vector<T> &vals)
-      : offset_(1), xy_(xy.size()) {
-    const int n = (int)xy.size();  // number of data points
+  explicit StaticSegmentTree2d(const map<pair<Int, Int>, T> &data)
+      : offset_(1), xy_(data.size()) {
+    const int n = (int)data.size();  // number of data points
     while (offset_ < n) offset_ *= 2;
-    for (int i = 0; i < n; ++i) {
-      xy_[i] = {xy[i].first, i};
+
+    vector<const pair<Int, Int> *> coords(n);
+    vector<const T *> vals(n);
+    {
+      int i = 0;
+      for (auto it = data.begin(); it != data.end(); ++it, ++i) {
+        coords[i] = &it->first;
+        vals[i] = &it->second;
+        // Temporarily fill xy_ with (x, coord_id).
+        xy_[i] = {it->first.first, i};
+      }
     }
+
     std::sort(ALL(xy_),
               [&](const auto &p1, const auto &p2) {  // Compare by X, then Y.
-                return std::tie(p1.first, xy[p1.second].second) <
-                       std::tie(p2.first, xy[p2.second].second);
+                return std::tie(p1.first, coords[p1.second]->second) <
+                       std::tie(p2.first, coords[p2.second]->second);
               });
-    yx_.resize(2 * offset_ - 1), segs_.resize(2 * offset_ - 1);
+    yx_.resize(2 * offset_ - 1);
+    segs_.resize(2 * offset_ - 1, SegmentTree<Monoid>(0));
     // Build leaves.
     for (int i = 0; i < n; ++i) {
-      // Temporarily fill yx_ with (row_id, x).
+      // Temporarily fill yx_ with (coord_id, x).
       yx_[i + offset_ - 1] = {{xy_[i].second, xy_[i].first}};
-      vector<T> row_data = {vals[xy_[i].second]};
+      vector<T> row_data = {*vals[xy_[i].second]};
       segs_[i + offset_ - 1] = SegmentTree<Monoid>{std::move(row_data)};
-      xy_[i].second = xy[xy_[i].second].second;
+      // Set the second elements of xy_ to y.
+      xy_[i].second = coords[xy_[i].second]->second;
     }
     // Build inner nodes.
     for (int i = offset_ - 2; i >= 0; --i) {
@@ -42,20 +53,20 @@ struct StaticSegmentTree2d {
       if (yx_[i].empty()) continue;
       std::merge(ALL(yx_[2 * i + 1]), ALL(yx_[2 * i + 2]), yx_[i].begin(),
                  [&](const auto &p1, const auto &p2) {
-                   return std::tie(xy[p1.first].second, p1.second) <
-                          std::tie(xy[p2.first].second, p2.second);
+                   return std::tie(coords[p1.first]->second, p1.second) <
+                          std::tie(coords[p2.first]->second, p2.second);
                  });
       vector<T> row_data(yx_[i].size());
       for (int j = 0; j < (int)yx_[i].size(); ++j) {
-        row_data[j] = vals[yx_[i][j].first];
+        row_data[j] = *vals[yx_[i][j].first];
       }
       segs_[i] = SegmentTree<Monoid>{std::move(row_data)};
     }
 
-    // Set first elements of yx_ to y.
+    // Set the first elements of yx_ to y.
     for (int i = 0; i < 2 * offset_ - 1; ++i) {
       for (auto &[y, x] : yx_[i]) {
-        y = xy[y].second;
+        y = coords[y]->second;
       }
     }
   }
