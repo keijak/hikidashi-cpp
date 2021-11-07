@@ -40,18 +40,21 @@ struct RollingHash {
   }
 };
 
-struct SubstringHasher : public RollingHash {
+// Computes hash for any substring in O(1).
+struct SpanHash : public RollingHash {
   std::vector<u64> cum_hash;
 
-  explicit SubstringHasher(std::string_view s) : cum_hash(s.size() + 1) {
+  // Constructionn: O(n).
+  template <class Seq = std::string>
+  explicit SpanHash(const Seq &s) : cum_hash(s.size() + 1) {
     const int n = s.size();
     for (int i = 0; i < n; i++) {
-      cum_hash[i + 1] = add(mul(cum_hash[i], base()), u64(s[i]));
+      cum_hash[i + 1] = add(mul(cum_hash[i], base()), static_cast<u64>(s[i]));
     }
   }
 
-  // Returns the hash value of the substring s[l:r].
-  u64 get(int l, int r) {
+  // Returns the hash value of the substring s[l:r]. O(1).
+  u64 get(int l, int r) const {
     // Compute `hash(s[0:r]) - hash(s[0:l]) * B^(r-l) (mod M)`
     return add(cum_hash[r], kMod - mul(cum_hash[l], pow_base(r - l)));
   }
@@ -62,7 +65,7 @@ struct RollingHashOp {
   using u64 = std::uint64_t;
   struct T {
     u64 hash;
-    int width;
+    int width;  // Initialize this field with 1.
   };
   static T op(const T &x, const T &y) {
     u64 hash = RollingHash::mul(x.hash, RollingHash::pow_base(y.width));
