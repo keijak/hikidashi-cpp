@@ -21,7 +21,7 @@ struct DFSTree {
 
   bool is_connected(int u, int v) const {
     if (depth_[u] < depth_[v]) std::swap(u, v);
-    return parent_[u] == v or back_edges_.count({u, v});
+    return (parent_[u] == v) or back_edges_.count({u, v});
   }
 
  private:
