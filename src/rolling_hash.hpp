@@ -45,18 +45,23 @@ struct SpanHash : public RollingHash {
   std::vector<u64> cum_hash;
 
   // Constructionn: O(n).
-  template <class Seq = std::string>
-  explicit SpanHash(const Seq &s) : cum_hash(s.size() + 1) {
-    const int n = s.size();
-    for (int i = 0; i < n; i++) {
-      cum_hash[i + 1] = add(mul(cum_hash[i], base()), static_cast<u64>(s[i]));
+  // All elements must be non-zero. Otherwise we won't be able to distinguish
+  // between [1] and [0, 1].
+  template <class Sequence>
+  explicit SpanHash(const Sequence &s) : cum_hash(s.size() + 1) {
+    int i = 0;
+    for (const auto &x : s) {
+      u64 val = static_cast<u64>(x);
+      assert(val != 0);  // Ensure all elements are non-zero!
+      cum_hash[i + 1] = add(mul(cum_hash[i], base()), val);
+      ++i;
     }
   }
 
   // Returns the hash value of the substring s[l:r]. O(1).
   u64 get(int l, int r) const {
     // Compute `hash(s[0:r]) - hash(s[0:l]) * B^(r-l) (mod M)`
-    return add(cum_hash[r], kMod - mul(cum_hash[l], pow_base(r - l)));
+    return sub(cum_hash[r], mul(cum_hash[l], pow_base(r - l)));
   }
 };
 
@@ -64,7 +69,7 @@ struct SpanHash : public RollingHash {
 struct RollingHashOp {
   using u64 = std::uint64_t;
   struct T {
-    u64 hash;
+    u64 hash;   // Initialize this field with a non-zero element.
     int width;  // Initialize this field with 1.
   };
   static T op(const T &x, const T &y) {
@@ -80,8 +85,8 @@ struct RollingHashOp {
 struct XorRollingHashOp {
   using u64 = std::uint64_t;
   struct T {
-    u64 hash;
-    int width;
+    u64 hash;   // Initialize this field with a non-zero element.
+    int width;  // Initialize this field with 1.
   };
   using F = bool;
 
@@ -115,8 +120,8 @@ struct Range2dHasher {
     cum_hash.assign(n + 1, std::vector<u64>(m + 1, 0));
     pow_base1.assign(n + 1, 0);
     pow_base2.assign(m + 1, 0);
-    auto [b1, b2] = base();
     pow_base1[0] = pow_base2[0] = 1;
+    const auto &[b1, b2] = bases();
     for (int i = 0; i < n; ++i) {
       pow_base1[i + 1] = mul(pow_base1[i], b1);
     }
@@ -126,6 +131,7 @@ struct Range2dHasher {
     for (int i = 0; i < n; ++i) {
       for (int j = 0; j < m; ++j) {
         u64 h = u64(g[i][j]);
+        assert(h != 0);  // Ensure all elements are non-zero!
         h = add(h, mul(cum_hash[i][j + 1], b1));
         h = add(h, mul(cum_hash[i + 1][j], b2));
         h = sub(h, mul(mul(cum_hash[i][j], b1), b2));
@@ -146,7 +152,7 @@ struct Range2dHasher {
   }
 
  private:
-  static std::pair<u64, u64> base() {
+  static std::pair<u64, u64> bases() {
     static const auto kBase = []() -> std::pair<u64, u64> {
       std::random_device seed_gen;
       std::mt19937_64 engine(seed_gen());
