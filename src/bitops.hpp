@@ -66,7 +66,7 @@ inline int bit_width(u64 x) {
 }
 template <typename T, typename U = std::make_unsigned_t<T>>
 inline U bit_floor(T x) {
-  if (x == 0) return 0;
+  if (x <= 2) return x;
   return U(1) << (bit_width(U(x)) - 1);
 }
 template <typename T, typename U = std::make_unsigned_t<T>>
