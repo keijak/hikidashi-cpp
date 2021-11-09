@@ -71,7 +71,7 @@ inline U bit_floor(T x) {
 }
 template <typename T, typename U = std::make_unsigned_t<T>>
 inline U bit_ceil(T x) {
-  if (x == 0) return 1;
+  if (x <= 2) return x;
   return bit_floor(U(x - 1)) << 1;
 }
 
