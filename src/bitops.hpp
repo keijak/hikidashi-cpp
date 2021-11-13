@@ -3,7 +3,7 @@
 #include <functional>
 #include <limits>
 #include <type_traits>
-using u64 = unsigned long long;
+using Uint = unsigned long long;
 
 namespace bitops {
 
@@ -35,24 +35,24 @@ inline int countr_one(unsigned x) {
   return __builtin_ctz(x);
 }
 
-inline int popcount(u64 x) { return __builtin_popcountll(x); }
-inline bool has_single_bit(u64 x) { return __builtin_popcountll(x) == 1; }
-inline int countl_zero(u64 x) {
-  if (x == 0) return std::numeric_limits<u64>::digits;
+inline int popcount(Uint x) { return __builtin_popcountll(x); }
+inline bool has_single_bit(Uint x) { return __builtin_popcountll(x) == 1; }
+inline int countl_zero(Uint x) {
+  if (x == 0) return std::numeric_limits<Uint>::digits;
   return __builtin_clzll(x);
 }
-inline int countr_zero(u64 x) {
-  if (x == 0) return std::numeric_limits<u64>::digits;
+inline int countr_zero(Uint x) {
+  if (x == 0) return std::numeric_limits<Uint>::digits;
   return __builtin_ctzll(x);
 }
-inline int countl_one(u64 x) {
+inline int countl_one(Uint x) {
   x = ~x;
-  if (x == 0) return std::numeric_limits<u64>::digits;
+  if (x == 0) return std::numeric_limits<Uint>::digits;
   return __builtin_clzll(x);
 }
-inline int countr_one(u64 x) {
+inline int countr_one(Uint x) {
   x = ~x;
-  if (x == 0) return std::numeric_limits<u64>::digits;
+  if (x == 0) return std::numeric_limits<Uint>::digits;
   return __builtin_ctzll(x);
 }
 
@@ -60,9 +60,9 @@ inline int bit_width(unsigned x) {
   if (x == 0) return 0;
   return std::numeric_limits<unsigned>::digits - __builtin_clz(x);
 }
-inline int bit_width(u64 x) {
+inline int bit_width(Uint x) {
   if (x == 0) return 0;
-  return std::numeric_limits<u64>::digits - __builtin_clzll(x);
+  return std::numeric_limits<Uint>::digits - __builtin_clzll(x);
 }
 template <typename T, typename U = std::make_unsigned_t<T>>
 inline U bit_floor(T x) {
@@ -82,9 +82,9 @@ inline int msb_log(unsigned x) {
   assert(x != 0);
   return std::numeric_limits<unsigned>::digits - __builtin_clz(x) - 1;
 }
-inline int msb_log(u64 x) {
+inline int msb_log(Uint x) {
   assert(x != 0);
-  return std::numeric_limits<u64>::digits - __builtin_clzll(x) - 1;
+  return std::numeric_limits<Uint>::digits - __builtin_clzll(x) - 1;
 }
 template <typename T, typename U = std::make_unsigned_t<T>>
 inline U msb(T x) {
@@ -103,7 +103,7 @@ inline int lsb_log(unsigned x) {
   assert(x != 0);
   return __builtin_ctz(x);
 }
-inline int lsb_log(u64 x) {
+inline int lsb_log(Uint x) {
   assert(x != 0);
   return __builtin_ctzll(x);
 }
