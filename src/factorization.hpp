@@ -201,36 +201,63 @@ std::vector<bool> prime_sieve(int n) {
   return is_prime;
 }
 
-// Returns a prime table of the segment [L, R).
-// (table[x-L] != 0) ⇔ x is a prime number.
-std::vector<Int> segment_sieve(Int L, Int R) {
-  static const Int SQRTN = 1LL << 20;  // upper bound of sqrt(R)
-  static int p[SQRTN], lookup = 0;
-  assert(R <= SQRTN * SQRTN);
-  if (!lookup) {
-    for (int i = 2; i < SQRTN; ++i) p[i] = i;
-    for (int i = 2; i * i < SQRTN; ++i)
-      if (p[i])
-        for (int j = i * i; j < SQRTN; j += i) p[j] = 0;
-    std::remove(p, p + SQRTN, 0);
-    lookup = 1;
-  }
-  std::vector<Int> table(R - L);
-  for (Int i = L; i < R; ++i) {
-    table[i - L] = i;
-  }
-  for (int i = 0; Int(p[i]) * p[i] < R; ++i) {  // O( \sqrt(R) )
-    Int j;
-    if (p[i] >= L) {
-      j = Int(p[i]) * p[i];
-    } else if (L % p[i] == 0) {
-      j = L;
-    } else {
-      j = L - (L % p[i]) + p[i];
+// Factorization table for a segment [L, R).
+class SegmentSieve {
+  Int L, R, M;
+  std::vector<Int> spf;  // smallest prime factor for [0, sqrt(R)]
+  std::vector<std::vector<Int>> factors;  // small prime factors of (L+i).
+  std::vector<Int> factors_prod;  // product of small prime factors of (L+i).
+
+ public:
+  SegmentSieve(Int L, Int R) : L(L), R(R), M(1) {
+    while (M * M <= R) M <<= 1;  // Ensure M > sqrt(R).
+    spf.resize(M);
+    std::iota(spf.begin(), spf.end(), 0);
+    factors.resize(R - L);
+    factors_prod.assign(R - L, 1);
+
+    for (Int i = 2; i * i < R; ++i) {
+      if (spf[i] != i) continue;
+      for (Int j = i * i; j < M; j += i) {
+        if (spf[j] == j) spf[j] = i;
+      }
+      for (Int j = (L + i - 1) / i * i; j < R; j += i) {
+        Int num = j;
+        do {
+          if (factors_prod[j - L] >= M) break;
+          factors[j - L].push_back(i);
+          factors_prod[j - L] *= i;
+          num /= i;
+        } while (num % i == 0);
+      }
     }
-    for (; j < R; j += p[i]) {
-      table[j - L] = 0;
-    }
   }
-  return table;
-}
+
+  inline bool is_prime(int n) const {
+    if (n <= 1) return false;
+    if (n < M) return spf[n] == n;
+    assert(L <= n and n < R);
+    auto fp = factors_prod[n - L];
+    return (fp == n) or (fp == 1);
+  }
+
+  std::vector<Int> factorize(Int n) const {
+    if (n <= 1) return {};
+    assert(n < M or (L <= n and n < R));
+    std::vector<Int> res;
+    if (n >= L) {
+      res = factors[n - L];
+      n /= factors_prod[n - L];
+      if (n >= M) {
+        res.push_back(n);  // n must be a large prime.
+        n = 1;
+      }
+    }
+    while (n > 1) {
+      res.push_back(spf[n]);
+      n /= spf[n];
+    }
+    std::sort(res.begin(), res.end());
+    return res;
+  }
+};
