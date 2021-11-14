@@ -6,7 +6,7 @@
 // Supports a broad range of indices without compression.
 
 template <typename Monoid>
-struct HashSegmentTree {
+struct SegmentTree {
   using T = typename Monoid::T;
   using Int = long long;
 
@@ -19,7 +19,7 @@ struct HashSegmentTree {
   inline Int size() const { return n_; }
   inline Int offset() const { return offset_; }
 
-  explicit HashSegmentTree(Int n) : n_(n) {
+  explicit SegmentTree(Int n) : n_(n) {
     offset_ = 1;
     while (offset_ < n_) offset_ <<= 1;
 

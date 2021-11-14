@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 
 template <typename Monoid>
-struct PtrDualSegmentTree {
+struct DualSegmentTree {
   using Int = long long;
   using T = typename Monoid::T;
   struct Node;
@@ -42,7 +42,7 @@ struct PtrDualSegmentTree {
   Int size_;
   NodePool *pool_;
 
-  explicit PtrDualSegmentTree(Int n, NodePool *pool = NO_DELETE())
+  explicit DualSegmentTree(Int n, NodePool *pool = NO_DELETE())
       : size_(n), pool_(pool) {
     root_ = make_leaf(Monoid::id());
   }

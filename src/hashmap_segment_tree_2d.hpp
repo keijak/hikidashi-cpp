@@ -4,7 +4,7 @@
 // Less performant and more memory-efficient than a pointer-based
 // implementation.
 template <typename Monoid>
-struct HashSegmentTree2d {
+struct SegmentTree2d {
   using Int = long long;
   using T = typename Monoid::T;
 
@@ -14,7 +14,7 @@ struct HashSegmentTree2d {
   Int col_offset_;
   std::vector<std::unordered_map<Int, T>> data_;
 
-  HashSegmentTree2d(Int nrow, Int ncol) : nrow_(nrow), ncol_(ncol) {
+  SegmentTree2d(Int nrow, Int ncol) : nrow_(nrow), ncol_(ncol) {
     row_offset_ = 1;
     while (row_offset_ < nrow) row_offset_ <<= 1;
     col_offset_ = 1;

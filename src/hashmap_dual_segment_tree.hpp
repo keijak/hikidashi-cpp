@@ -2,14 +2,14 @@
 
 // range-apply point-get.
 template <typename Monoid>
-struct HashDualSegmentTree {
+struct DualSegmentTree {
   using T = typename Monoid::T;
   using Int = long long;
 
   Int size_;
   std::unordered_map<Int, T> data_;
 
-  explicit HashDualSegmentTree(Int n) : size_(n) {}
+  explicit DualSegmentTree(Int n) : size_(n) {}
 
   inline Int size() const { return size_; }
 
