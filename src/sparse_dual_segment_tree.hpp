@@ -2,14 +2,14 @@
 
 // range-apply point-get.
 template <typename Monoid>
-struct SparseDualSegmentTree {
+struct HashDualSegmentTree {
   using T = typename Monoid::T;
   using Int = long long;
 
   Int size_;
   std::unordered_map<Int, T> data_;
 
-  explicit SparseDualSegmentTree(Int n) : size_(n) {}
+  explicit HashDualSegmentTree(Int n) : size_(n) {}
 
   inline Int size() const { return size_; }
 
@@ -53,14 +53,14 @@ struct SparseDualSegmentTree {
   }
 
   friend std::ostream &operator<<(std::ostream &os,
-                                  const SparseDualSegmentTree &st) {
+                                  const HashDualSegmentTree &st) {
     static const int kMaxOutput = 100;
     os << "[";
-    for (Int i = 0; i < std::min<Int>(st.n(), kMaxOutput); ++i) {
+    for (Int i = 0; i < std::min<Int>(st.size(), kMaxOutput); ++i) {
       if (i != 0) os << ", ";
       os << st[i];
     }
-    if (st.n() > kMaxOutput) {
+    if (st.size() > kMaxOutput) {
       os << ", ...";
     }
     return os << "]";

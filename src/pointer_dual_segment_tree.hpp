@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 
 template <typename Monoid>
-struct PtrSegmentTree {
+struct PtrDualSegmentTree {
   using Int = long long;
   using T = typename Monoid::T;
   struct Node;
@@ -42,16 +42,14 @@ struct PtrSegmentTree {
   Int size_;
   NodePool *pool_;
 
-  explicit PtrSegmentTree(Int n, NodePool *pool = NO_DELETE())
+  explicit PtrDualSegmentTree(Int n, NodePool *pool = NO_DELETE())
       : size_(n), pool_(pool) {
     root_ = make_leaf(Monoid::id());
   }
 
-  void set(Int k, T x) { set_(k, std::move(x), root_, 0, size_); }
-
-  T fold(Int kl, Int kr) const { return fold_(kl, kr, root_, 0, size_); }
-  T fold_all() const { return root_->data; }
-  T operator[](Int k) const { return fold_(k, k + 1, root_, 0, size_); }
+  void apply(Int kl, Int kr, T x) { apply_(kl, kr, x, root_, 0, size_); }
+  void set(Int k, T x) { return set_(k, x, root_, 0, size_); }
+  T operator[](Int k) const { return get_(k, root_, 0, size_); }
 
   std::vector<T> to_vec(Int size = -1) const {
     if (size < 0) size = size_;
@@ -70,30 +68,45 @@ struct PtrSegmentTree {
     return p;
   }
 
-  void set_(Int k, T val, NodePtr np, Int nl, Int nr) {
+  void apply_(Int kl, Int kr, const T &val, NodePtr np, Int nl, Int nr) {
+    if (np == nullptr) return;
+    if (nr <= kl or kr <= nl) return;
+    if (kl <= nl and nr <= kr) {
+      np->data = Monoid::op(np->data, val);
+      return;
+    }
+    Int nm = (nl + nr) >> 1;
+    if (np->l == nullptr) np->l = make_leaf(Monoid::id());
+    apply_(kl, kr, val, np->l, nl, nm);
+    if (np->r == nullptr) np->r = make_leaf(Monoid::id());
+    apply_(kl, kr, val, np->r, nm, nr);
+  }
+
+  void set_(Int k, const T &val, NodePtr np, Int nl, Int nr) {
+    assert(np != nullptr);
     if (nl + 1 == nr) {
-      np->data = std::move(val);
+      np->data = val;
       return;
     }
     Int nm = (nl + nr) >> 1;
     if (k < nm) {
       if (np->l == nullptr) np->l = make_leaf(Monoid::id());
-      set_(k, std::move(val), np->l, nl, nm);
+      set_(k, val, np->l, nl, nm);
     } else {
       if (np->r == nullptr) np->r = make_leaf(Monoid::id());
-      set_(k, std::move(val), np->r, nm, nr);
+      set_(k, val, np->r, nm, nr);
     }
-    np->data = Monoid::op(np->l == nullptr ? Monoid::id() : np->l->data,
-                          np->r == nullptr ? Monoid::id() : np->r->data);
   }
 
-  T fold_(Int kl, Int kr, NodePtr np, Int nl, Int nr) const {
+  T get_(Int k, NodePtr np, Int nl, Int nr) const {
     if (np == nullptr) return Monoid::id();
-    if (nr <= kl or kr <= nl) return Monoid::id();
-    if (kl <= nl and nr <= kr) return np->data;
+    if (nl + 1 == nr) return np->data;
     Int nm = (nl + nr) >> 1;
-    return Monoid::op(fold_(kl, kr, np->l, nl, nm),
-                      fold_(kl, kr, np->r, nm, nr));
+    if (k < nm) {
+      return Monoid::op(get_(k, np->l, nl, nm), np->data);
+    } else {
+      return Monoid::op(get_(k, np->r, nm, nr), np->data);
+    }
   }
 
   static NodePool *NO_DELETE() {

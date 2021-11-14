@@ -6,7 +6,7 @@
 // Supports a broad range of indices without compression.
 
 template <typename Monoid>
-struct SparseSegmentTree {
+struct HashSegmentTree {
   using T = typename Monoid::T;
   using Int = long long;
 
@@ -19,7 +19,7 @@ struct SparseSegmentTree {
   inline Int size() const { return n_; }
   inline Int offset() const { return offset_; }
 
-  explicit SparseSegmentTree(Int n) : n_(n) {
+  explicit HashSegmentTree(Int n) : n_(n) {
     offset_ = 1;
     while (offset_ < n_) offset_ <<= 1;
 
@@ -89,8 +89,7 @@ struct SparseSegmentTree {
     }
   }
 
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const SparseSegmentTree &st) {
+  friend std::ostream &operator<<(std::ostream &os, const HashSegmentTree &st) {
     static const int kMaxOutput = 100;
     os << "[";
     for (Int i = 0; i < std::min<Int>(st.size(), kMaxOutput); ++i) {
