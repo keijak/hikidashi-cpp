@@ -44,7 +44,7 @@ struct DualSegmentTree {
 
   explicit DualSegmentTree(Int n, NodePool *pool = NO_DELETE())
       : size_(n), pool_(pool) {
-    root_ = make_leaf(Monoid::id());
+    root_ = make_node(Monoid::id());
   }
 
   void apply(Int kl, Int kr, T x) { apply_(kl, kr, x, root_, 0, size_); }
@@ -60,7 +60,7 @@ struct DualSegmentTree {
   }
 
  private:
-  NodePtr make_leaf(T data) const {
+  NodePtr make_node(T data) const {
     NodePtr p = pool_->new_node();
     p->data = std::move(data);
     p->l = p->r = nullptr;
@@ -75,9 +75,9 @@ struct DualSegmentTree {
       return;
     }
     Int nm = (nl + nr) >> 1;
-    if (np->l == nullptr) np->l = make_leaf(Monoid::id());
+    if (np->l == nullptr) np->l = make_node(Monoid::id());
     apply_(kl, kr, val, np->l, nl, nm);
-    if (np->r == nullptr) np->r = make_leaf(Monoid::id());
+    if (np->r == nullptr) np->r = make_node(Monoid::id());
     apply_(kl, kr, val, np->r, nm, nr);
   }
 

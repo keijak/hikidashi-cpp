@@ -44,7 +44,7 @@ struct SegmentTree {
 
   explicit SegmentTree(Int n, NodePool *pool = NO_DELETE())
       : size_(n), pool_(pool) {
-    root_ = make_leaf(Monoid::id());
+    root_ = make_node(Monoid::id());
   }
 
   void set(Int k, T x) { set_(k, std::move(x), root_, 0, size_); }
@@ -63,7 +63,7 @@ struct SegmentTree {
   }
 
  private:
-  NodePtr make_leaf(T data) const {
+  NodePtr make_node(T data) const {
     NodePtr p = pool_->new_node();
     p->data = std::move(data);
     p->l = p->r = nullptr;
@@ -77,10 +77,10 @@ struct SegmentTree {
     }
     Int nm = (nl + nr) >> 1;
     if (k < nm) {
-      if (np->l == nullptr) np->l = make_leaf(Monoid::id());
+      if (np->l == nullptr) np->l = make_node(Monoid::id());
       set_(k, std::move(val), np->l, nl, nm);
     } else {
-      if (np->r == nullptr) np->r = make_leaf(Monoid::id());
+      if (np->r == nullptr) np->r = make_node(Monoid::id());
       set_(k, std::move(val), np->r, nm, nr);
     }
     np->data = Monoid::op(np->l == nullptr ? Monoid::id() : np->l->data,
