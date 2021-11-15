@@ -48,7 +48,6 @@ struct DualSegmentTree {
   }
 
   void apply(Int kl, Int kr, T x) { apply_(kl, kr, x, root_, 0, size_); }
-  void set(Int k, T x) { return set_(k, x, root_, 0, size_); }
   T operator[](Int k) const { return get_(k, root_, 0, size_); }
 
   std::vector<T> to_vec(Int size = -1) const {
@@ -82,22 +81,6 @@ struct DualSegmentTree {
     apply_(kl, kr, val, np->r, nm, nr);
   }
 
-  void set_(Int k, const T &val, NodePtr np, Int nl, Int nr) {
-    assert(np != nullptr);
-    if (nl + 1 == nr) {
-      np->data = val;
-      return;
-    }
-    Int nm = (nl + nr) >> 1;
-    if (k < nm) {
-      if (np->l == nullptr) np->l = make_leaf(Monoid::id());
-      set_(k, val, np->l, nl, nm);
-    } else {
-      if (np->r == nullptr) np->r = make_leaf(Monoid::id());
-      set_(k, val, np->r, nm, nr);
-    }
-  }
-
   T get_(Int k, NodePtr np, Int nl, Int nr) const {
     if (np == nullptr) return Monoid::id();
     if (nl + 1 == nr) return np->data;
@@ -114,3 +97,10 @@ struct DualSegmentTree {
     return &kNoDeletePool;
   }
 };
+
+template <class M>
+void set_value(DualSegmentTree<M> &seg, Int k, const typename M::T &val) {
+  auto pval = seg[k];
+  auto delta = M::op(M::invert(pval), val);
+  seg.apply(k, k + 1, delta);
+}
