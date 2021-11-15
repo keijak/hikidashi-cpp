@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 
 template <typename Monoid>
-struct DualSegmentTree {
+struct SegmentTree {
   using Int = long long;
   using T = typename Monoid::T;
   struct Node;
@@ -15,7 +15,7 @@ struct DualSegmentTree {
   };
 
   struct NodePool {
-    static constexpr size_t kInitialBlockSize = 1u << 12;
+    static constexpr size_t kInitBlockSize = 1u << 12;
     static constexpr double kBlockSizeGrowthRate = 1.5;  // Decrease if MLE.
 
     std::vector<std::unique_ptr<Node[]>> blocks_;
@@ -23,8 +23,8 @@ struct DualSegmentTree {
     size_t bi_;
     size_t ni_;
 
-    NodePool() : bsize_(kInitialBlockSize), bi_(0), ni_(0) {
-      blocks_.emplace_back(new Node[kInitialBlockSize]);
+    NodePool() : bsize_(kInitBlockSize), bi_(0), ni_(0) {
+      blocks_.emplace_back(new Node[kInitBlockSize]);
     }
 
     NodePtr new_node() {
@@ -42,13 +42,16 @@ struct DualSegmentTree {
   Int size_;
   NodePool *pool_;
 
-  explicit DualSegmentTree(Int n, NodePool *pool = NO_DELETE())
+  explicit SegmentTree(Int n, NodePool *pool = NO_DELETE())
       : size_(n), pool_(pool) {
     root_ = make_node(Monoid::id());
   }
 
-  void apply(Int kl, Int kr, T x) { apply_(kl, kr, x, root_, 0, size_); }
-  T operator[](Int k) const { return get_(k, root_, 0, size_); }
+  void set(Int k, T x) { set_(k, std::move(x), root_, 0, size_); }
+
+  T fold(Int kl, Int kr) const { return fold_(kl, kr, root_, 0, size_); }
+  T fold_all() const { return root_->data; }
+  T operator[](Int k) const { return fold_(k, k + 1, root_, 0, size_); }
 
   std::vector<T> to_vec(Int size = -1) const {
     if (size < 0) size = size_;
@@ -67,29 +70,30 @@ struct DualSegmentTree {
     return p;
   }
 
-  void apply_(Int kl, Int kr, const T &val, NodePtr np, Int nl, Int nr) {
-    if (np == nullptr) return;
-    if (nr <= kl or kr <= nl) return;
-    if (kl <= nl and nr <= kr) {
-      np->data = Monoid::op(np->data, val);
+  void set_(Int k, T val, NodePtr np, Int nl, Int nr) {
+    if (nl + 1 == nr) {
+      np->data = std::move(val);
       return;
     }
     Int nm = (nl + nr) >> 1;
-    if (np->l == nullptr) np->l = make_node(Monoid::id());
-    apply_(kl, kr, val, np->l, nl, nm);
-    if (np->r == nullptr) np->r = make_node(Monoid::id());
-    apply_(kl, kr, val, np->r, nm, nr);
+    if (k < nm) {
+      if (np->l == nullptr) np->l = make_node(Monoid::id());
+      set_(k, std::move(val), np->l, nl, nm);
+    } else {
+      if (np->r == nullptr) np->r = make_node(Monoid::id());
+      set_(k, std::move(val), np->r, nm, nr);
+    }
+    np->data = Monoid::op(np->l == nullptr ? Monoid::id() : np->l->data,
+                          np->r == nullptr ? Monoid::id() : np->r->data);
   }
 
-  T get_(Int k, NodePtr np, Int nl, Int nr) const {
+  T fold_(Int kl, Int kr, NodePtr np, Int nl, Int nr) const {
     if (np == nullptr) return Monoid::id();
-    if (nl + 1 == nr) return np->data;
+    if (nr <= kl or kr <= nl) return Monoid::id();
+    if (kl <= nl and nr <= kr) return np->data;
     Int nm = (nl + nr) >> 1;
-    if (k < nm) {
-      return Monoid::op(get_(k, np->l, nl, nm), np->data);
-    } else {
-      return Monoid::op(get_(k, np->r, nm, nr), np->data);
-    }
+    return Monoid::op(fold_(kl, kr, np->l, nl, nm),
+                      fold_(kl, kr, np->r, nm, nr));
   }
 
   static NodePool *NO_DELETE() {
@@ -97,10 +101,3 @@ struct DualSegmentTree {
     return &kNoDeletePool;
   }
 };
-
-template <class M>
-void set_value(DualSegmentTree<M> &seg, Int k, const typename M::T &val) {
-  auto pval = seg[k];
-  auto delta = M::op(M::invert(pval), val);
-  seg.apply(k, k + 1, delta);
-}

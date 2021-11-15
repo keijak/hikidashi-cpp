@@ -18,7 +18,7 @@ struct PersistentLazySegmentTree {
   };
 
   struct NodePool {
-    static constexpr size_t kInitialBlockSize = 1u << 12;
+    static constexpr size_t kInitBlockSize = 1u << 12;
     static constexpr double kBlockSizeGrowthRate = 1.5;  // Decrease if MLE.
 
     std::vector<std::unique_ptr<Node[]>> blocks_;
@@ -26,8 +26,8 @@ struct PersistentLazySegmentTree {
     size_t bi_;
     size_t ni_;
 
-    NodePool() : bsize_(kInitialBlockSize), bi_(0), ni_(0) {
-      blocks_.emplace_back(new Node[kInitialBlockSize]);
+    NodePool() : bsize_(kInitBlockSize), bi_(0), ni_(0) {
+      blocks_.emplace_back(new Node[kInitBlockSize]);
     }
 
     NodePtr new_node() {

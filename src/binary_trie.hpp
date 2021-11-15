@@ -17,7 +17,7 @@ struct BinaryTrie {
   NodePtr root_;  // The root node.
 
   struct NodePool {
-    static constexpr size_t kInitBlockSize = 1u << 12;
+    static constexpr size_t kInitialBlockSize = 1u << 12;
     static constexpr double kBlockSizeGrowthRate = 1.5;  // Decrease if MLE.
 
     std::vector<std::unique_ptr<Node[]>> blocks_;
@@ -25,8 +25,8 @@ struct BinaryTrie {
     size_t bi_;
     size_t ni_;
 
-    NodePool() : bsize_(kInitBlockSize), bi_(0), ni_(0) {
-      blocks_.emplace_back(new Node[kInitBlockSize]);
+    NodePool() : bsize_(kInitialBlockSize), bi_(0), ni_(0) {
+      blocks_.emplace_back(new Node[kInitialBlockSize]);
     }
 
     NodePtr new_node() {
