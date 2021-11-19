@@ -1,8 +1,9 @@
 // Kadane's Algorithm
-// `a` must not be empty (or provide a default value).
-// `a[i]` can be negative.
+// Returns max(sum(s[l:r])).
+// - `a` must not be empty (or provide a default value).
+// - `a[i]` can be negative.
 template <typename T>
-T maximum_subarray(const vector<T>& a) {
+T max_subarray(const vector<T>& a) {
   assert(!a.empty());
   T res = a[0];  // default value
   T sum = 0;
