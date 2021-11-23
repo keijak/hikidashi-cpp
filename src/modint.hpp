@@ -55,6 +55,9 @@ struct ModInt {
     return *this;
   }
   constexpr ModInt pow(unsigned long long t) const {
+    if (_v == 0) {
+      return 0;  // corner case: 0^0 = ?
+    }
     ModInt base = *this;
     ModInt res = 1;
     while (t) {
