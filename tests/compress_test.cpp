@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-#include "compress.hpp"
+#include "../src/compress.hpp"
 #include "gtest/gtest.h"
 
 using namespace std;
