@@ -32,23 +32,23 @@ class BIT_2D_RangeAdd_RangeSum {
         bity(n, vector<T>(m, 0)),
         bitc(n, vector<T>(m, 0)) {}
 
-  // [lx, rx)×[ly, ry) に val を足す
-  void add(const int lx, const int ly, const int rx, const int ry,
+  // top_left×bottom_right (exclusive) の矩形領域に val を足す
+  void add(const int tlx, const int tly, const int brx, const int bry,
            const T val) {
-    add(lx, ly, val, -val * (ly - 1), -val * (lx - 1),
-        val * (lx - 1) * (ly - 1));
-    add(rx, ly, -val, val * (ly - 1), val * (rx - 1),
-        -val * (rx - 1) * (ly - 1));
-    add(lx, ry, -val, val * (ry - 1), val * (lx - 1),
-        -val * (lx - 1) * (ry - 1));
-    add(rx, ry, val, -val * (ry - 1), -val * (rx - 1),
-        val * (rx - 1) * (ry - 1));
+    add(tlx, tly, val, -val * (tly - 1), -val * (tlx - 1),
+        val * (tlx - 1) * (tly - 1));
+    add(brx, tly, -val, val * (tly - 1), val * (brx - 1),
+        -val * (brx - 1) * (tly - 1));
+    add(tlx, bry, -val, val * (bry - 1), val * (tlx - 1),
+        -val * (tlx - 1) * (bry - 1));
+    add(brx, bry, val, -val * (bry - 1), -val * (brx - 1),
+        val * (brx - 1) * (bry - 1));
   }
 
-  // [lx, rx)×[ly, ry) の和を求める
-  T sum(const int lx, const int ly, const int rx, const int ry) const {
-    return sum(rx - 1, ry - 1) - sum(lx - 1, ry - 1) - sum(rx - 1, ly - 1) +
-           sum(lx - 1, ly - 1);
+  // top_left×bottom_right (exclusive) の矩形領域の和を求める
+  T sum(const int tlx, const int tly, const int brx, const int bry) const {
+    return sum(brx - 1, bry - 1) - sum(tlx - 1, bry - 1) -
+           sum(brx - 1, tly - 1) + sum(tlx - 1, tly - 1);
   }
 
   void print() const {
