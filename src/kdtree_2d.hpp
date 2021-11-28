@@ -66,27 +66,27 @@ ll find(Node *nd, ll x, ll y, int depth, ll r) {
   return r;
 }
 
-// find nodes in [sx, tx]×[sy,ty] (Range Search)
-void find(Node *nd, vector<int> &result, ll sx, ll tx, ll sy, ll ty,
+// find nodes in [tl.x, tl.y]×[br.x, br.y] (Range Search)
+void find(Node *nd, vector<int> &result, ll tlx, ll tly, ll brx, ll bry,
           int depth) {
   Point &p = nd->p;
-  if (sx <= p.x && p.x <= tx && sy <= p.y && p.y <= ty) {
+  if (tlx <= p.x && p.x <= brx && tly <= p.y && p.y <= bry) {
     result.push_back(p.i);
   }
 
   if (depth % 2) {
-    if (nd->left != nullptr && sx <= p.x) {
-      find(nd->left, result, sx, tx, sy, ty, depth + 1);
+    if (nd->left != nullptr && tlx <= p.x) {
+      find(nd->left, result, tlx, brx, tly, bry, depth + 1);
     }
-    if (nd->right != nullptr && p.x <= tx) {
-      find(nd->right, result, sx, tx, sy, ty, depth + 1);
+    if (nd->right != nullptr && p.x <= brx) {
+      find(nd->right, result, tlx, brx, tly, bry, depth + 1);
     }
   } else {
-    if (nd->left != nullptr && sy <= p.y) {
-      find(nd->left, result, sx, tx, sy, ty, depth + 1);
+    if (nd->left != nullptr && tly <= p.y) {
+      find(nd->left, result, tlx, brx, tly, bry, depth + 1);
     }
-    if (nd->right != nullptr && p.y <= ty) {
-      find(nd->right, result, sx, tx, sy, ty, depth + 1);
+    if (nd->right != nullptr && p.y <= bry) {
+      find(nd->right, result, tlx, brx, tly, bry, depth + 1);
     }
   }
 }

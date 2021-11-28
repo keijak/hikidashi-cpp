@@ -34,8 +34,9 @@ struct SegmentTree2d {
 
   void set(Int i, Int j, T x) { set_x(i, j, std::move(x), root_, 0, nrow_); }
 
-  T fold(Int iu, Int id, Int jl, Int jr) const {
-    return fold_x(iu, id, jl, jr, root_, 0, nrow_);
+  // Query a rectangle: top_left x bottom_right.
+  T fold(Int tlx, Int tly, Int brx, Int bry) {
+    return fold_x(tlx, brx, tly, bry, root_, 0, nrow_);
   }
   T fold_all() const { return root_->col->data; }
   T get(Int i, Int j) const { return fold(i, i + 1, j, j + 1); }
