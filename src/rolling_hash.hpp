@@ -38,6 +38,11 @@ struct RollingHash {
     }
     return kPowBase[i];
   }
+
+  // Calculates hash(s || t) from hash(s), hash(t) and len(t).
+  static u64 concat(u64 a, u64 b, int b_length) {
+    return add(mul(a, pow_base(b_length)), b);
+  }
 };
 
 // Computes hash for any substring in O(1).
