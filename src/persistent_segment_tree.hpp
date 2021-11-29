@@ -16,7 +16,7 @@ struct PersistentSegmentTree {
 
   struct NodePool {
     static constexpr size_t kInitialBlockSize = 1u << 12;
-    static constexpr double kBlockSizeGrowthRate = 1.5;  // Decrease if MLE.
+    static constexpr double kBlockSizeGrowthRate = 1.5;  // Try smaller rate if MLE.
 
     std::vector<std::unique_ptr<Node[]>> blocks_;
     size_t bsize_;

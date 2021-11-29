@@ -62,6 +62,7 @@ struct SuccinctBitVector {
 template <class T = unsigned, int kBitWidth = std::numeric_limits<T>::digits>
 struct WaveletMatrix {
   static_assert(std::is_unsigned<T>::value, "Requires unsigned type");
+  static_assert(kBitWidth > 0);
 
   int size_;
   std::array<SuccinctBitVector, kBitWidth> matrix;

@@ -10,3 +10,6 @@ target_link_libraries(compress_test PRIVATE GTest::gtest GTest::gmock GTest::gte
 
 add_executable(rolling_hash_test tests/rolling_hash_test.cpp)
 target_link_libraries(rolling_hash_test PRIVATE GTest::gtest GTest::gmock GTest::gtest_main)
+
+add_executable(wavelet_matrix_test tests/wavelet_matrix_test.cpp)
+target_link_libraries(wavelet_matrix_test PRIVATE GTest::gtest GTest::gmock GTest::gtest_main)
