@@ -7,3 +7,6 @@ find_package(GTest CONFIG REQUIRED)
 
 add_executable(compress_test tests/compress_test.cpp)
 target_link_libraries(compress_test PRIVATE GTest::gtest GTest::gmock GTest::gtest_main)
+
+add_executable(rolling_hash_test tests/rolling_hash_test.cpp)
+target_link_libraries(rolling_hash_test PRIVATE GTest::gtest GTest::gmock GTest::gtest_main)

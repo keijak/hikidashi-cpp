@@ -4,7 +4,7 @@
 
 using namespace std;
 
-TEST(CompressedTest, Test) {
+TEST(CompressedTest, Basic) {
   vector<int> v = {3, 1, 5, 1, 3, 1, 1, 5, 5, 2};
   Compressed<int> cv(v);
   EXPECT_EQ(cv.size(), 4);
