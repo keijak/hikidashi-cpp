@@ -10,7 +10,6 @@
 
 #include <bits/stdc++.h>
 using Int = long long;
-using u64 = unsigned long long;
 
 #include <atcoder/convolution>
 #include <atcoder/math>
@@ -67,22 +66,29 @@ struct NTTMult {
     return res;
   }
 
-  static std::vector<T> invert(const std::vector<T> &x) {
-    assert(x[0].val() != 0);  // must be invertible
-    const int n = x.size();
-    std::vector<T> res(n);
-    res[0] = T(1) / x[0];
-    for (int i = 1; i < n; i <<= 1) {
-      const int m = std::min(2 * i, n);
-      std::vector<T> f(2 * i), g(2 * i);
-      for (int j = 0; j < m; ++j) f[j] = x[j];
-      for (int j = 0; j < i; ++j) g[j] = res[j];
-      f = atcoder::convolution(f, g);
-      f.resize(2 * i);
-      for (int j = 0; j < i; ++j) f[j] = 0;
-      f = atcoder::convolution(f, g);
-      for (int j = i; j < m; ++j) res[j] = -f[j];
+  static std::vector<T> invert(const std::vector<T> &x, int d = -1) {
+    int n = x.size();
+    assert(n != 0 && x[0].val() != 0);  // must be invertible
+    if (d == -1) d = n;
+    assert(d >= 0);
+    std::vector<T> res{x[0].inv()};
+    for (int m = 1, m2 = 2; m < d; m = m2, m2 *= 2) {
+      std::vector<T> f(x.begin(), x.begin() + min(n, m2));
+      std::vector<T> g(res);
+      f.resize(m2), atcoder::internal::butterfly(f);
+      g.resize(m2), atcoder::internal::butterfly(g);
+      for (int i = 0; i < m2; ++i) f[i] *= g[i];
+      atcoder::internal::butterfly_inv(f);
+      f.erase(f.begin(), f.begin() + m);
+      f.resize(m2), atcoder::internal::butterfly(f);
+      for (int i = 0; i < m2; ++i) f[i] *= g[i];
+      atcoder::internal::butterfly_inv(f);
+      T iz = T(m2).inv();
+      iz *= -iz;
+      for (int i = 0; i < m; ++i) f[i] *= iz;
+      res.insert(res.end(), f.begin(), f.begin() + m);
     }
+    res.resize(d);
     return res;
   }
 };
