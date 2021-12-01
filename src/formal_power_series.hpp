@@ -369,7 +369,7 @@ struct SparseFPS {
   std::vector<int> degree_;
   std::vector<T> coeff_;
 
-  SparseFPS() : size_(1), degree_(1, 0), coeff_(1, 0) {}  // zero
+  SparseFPS() : size_(0) {}  // zero
 
   explicit SparseFPS(std::vector<std::pair<int, T>> terms)
       : size_(terms.size()), degree_(size_), coeff_(size_) {
