@@ -200,7 +200,7 @@ struct DenseFPS {
   // Coefficients of terms from x^0 to x^DMAX.
   std::vector<T> coeff_;
 
-  DenseFPS() : coeff_(1, 0) {}  // = 0 * x^0
+  DenseFPS() : coeff_(1, 0) {}  // zero
 
   explicit DenseFPS(std::vector<T> c) : coeff_(std::move(c)) {
     while (size() > dmax() + 1) coeff_.pop_back();
@@ -369,7 +369,7 @@ struct SparseFPS {
   std::vector<int> degree_;
   std::vector<T> coeff_;
 
-  SparseFPS() : size_(0) {}
+  SparseFPS() : size_(1), degree_(1, 0), coeff_(1, 0) {}  // zero
 
   explicit SparseFPS(std::vector<std::pair<int, T>> terms)
       : size_(terms.size()), degree_(size_), coeff_(size_) {
