@@ -206,20 +206,9 @@ struct DenseFPS {
     while (size() > dmax() + 1) coeff_.pop_back();
     assert(size() > 0);
   }
-  DenseFPS(std::initializer_list<T> init) : coeff_(init.begin(), init.end()) {
+  DenseFPS(std::initializer_list<T> c) : coeff_(c.begin(), c.end()) {
     while (size() > dmax() + 1) coeff_.pop_back();
     assert(size() > 0);
-  }
-
-  DenseFPS(const DenseFPS &other) : coeff_(other.coeff_) {}
-  DenseFPS(DenseFPS &&other) : coeff_(std::move(other.coeff_)) {}
-  DenseFPS &operator=(const DenseFPS &other) {
-    coeff_ = other.coeff_;
-    return *this;
-  }
-  DenseFPS &operator=(DenseFPS &&other) {
-    coeff_ = std::move(other.coeff_);
-    return *this;
   }
 
   // size <= dmax + 1
