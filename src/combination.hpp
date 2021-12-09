@@ -1,5 +1,8 @@
 #include <bits/stdc++.h>
-using Mint = double;
+
+#include <atcoder/modint>
+using Int = long long;
+using Mint = atcoder::modint1000000007;
 
 // mod: prime
 template <class T = Mint>
@@ -98,6 +101,19 @@ T comb(long long n, long long k) {
     deno *= T(i + 1);
   }
   return nume / deno;
+}
+
+// Lucas' Theorem
+// P: prime
+Mint comb_mod(Int n, Int k) {
+  int P = Mint::mod();
+  Mint ret = 1;
+  while (n > 0 and k > 0) {
+    Int ni = n % P, ki = k % P;
+    ret *= comb<Mint>(ni, ki);
+    n /= P, k /= P;
+  }
+  return ret;
 }
 
 Mint factorial(int x) {
