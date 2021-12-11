@@ -2,14 +2,17 @@
 using namespace std;
 using u64 = unsigned long long;
 
+// Time seed
+// std::chrono::steady_clock::now().time_since_epoch().count()
+
 std::mt19937_64& PRNG() {
-  static std::random_device seed_gen;
-  static std::mt19937_64 engine(seed_gen());  // non-deterministic
+  static std::mt19937_64 engine{std::random_device{}()};
   return engine;
 }
 
+// Generates values in [lo, hi].
 int randint_example(int lo, int hi) {
-  std::uniform_int_distribution<int> rand(lo, hi);  // values in [lo, hi].
+  std::uniform_int_distribution<int> rand(lo, hi);
   return rand(PRNG());
 }
 
