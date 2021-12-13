@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 
+// K should be around log2(size), e.g. size=1e6 => K=20.
 template <typename T, int K = 20>
 class PersistentArray {
  public:
@@ -11,13 +12,10 @@ class PersistentArray {
     std::optional<T> val;
     std::unique_ptr<std::array<NodePtr, K>> children;
   };
+  NodePtr root_;
 
-  explicit PersistentArray(NodePtr root) : root_{std::move(root)} {}
   PersistentArray() : root_{} {}
-  PersistentArray(const PersistentArray &) = default;
-  PersistentArray(PersistentArray &&) = default;
-  PersistentArray &operator=(const PersistentArray &) = default;
-  PersistentArray &operator=(PersistentArray &&) = default;
+  explicit PersistentArray(NodePtr root) : root_{std::move(root)} {}
 
   std::optional<T> operator[](int idx) const { return do_get(idx, root_); }
 
@@ -54,7 +52,4 @@ class PersistentArray {
     }
     return res;
   }
-
- private:
-  NodePtr root_;
 };
