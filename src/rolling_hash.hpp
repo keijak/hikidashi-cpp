@@ -7,8 +7,7 @@ struct RollingHash {
 
   static u64 base() {
     static const auto kBase = []() -> u64 {
-      std::random_device seed_gen;
-      std::mt19937_64 engine(seed_gen());
+      std::mt19937_64 engine(std::random_device{}());
       std::uniform_int_distribution<u64> rand(1, kMod - 1);
       return rand(engine);
     }();
@@ -159,8 +158,7 @@ struct Range2dHasher {
  private:
   static std::pair<u64, u64> bases() {
     static const auto kBase = []() -> std::pair<u64, u64> {
-      std::random_device seed_gen;
-      std::mt19937_64 engine(seed_gen());
+      std::mt19937_64 engine(std::random_device{}());
       std::uniform_int_distribution<u64> rand(1, kMod - 1);
       return {rand(engine), rand(engine)};
     }();
