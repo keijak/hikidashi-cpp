@@ -6,9 +6,9 @@ struct RollingHash {
   static const u64 kMod = (1ULL << 61) - 1;
 
   static u64 base() {
-    static const auto kBase = []() -> u64 {
+    static const u64 kBase = []() {
       std::mt19937_64 engine(std::random_device{}());
-      std::uniform_int_distribution<u64> rand(1, kMod - 1);
+      std::uniform_int_distribution<u64> rand(1000, kMod - 1);
       return rand(engine);
     }();
     return kBase;
@@ -38,10 +38,17 @@ struct RollingHash {
     return kPowBase[i];
   }
 
-  // Calculates hash(s || t) from hash(s), hash(t) and len(t).
-  static u64 concat(u64 a, u64 b, int b_length) {
-    return add(mul(a, pow_base(b_length)), b);
+  // Calculates hash(a || b) from hash(a), hash(b) and length(b).
+  static u64 concat(u64 a_hash, u64 b_hash, int b_length) {
+    return add(mul(a_hash, pow_base(b_length)), b_hash);
   }
+
+  //  #include <atcoder/math>
+  //  static u64 inv_base() {
+  //    static const auto kInvBase = atcoder::inv_mod(
+  //        (long long) base(), (long long) kMod);
+  //    return kInvBase;
+  //  }
 };
 
 // Computes hash for any substring in O(1).
