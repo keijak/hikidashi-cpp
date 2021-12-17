@@ -6,7 +6,7 @@ using u64 = unsigned long long;
 // std::chrono::steady_clock::now().time_since_epoch().count()
 
 std::mt19937_64& PRNG() {
-  static std::mt19937_64 engine{std::random_device{}()};
+  static std::mt19937_64 engine(std::random_device{}());
   return engine;
 }
 
