@@ -585,3 +585,106 @@ FPS negative_binom(int n, const Factorials &fs) {
   }
   return FPS(std::move(coeff));
 }
+
+namespace fps_internal {
+
+std::optional<long long> sqrt_mod(long long a, int p) {
+  if (a == 0) return 0;
+  if (p == 2) return a;
+  if (atcoder::pow_mod(a, (p - 1) >> 1, p) != 1) return std::nullopt;
+  long long b = 1;
+  while (atcoder::pow_mod(b, (p - 1) >> 1, p) == 1) ++b;
+  long long e = 0, m = p - 1;
+  while (m % 2 == 0) m >>= 1, ++e;
+  auto x = atcoder::pow_mod(a, (m - 1) >> 1, p);
+  auto y = a * (x * x % p) % p;
+  (x *= a) %= p;
+  auto z = atcoder::pow_mod(b, m, p);
+  while (y != 1) {
+    long long j = 0, t = y;
+    while (t != 1) {
+      j += 1;
+      (t *= t) %= p;
+    }
+    z = atcoder::pow_mod(z, 1LL << (e - j - 1), p);
+    (x *= z) %= p;
+    (z *= z) %= p;
+    (y *= z) %= p;
+    e = j;
+  }
+  return x;
+}
+
+template <typename FPS, typename T = typename FPS::T>
+FPS sqrt_fft(const FPS &f_square) {
+  assert(f_square[0] == T(1));
+  static const T kHalf = T(1) / 2;
+  std::vector<T> f{1}, g{1}, z{1};
+  T n2_inv = 1;
+  for (int n = 1; n <= FPS::dmax(); n *= 2) {
+    for (int i = 0; i < n; ++i) z[i] *= z[i];
+    atcoder::internal::butterfly_inv(z);
+    for (int i = 0; i < n; ++i) z[i] *= n2_inv;
+
+    const int n2 = n * 2;
+    n2_inv *= kHalf;
+
+    std::vector<T> delta(n2);
+    for (int i = 0; i < n; ++i)
+      delta[n + i] = z[i] - f_square[i] - f_square[n + i];
+    atcoder::internal::butterfly(delta);
+
+    std::vector<T> gbuf(n2);
+    for (int i = 0; i < n; ++i) gbuf[i] = g[i];
+    atcoder::internal::butterfly(gbuf);
+
+    for (int i = 0; i < n2; ++i) delta[i] *= gbuf[i];
+    atcoder::internal::butterfly_inv(delta);
+    for (int i = 0; i < n2; ++i) delta[i] *= n2_inv;
+    f.resize(n2);
+    for (int i = n; i < n2; ++i) f[i] = -delta[i] * kHalf;
+    if (n2 > FPS::dmax()) break;
+
+    z = f;
+    atcoder::internal::butterfly(z);
+
+    std::vector<T> eps = gbuf;
+    for (int i = 0; i < n2; ++i) eps[i] *= z[i];
+    atcoder::internal::butterfly_inv(eps);
+    for (int i = 0; i < n; ++i) eps[i] = 0;
+    for (int i = n; i < n2; ++i) eps[i] *= n2_inv;
+    atcoder::internal::butterfly(eps);
+    for (int i = 0; i < n2; ++i) eps[i] *= gbuf[i];
+    atcoder::internal::butterfly_inv(eps);
+    for (int i = 0; i < n2; ++i) eps[i] *= n2_inv;
+    g.resize(n2);
+    for (int i = n; i < n2; ++i) g[i] -= eps[i];
+  }
+  if ((int)f.size() > FPS::dmax() + 1) {
+    f.resize(FPS::dmax() + 1);
+  }
+  return FPS(std::move(f));
+}
+}  // namespace fps_internal
+
+template <typename FPS, typename T = typename FPS::T>
+std::optional<FPS> fps_sqrt(const FPS &f_square) {
+  // fast path
+  if (f_square[0].val() == 1) return fps_internal::sqrt_fft(f_square);
+
+  int z = 0;
+  while (z < f_square.size() && f_square[z].val() == 0) ++z;
+  if (z == f_square.size()) return FPS{0};
+  if (z % 2 == 1) return std::nullopt;
+  const T fz = f_square[z];
+  const auto c0 = fps_internal::sqrt_mod(fz.val(), T::mod());
+  if (not c0.has_value()) return std::nullopt;
+  auto g =
+      FPS(std::vector<T>(f_square.coeff_.begin() + z, f_square.coeff_.end()));
+  g = fps_internal::sqrt_fft(g / fz);
+  const int zhalf = z / 2;
+  const int sz = std::min<int>(g.size() + zhalf, FPS::dmax() + 1);
+  std::vector<T> res(sz);
+  for (int i = zhalf; i < sz; ++i) res[i] = g[i - zhalf] * (*c0);
+  return FPS(std::move(res));
+}
