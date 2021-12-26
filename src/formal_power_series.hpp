@@ -73,7 +73,7 @@ struct NTTMult {
     assert(d >= 0);
     std::vector<T> res{x[0].inv()};
     for (int m = 1, m2 = 2; m < d; m = m2, m2 *= 2) {
-      std::vector<T> f(x.begin(), x.begin() + min(n, m2));
+      std::vector<T> f(x.begin(), x.begin() + std::min(n, m2));
       std::vector<T> g(res);
       f.resize(m2), atcoder::internal::butterfly(f);
       g.resize(m2), atcoder::internal::butterfly(g);

@@ -189,3 +189,30 @@ std::optional<int> log_mod(Int a, Int b, const int m) {
   }
   return std::nullopt;
 }
+
+std::optional<Int> sqrt_mod(Int a, int p) {
+  if (a == 0) return 0;
+  if (p == 2) return a;
+  if (atcoder::pow_mod(a, (p - 1) >> 1, p) != 1) return std::nullopt;
+  Int b = 1;
+  while (atcoder::pow_mod(b, (p - 1) >> 1, p) == 1) ++b;
+  Int e = 0, m = p - 1;
+  while (m % 2 == 0) m >>= 1, ++e;
+  auto x = atcoder::pow_mod(a, (m - 1) >> 1, p);
+  auto y = a * (x * x % p) % p;
+  (x *= a) %= p;
+  auto z = atcoder::pow_mod(b, m, p);
+  while (y != 1) {
+    Int j = 0, t = y;
+    while (t != 1) {
+      j += 1;
+      (t *= t) %= p;
+    }
+    z = atcoder::pow_mod(z, 1LL << (e - j - 1), p);
+    (x *= z) %= p;
+    (z *= z) %= p;
+    (y *= z) %= p;
+    e = j;
+  }
+  return x;
+}
