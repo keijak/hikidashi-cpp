@@ -271,7 +271,7 @@ struct DenseFPS {
   void shift_inplace(int k) {
     if (k > 0) {
       if (size() <= dmax()) {
-        coeff_.resize(min(size() + k, dmax() + 1), 0);
+        coeff_.resize(std::min(size() + k, dmax() + 1), 0);
       }
       for (int i = size() - 1; i >= k; --i) {
         coeff_[i] = coeff_[i - k];
