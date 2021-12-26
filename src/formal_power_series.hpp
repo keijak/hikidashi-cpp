@@ -267,6 +267,31 @@ struct DenseFPS {
     return DenseFPS(Mult::multiply(f.coeff_, g.coeff_));
   }
 
+  // Multiplies by x^k (with truncation).
+  void shift_inplace(int k) {
+    if (k > 0) {
+      if (size() <= dmax()) {
+        coeff_.resize(min(size() + k, dmax() + 1), 0);
+      }
+      for (int i = size() - 1; i >= k; --i) {
+        coeff_[i] = coeff_[i - k];
+      }
+      for (int i = k - 1; i >= 0; --i) {
+        coeff_[i] = 0;
+      }
+    } else if (k < 0) {
+      // If coefficients of degrees higher than dmax() were truncated
+      // beforehand, you lose the information. Ensure dmax() is big enough.
+      coeff_.erase(coeff_.begin(), coeff_.begin() + std::min(-k, size()));
+    }
+  }
+  // Multiplies by x^k.
+  DenseFPS shift(int k) const {
+    DenseFPS res = *this;
+    res.shift_inplace(k);
+    return res;
+  }
+
   DenseFPS &operator/=(const T &scalar) {
     for (auto &x : coeff_) x /= scalar;
     return *this;
@@ -295,42 +320,6 @@ struct DenseFPS {
   }
   friend DenseFPS operator/(const DenseFPS &f, const DenseFPS &g) {
     return DenseFPS(f) /= g;
-  }
-
-  DenseFPS pow(long long t) const {
-    assert(t >= 0);
-    DenseFPS res = {1}, base = *this;
-    while (t) {
-      if (t & 1) res *= base;
-      base *= base;
-      t >>= 1;
-    }
-    return res;
-  }
-
-  // Multiplies by x^k (with truncation).
-  void shift_inplace(int k) {
-    if (k > 0) {
-      if (size() <= dmax()) {
-        coeff_.resize(min(size() + k, dmax() + 1), 0);
-      }
-      for (int i = size() - 1; i >= k; --i) {
-        coeff_[i] = coeff_[i - k];
-      }
-      for (int i = k - 1; i >= 0; --i) {
-        coeff_[i] = 0;
-      }
-    } else if (k < 0) {
-      // If coefficients of degrees higher than dmax() were truncated
-      // beforehand, you lose the information. Ensure dmax() is big enough.
-      coeff_.erase(coeff_.begin(), coeff_.begin() + std::min(-k, size()));
-    }
-  }
-  // Multiplies by x^k.
-  DenseFPS shift(int k) const {
-    DenseFPS res = *this;
-    res.shift_inplace(k);
-    return res;
   }
 
   // Multiplies by (1 + c * x^k).
@@ -551,6 +540,18 @@ template <typename FPS, typename T = typename FPS::T>
 FPS operator/(const FPS &f, const SparseFPS<T> &g) {
   FPS res = f;
   res /= g;
+  return res;
+}
+
+template <typename FPS>
+FPS pow(FPS base, long long t) {
+  assert(t >= 0);
+  FPS res = {1};
+  while (t) {
+    if (t & 1) res *= base;
+    base *= base;
+    t >>= 1;
+  }
   return res;
 }
 
