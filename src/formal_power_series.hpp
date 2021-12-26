@@ -668,23 +668,23 @@ FPS sqrt_fft(const FPS &f_square) {
 }  // namespace fps_internal
 
 template <typename FPS, typename T = typename FPS::T>
-std::optional<FPS> fps_sqrt(const FPS &f_square) {
+std::optional<FPS> fps_sqrt(const FPS &f) {
   // fast path
-  if (f_square[0].val() == 1) return fps_internal::sqrt_fft(f_square);
+  if (f[0].val() == 1) return fps_internal::sqrt_fft(f);
 
   int z = 0;
-  while (z < f_square.size() && f_square[z].val() == 0) ++z;
-  if (z == f_square.size()) return FPS{0};
+  while (z < f.size() && f[z].val() == 0) ++z;
+  if (z == f.size()) return FPS{0};
   if (z % 2 == 1) return std::nullopt;
-  const T fz = f_square[z];
-  const auto c0 = fps_internal::sqrt_mod(fz.val(), T::mod());
-  if (not c0.has_value()) return std::nullopt;
-  auto g =
-      FPS(std::vector<T>(f_square.coeff_.begin() + z, f_square.coeff_.end()));
-  g = fps_internal::sqrt_fft(g / fz);
+  const auto f0 = f[z];
+  const auto oc0 = fps_internal::sqrt_mod(f0.val(), T::mod());
+  if (not oc0.has_value()) return std::nullopt;
+  const auto c0 = oc0.value();
+  auto g = FPS(std::vector<T>(f.coeff_.begin() + z, f.coeff_.end()));
+  g = fps_internal::sqrt_fft(g / f0);
   const int zhalf = z / 2;
   const int sz = std::min<int>(g.size() + zhalf, FPS::dmax() + 1);
   std::vector<T> res(sz);
-  for (int i = zhalf; i < sz; ++i) res[i] = g[i - zhalf] * (*c0);
+  for (int i = zhalf; i < sz; ++i) res[i] = g[i - zhalf] * c0;
   return FPS(std::move(res));
 }
