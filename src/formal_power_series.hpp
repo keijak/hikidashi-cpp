@@ -217,6 +217,11 @@ struct DenseFPS {
   // Returns the coefficient of x^k.
   inline T operator[](int k) const { return (k >= size()) ? 0 : coeff_[k]; }
 
+  // Removes trailing zeros.
+  void shrink() {
+    while (coeff_.size() > 1 and coeff_.back() == T(0)) coeff_.pop_back();
+  }
+
   DenseFPS &operator+=(const T &scalar) {
     coeff_[0] += scalar;
     return *this;
@@ -273,10 +278,23 @@ struct DenseFPS {
     return DenseFPS{scalar} /= g;
   }
   DenseFPS &operator/=(const DenseFPS &other) {
-    return *this *= DenseFPS(Mult::invert(other.coeff_));
+    int z = 0;
+    const int msz = std::min(size(), other.size());
+    while (z < msz and (*this)[z] == T(0) and other[z] == T(0)) ++z;
+    if (z == size()) {
+      return *this;  // 0/y == 0 regardless of y.
+    }
+    if (z == 0) {
+      return *this *= DenseFPS(Mult::invert(other.coeff_));
+    } else {
+      shift_inplace(-z);
+      std::vector<T> y(other.coeff_.begin() + std::min(z, other.size()),
+                       other.coeff_.end());
+      return *this *= DenseFPS(Mult::invert(std::move(y)));
+    }
   }
   friend DenseFPS operator/(const DenseFPS &f, const DenseFPS &g) {
-    return f * DenseFPS(Mult::invert(g.coeff_));
+    return DenseFPS(f) /= g;
   }
 
   DenseFPS pow(long long t) const {
@@ -287,6 +305,31 @@ struct DenseFPS {
       base *= base;
       t >>= 1;
     }
+    return res;
+  }
+
+  // Multiplies by x^k (with truncation).
+  void shift_inplace(int k) {
+    if (k > 0) {
+      if (size() <= dmax()) {
+        coeff_.resize(min(size() + k, dmax() + 1), 0);
+      }
+      for (int i = size() - 1; i >= k; --i) {
+        coeff_[i] = coeff_[i - k];
+      }
+      for (int i = k - 1; i >= 0; --i) {
+        coeff_[i] = 0;
+      }
+    } else if (k < 0) {
+      // If coefficients of degrees higher than dmax() were truncated
+      // beforehand, you lose the information. Ensure dmax() is big enough.
+      coeff_.erase(coeff_.begin(), coeff_.begin() + std::min(-k, size()));
+    }
+  }
+  // Multiplies by x^k.
+  DenseFPS shift(int k) const {
+    DenseFPS res = *this;
+    res.shift_inplace(k);
     return res;
   }
 
@@ -318,46 +361,6 @@ struct DenseFPS {
   DenseFPS divide2(int k, int c) const {
     DenseFPS res = *this;
     res.divide2_inplace(k, c);
-    return res;
-  }
-
-  // Multiplies by x^k.
-  void shift_inplace(int k) {
-    if (k > 0) {
-      if (size() <= dmax()) {
-        coeff_.resize(min(size() + k, dmax() + 1), 0);
-      }
-      for (int i = size() - 1; i >= k; --i) {
-        coeff_[i] = coeff_[i - k];
-      }
-      for (int i = k - 1; i >= 0; --i) {
-        coeff_[i] = 0;
-      }
-    } else if (k < 0) {
-      k *= -1;
-      for (int i = k; i < size(); ++i) {
-        coeff_[i - k] = coeff_[i];
-      }
-      for (int i = size() - k; i < size(); ++i) {
-        // If coefficients of degrees higher than dmax() were truncated
-        // beforehand, you lose the information. Ensure dmax() is big enough.
-        coeff_[i] = 0;
-      }
-    }
-  }
-  // Multiplies by x^k.
-  DenseFPS shift(int k) const {
-    DenseFPS res = *this;
-    res.shift_inplace(k);
-    return res;
-  }
-
-  T eval(const T &a) const {
-    T res = 0, x = 1;
-    for (auto c : coeff_) {
-      res += c * x;
-      x *= a;
-    }
     return res;
   }
 };
@@ -548,6 +551,17 @@ template <typename FPS, typename T = typename FPS::T>
 FPS operator/(const FPS &f, const SparseFPS<T> &g) {
   FPS res = f;
   res /= g;
+  return res;
+}
+
+// Computes `f(a)` evaluating an FPS as a polynomial.
+template <typename FPS, typename T = typename FPS::T>
+T eval(const FPS &f, const T a) {
+  T res = 0, x = 1;
+  for (auto c : f.coeff_) {
+    res += c * x;
+    x *= a;
+  }
   return res;
 }
 
