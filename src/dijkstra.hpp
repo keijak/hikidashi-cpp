@@ -9,7 +9,7 @@ inline bool chmin(T &a, U b) {
 const Int kBig = 1e16;
 
 template <class T>
-using MinHeap = priority_queue<T, vector<T>, greater<T>>;
+using MinHeap = std::priority_queue<T, vector<T>, greater<T>>;
 
 struct Edge {
   int to;
