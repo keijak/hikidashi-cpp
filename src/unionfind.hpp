@@ -1,12 +1,15 @@
 #include <bits/stdc++.h>
 
+template <bool keep_roots = true>
 struct UnionFind {
   int n;
   mutable std::vector<int> parent;  // positive: parent, negative: size
   std::set<int> roots_;
 
   explicit UnionFind(int sz) : n(sz), parent(sz, -1) {
-    for (int i = 0; i < sz; ++i) roots_.insert(i);
+    if constexpr (keep_roots) {
+      for (int i = 0; i < sz; ++i) roots_.insert(i);
+    }
   }
 
   bool unite(int x, int y) {
@@ -15,7 +18,9 @@ struct UnionFind {
     if (-parent[x] < -parent[y]) std::swap(x, y);
     parent[x] += parent[y];
     parent[y] = x;
-    roots_.erase(y);
+    if constexpr (keep_roots) {
+      roots_.erase(y);
+    }
     return true;
   }
 
