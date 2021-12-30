@@ -5,7 +5,11 @@
 // The first argument will be updated to the result.
 template <typename T>
 std::set<T> &operator|=(std::set<T> &s, const std::set<T> &t) {
-  s.insert(t.begin(), t.end());
+  // https://qiita.com/i_saint/items/a8bdce5146bb38e69f72
+  auto pos = s.begin();
+  for (auto it = t.begin(); it != t.end(); ++it, ++pos) {
+    pos = s.emplace_hint(pos, *it);
+  }
   return s;
 }
 template <typename T>
