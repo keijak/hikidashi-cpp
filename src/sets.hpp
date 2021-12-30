@@ -1,11 +1,11 @@
 #include <set>
 
 // s |= t;
-// Merges two sets into their union.
+// Set Union.
 // The first argument will be updated to the result.
+// cf. https://qiita.com/i_saint/items/a8bdce5146bb38e69f72
 template <typename T>
 std::set<T> &operator|=(std::set<T> &s, const std::set<T> &t) {
-  // https://qiita.com/i_saint/items/a8bdce5146bb38e69f72
   auto pos = s.begin();
   for (auto it = t.begin(); it != t.end(); ++it, ++pos) {
     pos = s.emplace_hint(pos, *it);
@@ -14,17 +14,15 @@ std::set<T> &operator|=(std::set<T> &s, const std::set<T> &t) {
 }
 template <typename T>
 std::set<T> &operator|=(std::set<T> &s, std::set<T> &&t) {
-  if (s.size() >= t.size()) {
-    s.merge(t);
-  } else {
-    t.merge(s);
-    s.swap(t);
+  if (s.size() < t.size()) s.swap(t);  // small-to-large merging
+  for (auto pos = s.begin(); !t.empty(); ++pos) {
+    pos = s.insert(pos, t.extract(t.begin()));
   }
   return s;
 }
 
 // s &= t;
-// Merges two sets into their intersection.
+// Set Intersection.
 // The first argument will be updated to the result.
 template <typename T>
 std::set<T> &operator&=(std::set<T> &s, const std::set<T> &t) {
@@ -58,7 +56,7 @@ std::set<T> &operator&=(std::set<T> &s, std::set<T> &&t) {
 }
 
 // s -= t;
-// Merges two sets into their difference.
+// Set Difference.
 // The first argument will be updated to the result.
 template <typename T>
 std::set<T> &operator-=(std::set<T> &s, const std::set<T> &t) {
