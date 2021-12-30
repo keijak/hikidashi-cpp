@@ -24,8 +24,8 @@ struct Factorials {
     }
   }
 
-  // Combination (nCk)
-  T C(int n, int k) const {
+  // Combination (binomial coefficients)
+  T C(Int n, Int k) const {
     if (k < 0 || k > n) return 0;
     return fact[n] * ifact[k] * ifact[n - k];
   }
@@ -62,8 +62,8 @@ struct FactorialsSmallMod {
     }
   }
 
-  // Combination (nCk)
-  T C(int n, int k) const {
+  // Combination (binomial coefficients)
+  T C(Int n, Int k) const {
     if (k < 0 || k > n) return 0;
     int p = mcount[n] - mcount[k] - mcount[n - k];
     if (p > 0) return 0;
@@ -92,7 +92,7 @@ std::vector<std::vector<T>> comb_table(int n) {
 
 // nCk where n can be large but min(k, n-k) is small.
 template <typename T = Mint>
-T comb(long long n, long long k) {
+T comb(Int n, Int k) {
   if (k < 0 or k > n) return 0;
   if (k > n - k) k = n - k;
   T nume = 1, deno = 1;
