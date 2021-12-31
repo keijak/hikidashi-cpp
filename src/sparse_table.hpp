@@ -57,7 +57,7 @@ struct SparseTable {
 //
 // Usage:
 //   SparseTableRMQ rmq(a.size(), [&](int i, int j){ return a[i] < a[j]; });
-//   auto minval = a[rmq.fold(l, r)];
+//   auto minval = a[rmq.fold_index(l, r)];
 template <class BetterOp>
 struct SparseTableRMQ {
   static_assert(std::is_invocable_r_v<bool, BetterOp, int, int>);
@@ -83,7 +83,7 @@ struct SparseTableRMQ {
   }
 
   // Returns the index of the best value in [l, r) (half-open interval).
-  inline int fold(int l, int r) const {
+  inline int fold_index(int l, int r) const {
     assert(0 <= l and l < r);
     assert(1 <= r and r <= n_);
     const int k = msb_log(r - l);

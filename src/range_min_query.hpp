@@ -15,7 +15,7 @@ inline int msb_log(unsigned x) {
 //
 // Usage:
 //   RMQ rmq(a.size(), [&](int i, int j){ return a[i] < a[j]; });
-//   auto minval = a[rmq.fold(l, r)];
+//   auto minval = a[rmq.fold_index(l, r)];
 template <class BetterOp, class mask_t = unsigned>
 struct RMQ {
   static_assert(std::is_integral_v<mask_t>, "mask_t must be integral");
@@ -76,7 +76,7 @@ struct RMQ {
   }
 
   // Returns the index of the best value in [l, r) (half-open interval).
-  inline int fold(int l, int r) const {
+  inline int fold_index(int l, int r) const {
     assert(l < r);
     // Internally use closed interval.
     return best_index(l, r - 1);
