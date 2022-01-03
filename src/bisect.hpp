@@ -1,36 +1,43 @@
 #include <bits/stdc++.h>
-using Int = long long;
 
-// Binary search:
-//   auto ok_bound = bisect(ok, ng, [&](Int x) -> bool { return ...; });
-template <class T, class F>
-auto bisect(T true_x, T false_x, F pred) -> T {
-  static_assert(std::is_invocable_r_v<bool, F, T>);
-  assert(std::max(true_x, false_x) <= std::numeric_limits<T>::max() / 2);
-  assert(true_x >= -1 and false_x >= -1);  // need floor_div to allow negative.
-
-  while (std::abs(true_x - false_x) > 1) {
-    T mid = (true_x + false_x) >> 1;
-    if (pred(mid)) {
-      true_x = std::move(mid);
-    } else {
-      false_x = std::move(mid);
-    }
-  }
-  return true_x;
+// Safe (a+b)/2 on integers
+template<class T>
+T midpoint(T a, T b) {
+  using U = std::make_unsigned_t<T>;
+  int sign = 1;
+  U m = a, M = b;
+  if (a > b) sign = -1, m = b, M = a;
+  return a + sign * T(U(M - m) >> 1);
 }
 
-template <class Float, class F>
-Float bisect_float(Float true_x, Float false_x, F pred) {
+// Binary search over integers
+template<class T, class F>
+auto bisect(T truthy, T falsy, F pred) -> T {
+  static_assert(std::is_integral_v<T>);
+  static_assert(std::is_invocable_r_v<bool, F, T>);
+  while (std::max(truthy, falsy) - std::min(truthy, falsy) > 1) {
+    T mid = midpoint(truthy, falsy);
+    if (pred(mid)) {
+      truthy = std::move(mid);
+    } else {
+      falsy = std::move(mid);
+    }
+  }
+  return truthy;
+}
+
+// Binary search over floating numbers
+template<class Float, class F>
+Float bisect_float(Float truthy, Float falsy, F pred) {
   static_assert(std::is_floating_point_v<Float>);
   static_assert(std::is_invocable_r_v<bool, F, Float>);
   for (int iter = 0; iter < 80; ++iter) {
-    auto mid = (true_x + false_x) * 0.5;
+    auto mid = (truthy + falsy) * 0.5;
     if (pred(mid)) {
-      true_x = std::move(mid);
+      truthy = std::move(mid);
     } else {
-      false_x = std::move(mid);
+      falsy = std::move(mid);
     }
   }
-  return true_x;
+  return truthy;
 }
