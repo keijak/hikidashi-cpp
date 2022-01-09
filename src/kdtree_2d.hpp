@@ -95,11 +95,14 @@ class KdTree2d {
   NodePool pool_;
 
  public:
+  // Builds the k-d tree: O(NlogN)
   explicit KdTree2d(std::vector<P> points)
       : points_(std::move(points)), pool_(points_.size() * 2) {
     root_.init(points_.begin(), points_.end(), 0, pool_);
   }
 
+  // Queries the nearest neighbor: O(logN)
+  // Returns the square distance and the pointer to the nearest neighbor.
   std::pair<T, P *> find_nearest(T x, T y) {
     return root_.find_nearest(x, y, {std::numeric_limits<T>::max(), nullptr},
                               0);
