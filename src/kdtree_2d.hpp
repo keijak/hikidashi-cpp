@@ -1,88 +1,112 @@
-// Verified: https://atcoder.jp/contests/abc234/submissions/28432268
+// k-d tree (https://en.wikipedia.org/wiki/K-d_tree)
+// base: https://tjkendev.github.io/procon-library/cpp/range_query/kd-tree.html
 #include <bits/stdc++.h>
+
+template <typename T, typename U>
+inline bool chmin(T &a, U b) {
+  return a > b and ((a = b), true);
+}
 
 struct Point {
   using T = long long;
   T x, y;
   int index;
+
+  static T square_distance(T x1, T y1, T x2, T y2) {
+    T dx = x1 - x2, dy = y1 - y2;
+    return dx * dx + dy * dy;
+  }
 };
 
 template <class P>
-struct KdTree2d {
+class KdTree2d {
   using T = typename P::T;
+  using PItr = typename std::vector<P>::iterator;
   std::vector<P> points_;
 
-  struct Node {
-    T xmin, xmax, ymin, ymax;
-    std::vector<int> indices;
-    Node *l, *r;
+  class NodePool;
 
-    Node(typename std::vector<P>::iterator begin,
-         typename std::vector<P>::iterator end)
-        : xmin(std::numeric_limits<T>::max()),
-          xmax(std::numeric_limits<T>::lowest()),
-          ymin(std::numeric_limits<T>::max()),
-          ymax(std::numeric_limits<T>::lowest()) {
+  class Node {
+    std::optional<Point> p;
+    Node *left, *right;
+
+   public:
+    Node() : p{}, left(nullptr), right(nullptr) {}
+
+    void init(PItr begin, PItr end, int depth, NodePool &pool) {
       if (begin == end) return;
 
-      {
-        auto [mn, mx] = std::minmax_element(
-            begin, end, [](const P &a, const P &b) { return a.x < b.x; });
-        xmin = mn->x;
-        xmax = mx->x;
-      }
-      {
-        auto [mn, mx] = std::minmax_element(
-            begin, end, [](const P &a, const P &b) { return a.y < b.y; });
-        ymin = mn->y;
-        ymax = mx->y;
-      }
       const int n = int(end - begin);
-      indices.reserve(n);
-      for (auto it = begin; it != end; ++it) {
-        indices.emplace_back(it->index);
-      }
-      if (n == 1) return;
-
       auto mid = begin + (n >> 1);
-      if (xmax - xmin >= ymax - ymin) {
-        std::nth_element(begin, mid, end,
-                         [](const P &a, const P &b) { return a.x < b.x; });
-      } else {
+
+      if (depth & 1) {
         std::nth_element(begin, mid, end,
                          [](const P &a, const P &b) { return a.y < b.y; });
+      } else {
+        std::nth_element(begin, mid, end,
+                         [](const P &a, const P &b) { return a.x < b.x; });
       }
-      l = new Node(begin, mid);
-      r = new Node(mid, end);
+      p = *mid;
+      if (begin != mid) {
+        left = pool.get();
+        left->init(begin, mid, depth + 1, pool);
+      }
+      if (std::next(mid) != end) {
+        right = pool.get();
+        right->init(std::next(mid), end, depth + 1, pool);
+      }
     }
 
-    template <class F>
-    void search_rect(T x_low, T y_low, T x_high, T y_high, F process_index) {
-      static_assert(std::is_invocable_v<F, int>);
-      // The node range is completely contained by the query range.
-      if (x_low <= xmin and xmax <= x_high and y_low <= ymin and
-          ymax <= y_high) {
-        for (int i : indices) process_index(i);
-        return;
+    // Returns the square distance and the pointer to the nearest neighbor.
+    std::pair<T, P *> find_nearest(T x, T y, std::pair<T, P *> radius,
+                                   int depth) {
+      if (not p) return radius;
+
+      T dist = P::square_distance(x, y, p->x, p->y);
+      if (radius.first > dist) radius = std::pair{dist, &*p};
+
+      if (depth & 1) {
+        if (left and y - p->y <= radius.first) {
+          auto r = left->find_nearest(x, y, radius, depth + 1);
+          if (radius.first > r.first) radius = std::move(r);
+        }
+        if (right and p->y - y <= radius.first) {
+          auto r = right->find_nearest(x, y, radius, depth + 1);
+          if (radius.first > r.first) radius = std::move(r);
+        }
+      } else {
+        if (left and x - p->x <= radius.first) {
+          auto r = left->find_nearest(x, y, radius, depth + 1);
+          if (radius.first > r.first) radius = std::move(r);
+        }
+        if (right and p->x - x <= radius.first) {
+          auto r = right->find_nearest(x, y, radius, depth + 1);
+          if (radius.first > r.first) radius = std::move(r);
+        }
       }
-      // The node range is completely outside of the query range.
-      if (xmax < x_low or x_high < xmin or ymax < y_low or y_high < ymin) {
-        return;
-      }
-      // Otherwise
-      if (l) l->search_rect(x_low, y_low, x_high, y_high, process_index);
-      if (r) r->search_rect(x_low, y_low, x_high, y_high, process_index);
+      return radius;
     }
   };
   Node root_;
 
-  explicit KdTree2d(std::vector<P> points)
-      : points_(std::move(points)), root_(points_.begin(), points_.end()) {}
+  class NodePool {
+    std::vector<Node> nodes;
+    size_t counter;
 
-  // Visit each point in (top-left x bottom-right) rectangle (boundary
-  // inclusive).
-  template <class F>
-  void search_rect(T x_low, T y_low, T x_high, T y_high, F process_index) {
-    root_.search_rect(x_low, y_low, x_high, y_high, process_index);
+   public:
+    explicit NodePool(size_t n) : nodes(n), counter(0) {}
+    inline Node *get() { return &nodes[counter++]; }
+  };
+  NodePool pool_;
+
+ public:
+  explicit KdTree2d(std::vector<P> points)
+      : points_(std::move(points)), pool_(points_.size() * 2) {
+    root_.init(points_.begin(), points_.end(), 0, pool_);
+  }
+
+  std::pair<T, P *> find_nearest(T x, T y) {
+    return root_.find_nearest(x, y, {std::numeric_limits<T>::max(), nullptr},
+                              0);
   }
 };
