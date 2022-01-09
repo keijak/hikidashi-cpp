@@ -1,92 +1,88 @@
-// https://tjkendev.github.io/procon-library/cpp/range_query/kd-tree.html
-#include <algorithm>
-#include <vector>
-using namespace std;
-using ll = long long;
-
-#define N 500007
+// Verified: https://atcoder.jp/contests/abc234/submissions/28432268
+#include <bits/stdc++.h>
 
 struct Point {
-  ll x, y;
-  int i;
+  using T = long long;
+  T x, y;
+  int index;
 };
 
-int n;
-Point p[N];
+template <class P>
+struct KdTree2d {
+  using T = typename P::T;
+  std::vector<P> points_;
 
-bool comp_x(const Point &p1, const Point &p2) { return p1.x < p2.x; }
-bool comp_y(const Point &p1, const Point &p2) { return p1.y < p2.y; }
+  struct Node {
+    T xmin, xmax, ymin, ymax;
+    std::vector<int> indices;
+    Node *l, *r;
 
-struct Node {
-  Node *left, *right;
-  Point p;
+    Node(typename std::vector<P>::iterator begin,
+         typename std::vector<P>::iterator end)
+        : xmin(std::numeric_limits<T>::max()),
+          xmax(std::numeric_limits<T>::lowest()),
+          ymin(std::numeric_limits<T>::max()),
+          ymax(std::numeric_limits<T>::lowest()) {
+      if (begin == end) return;
 
-  Node(Node *left, Node *right, Point p) : left(left), right(right), p(p) {}
+      {
+        auto [mn, mx] = std::minmax_element(
+            begin, end, [](const P &a, const P &b) { return a.x < b.x; });
+        xmin = mn->x;
+        xmax = mx->x;
+      }
+      {
+        auto [mn, mx] = std::minmax_element(
+            begin, end, [](const P &a, const P &b) { return a.y < b.y; });
+        ymin = mn->y;
+        ymax = mx->y;
+      }
+      const int n = int(end - begin);
+      indices.reserve(n);
+      for (auto it = begin; it != end; ++it) {
+        indices.emplace_back(it->index);
+      }
+      if (n == 1) return;
+
+      auto mid = begin + (n >> 1);
+      if (xmax - xmin >= ymax - ymin) {
+        std::nth_element(begin, mid, end,
+                         [](const P &a, const P &b) { return a.x < b.x; });
+      } else {
+        std::nth_element(begin, mid, end,
+                         [](const P &a, const P &b) { return a.y < b.y; });
+      }
+      l = new Node(begin, mid);
+      r = new Node(mid, end);
+    }
+
+    template <class F>
+    void search_rect(T x_low, T y_low, T x_high, T y_high, F process_index) {
+      static_assert(std::is_invocable_v<F, int>);
+      // The node range is completely contained by the query range.
+      if (x_low <= xmin and xmax <= x_high and y_low <= ymin and
+          ymax <= y_high) {
+        for (int i : indices) process_index(i);
+        return;
+      }
+      // The node range is completely outside of the query range.
+      if (xmax < x_low or x_high < xmin or ymax < y_low or y_high < ymin) {
+        return;
+      }
+      // Otherwise
+      if (l) l->search_rect(x_low, y_low, x_high, y_high, process_index);
+      if (r) r->search_rect(x_low, y_low, x_high, y_high, process_index);
+    }
+  };
+  Node root_;
+
+  explicit KdTree2d(std::vector<P> points)
+      : points_(std::move(points)), root_(points_.begin(), points_.end()) {}
+
+  // Visit each point in (top-left x bottom-right) rectangle (boundary
+  // inclusive).
+  template <class F>
+  void search_rect(T x_low, T y_low, T x_high, T y_high, F process_index) {
+    root_.search_rect(x_low, y_low, x_high, y_high, process_index);
+  }
 };
-
-Node *root;
-
-Node *make(int l, int r, int depth) {
-  if (!(l < r)) {
-    return nullptr;
-  }
-
-  int mid = (l + r) >> 1;
-  if (depth % 2) {
-    sort(p + l, p + r, comp_x);
-  } else {
-    sort(p + l, p + r, comp_y);
-  }
-
-  return new Node(make(l, mid, depth + 1), make(mid + 1, r, depth + 1), p[mid]);
-}
-
-// find nearest neighber
-ll find(Node *nd, ll x, ll y, int depth, ll r) {
-  if (nd == nullptr) return r;
-  Point &p = nd->p;
-  ll d = (x - p.x) * (x - p.x) + (y - p.y) * (y - p.y);
-  if (r == -1 || d < r) r = d;
-
-  if (depth % 2) {
-    if (nd->left != nullptr && x - r <= p.x) {
-      r = find(nd->left, x, y, depth + 1, r);
-    }
-    if (nd->right != nullptr && p.x <= x + r) {
-      r = find(nd->right, x, y, depth + 1, r);
-    }
-  } else {
-    if (nd->left != nullptr && y - r <= p.y) {
-      r = find(nd->left, x, y, depth + 1, r);
-    }
-    if (nd->right != nullptr && p.y <= y + r) {
-      r = find(nd->right, x, y, depth + 1, r);
-    }
-  }
-  return r;
-}
-
-// find nodes in [tl.x, tl.y]×[br.x, br.y] (Range Search)
-void find(Node *nd, vector<int> &result, ll tlx, ll tly, ll brx, ll bry,
-          int depth) {
-  Point &p = nd->p;
-  if (tlx <= p.x && p.x <= brx && tly <= p.y && p.y <= bry) {
-    result.push_back(p.i);
-  }
-
-  if (depth % 2) {
-    if (nd->left != nullptr && tlx <= p.x) {
-      find(nd->left, result, tlx, brx, tly, bry, depth + 1);
-    }
-    if (nd->right != nullptr && p.x <= brx) {
-      find(nd->right, result, tlx, brx, tly, bry, depth + 1);
-    }
-  } else {
-    if (nd->left != nullptr && tly <= p.y) {
-      find(nd->left, result, tlx, brx, tly, bry, depth + 1);
-    }
-    if (nd->right != nullptr && p.y <= bry) {
-      find(nd->right, result, tlx, brx, tly, bry, depth + 1);
-    }
-  }
-}
