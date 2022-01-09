@@ -2,11 +2,6 @@
 // base: https://tjkendev.github.io/procon-library/cpp/range_query/kd-tree.html
 #include <bits/stdc++.h>
 
-template <typename T, typename U>
-inline bool chmin(T &a, U b) {
-  return a > b and ((a = b), true);
-}
-
 struct Point {
   using T = long long;
   T x, y;
