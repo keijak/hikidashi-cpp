@@ -16,6 +16,7 @@ using Int = long long;
 #include <atcoder/modint>
 
 namespace multiplication {
+
 template <typename T, int DMAX>
 struct NaiveMult {
   using value_type = T;

@@ -102,7 +102,7 @@ struct HLDecomp {
 
   // Whether the node x is on the u-v path.
   bool node_is_on_path(NodeID x, const std::pair<NodeID, NodeID> &path) const {
-    const auto&[u, v] = path;
+    const auto &[u, v] = path;
     return distance(u, x) + distance(x, v) == distance(u, v);
   }
 
@@ -110,8 +110,7 @@ struct HLDecomp {
   // Fills `parent` and `subsize`.
   void dfs_subsize(NodeID v) {
     auto &edges = child[v];
-    if constexpr(not kChildrenOnlyGraph)
-    {
+    if constexpr (not kChildrenOnlyGraph) {
       if (parent[v] != -1) {
         // Remove the parent from `child[v]`. Amortized O(N).
         auto it = std::find(edges.begin(), edges.end(), parent[v]);
