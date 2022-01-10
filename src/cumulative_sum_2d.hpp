@@ -19,10 +19,10 @@ struct CumSum2d {
     }
   }
 
-  // (r0, c0) := top-left point (inclusive)
-  // (r1, c1) := bottom-right point (exclusive)
-  T sum(int r0, int c0, int r1, int c1) const {
-    assert(r0 <= r1 and c0 <= c1);
-    return cum[r1][c1] - cum[r1][c0] - cum[r0][c1] + cum[r0][c0];
+  // [x_lo, x_hi) x [y_lo, y_hi)
+  T sum(int x_lo, int x_hi, int y_lo, int y_hi) const {
+    assert(x_lo <= x_hi and y_lo <= y_hi);
+    return cum[x_hi][y_hi] - cum[x_hi][y_lo] - cum[x_lo][y_hi] +
+           cum[x_lo][y_lo];
   }
 };
