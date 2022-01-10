@@ -71,16 +71,16 @@ struct StaticSegmentTree2d {
     }
   }
 
-  // Query a rectangle: top_left x bottom_right.
-  T fold(const Int tlx, const Int tly, const Int brx, const Int bry) {
+  // Query a rectangle: [x_lo, x_hi) x [y_lo, y_hi).
+  T fold(const Int x_lo, const Int x_hi, const Int y_lo, const Int y_hi) {
     const int qtid =
-        lower_bound(ALL(xy_), pair{tlx, numeric_limits<Int>::min()}) -
+        lower_bound(ALL(xy_), pair{x_lo, numeric_limits<Int>::min()}) -
         xy_.begin();
     const int qbid =
-        upper_bound(ALL(xy_), pair{brx, numeric_limits<Int>::min()}) -
+        upper_bound(ALL(xy_), pair{x_hi, numeric_limits<Int>::min()}) -
         xy_.begin();
     return (qtid >= qbid) ? Monoid::id()
-                          : fold_x(qtid, qbid, tly, bry, 0, 0, offset_);
+                          : fold_x(qtid, qbid, y_lo, y_hi, 0, 0, offset_);
   }
 
   T get(Int x, Int y) { return fold(x, y, x + 1, y + 1); }
