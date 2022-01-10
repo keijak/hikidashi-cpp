@@ -1,10 +1,14 @@
 // Offline 2D point-update range-fold
 // All (x, y) coordinates must be known in advance.
 // No need to compress X and Y coordinates.
+// Verified with: https://judge.yosupo.jp/problem/point_add_rectangle_sum
 
 #include <bits/stdc++.h>
 using namespace std;
 using Int = long long;
+
+template <typename Monoid>
+class SegmentTree;
 
 template <typename Monoid>
 struct SegmentTree2d {
