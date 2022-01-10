@@ -1,8 +1,9 @@
-#include <bits/stdc++.h>
-
 // Pointer-based 2d segment tree.
 // More performant and less memory-efficient than a hashmap-based
 // implementation.
+
+#include <bits/stdc++.h>
+
 template <typename Monoid>
 struct SegmentTree2d {
   using Int = long long;
@@ -13,16 +14,16 @@ struct SegmentTree2d {
   using RowNodePtr = RowNode *;
 
   struct Node {
-    T data = Monoid::id();
-    NodePtr l = nullptr;
-    NodePtr r = nullptr;
-    Node() = default;
-    explicit Node(T _data) : data(std::move(_data)) {}
+    T data;
+    NodePtr left, right;  // children
+    Node() : data(Monoid::id()), left(nullptr), right(nullptr) {}
+    explicit Node(T _data)
+        : data(std::move(_data)), left(nullptr), right(nullptr) {}
   };
   struct RowNode {
-    NodePtr col = nullptr;
-    RowNodePtr u = nullptr;
-    RowNodePtr d = nullptr;
+    NodePtr col;
+    RowNodePtr lower, upper;  // children
+    RowNode(NodePtr c = nullptr) : col(c), lower(nullptr), upper(nullptr) {}
   };
 
   RowNodePtr root_;
@@ -30,16 +31,18 @@ struct SegmentTree2d {
   Int ncol_;
 
   explicit SegmentTree2d(Int nrow, Int ncol)
-      : root_(new RowNode{new Node{Monoid::id()}}), nrow_(nrow), ncol_(ncol) {}
+      : root_(new RowNode(new Node())), nrow_(nrow), ncol_(ncol) {}
 
-  void set(Int i, Int j, T x) { set_x(i, j, std::move(x), root_, 0, nrow_); }
+  void set(Int x, Int y, T val) {
+    set_x(x, y, std::move(val), root_, 0, nrow_);
+  }
 
   // Query a rectangle: [x_lo, x_hi) x [y_lo, y_hi).
-  T fold(Int x_lo, Int x_hi, Int y_lo, Int y_hi) {
+  T fold(Int x_lo, Int x_hi, Int y_lo, Int y_hi) const {
     return fold_x(x_lo, x_hi, y_lo, y_hi, root_, 0, nrow_);
   }
   T fold_all() const { return root_->col->data; }
-  T get(Int i, Int j) const { return fold(i, i + 1, j, j + 1); }
+  T get(Int x, Int y) const { return fold(x, x + 1, y, y + 1); }
 
   std::vector<std::vector<T>> to_vec(Int nrow = -1, Int ncol = -1) const {
     if (nrow < 0) nrow = nrow_;
@@ -56,68 +59,80 @@ struct SegmentTree2d {
   }
 
  private:
-  void set_y(Int k, T val, NodePtr np, NodePtr up, NodePtr dp, bool single_row,
-             Int nl, Int nr) {
-    check(np != nullptr);
-    if (k < nl or k >= nr) return;
-    if (nl + 1 == nr) {
+  void set_y(Int y, T val, NodePtr node, NodePtr lower, NodePtr upper,
+             bool single_row, Int ny_lo, Int ny_hi) {
+    assert(node != nullptr);
+    if (y < ny_lo or y >= ny_hi) return;
+    if (ny_lo + 1 == ny_hi) {
       if (single_row) {
-        np->data = std::move(val);
+        node->data = std::move(val);
       } else {
-        np->data = Monoid::op(up == nullptr ? Monoid::id() : up->data,
-                              dp == nullptr ? Monoid::id() : dp->data);
+        node->data = Monoid::op(lower == nullptr ? Monoid::id() : lower->data,
+                                upper == nullptr ? Monoid::id() : upper->data);
       }
       return;
     }
-    Int nm = (nl + nr) >> 1;
-    if (k < nm) {
-      if (np->l == nullptr) np->l = new Node{Monoid::id()};
-      set_y(k, std::move(val), np->l, (up == nullptr ? nullptr : up->l),
-            (dp == nullptr ? nullptr : dp->l), single_row, nl, nm);
+    Int ny_mid = (ny_lo + ny_hi) >> 1;
+    if (y < ny_mid) {
+      if (node->left == nullptr) node->left = new Node();
+      set_y(y, std::move(val), node->left,
+            (lower == nullptr ? nullptr : lower->left),
+            (upper == nullptr ? nullptr : upper->left), single_row, ny_lo,
+            ny_mid);
     } else {
-      if (np->r == nullptr) np->r = new Node{Monoid::id()};
-      set_y(k, std::move(val), np->r, (up == nullptr ? nullptr : up->r),
-            (dp == nullptr ? nullptr : dp->r), single_row, nm, nr);
+      if (node->right == nullptr) node->right = new Node();
+      set_y(y, std::move(val), node->right,
+            (lower == nullptr ? nullptr : lower->right),
+            (upper == nullptr ? nullptr : upper->right), single_row, ny_mid,
+            ny_hi);
     }
-    np->data = Monoid::op(np->l == nullptr ? Monoid::id() : np->l->data,
-                          np->r == nullptr ? Monoid::id() : np->r->data);
+    node->data =
+        Monoid::op(node->left == nullptr ? Monoid::id() : node->left->data,
+                   node->right == nullptr ? Monoid::id() : node->right->data);
   }
 
-  void set_x(Int i, Int j, T val, RowNodePtr np, Int nu, Int nd) {
-    check(np != nullptr);
-    if (i < nu or i >= nd) return;
-    if (nu + 1 != nd) {
-      Int nm = (nu + nd) >> 1;
-      if (i < nm) {
-        if (np->u == nullptr) np->u = new RowNode{};
-        set_x(i, j, val, np->u, nu, nm);
+  void set_x(Int x, Int y, T val, RowNodePtr node, Int nx_lo, Int nx_hi) {
+    assert(node != nullptr);
+    if (x < nx_lo or x >= nx_hi) return;
+    if (nx_lo + 1 != nx_hi) {
+      // Update a child node.
+      Int nx_mid = (nx_lo + nx_hi) >> 1;
+      if (x < nx_mid) {
+        if (node->lower == nullptr) node->lower = new RowNode();
+        set_x(x, y, val, node->lower, nx_lo, nx_mid);
       } else {
-        if (np->d == nullptr) np->d = new RowNode{};
-        set_x(i, j, val, np->d, nm, nd);
+        if (node->upper == nullptr) node->upper = new RowNode();
+        set_x(x, y, val, node->upper, nx_mid, nx_hi);
       }
     }
-    bool single_row = nu + 1 == nd;
-    if (np->col == nullptr) np->col = new Node{};
-    set_y(j, std::move(val), np->col, (np->u == nullptr ? nullptr : np->u->col),
-          (np->d == nullptr ? nullptr : np->d->col), single_row, 0, ncol_);
+    // Update this node.
+    bool single_row = (nx_lo + 1 == nx_hi);
+    if (node->col == nullptr) node->col = new Node();
+    set_y(y, std::move(val), node->col,
+          (node->lower == nullptr ? nullptr : node->lower->col),
+          (node->upper == nullptr ? nullptr : node->upper->col), single_row, 0,
+          ncol_);
   }
 
-  T fold_y(Int jl, Int jr, NodePtr np, Int nl, Int nr) const {
-    if (np == nullptr) return Monoid::id();
-    if (nr <= jl or jr <= nl) return Monoid::id();
-    if (jl <= nl and nr <= jr) return np->data;
-    Int nm = (nl + nr) >> 1;
-    return Monoid::op(fold_y(jl, jr, np->l, nl, nm),
-                      fold_y(jl, jr, np->r, nm, nr));
+  T fold_y(Int y_lo, Int y_hi, NodePtr node, Int ny_lo, Int ny_hi) const {
+    if (node == nullptr) return Monoid::id();
+    if (ny_hi <= y_lo or y_hi <= ny_lo) return Monoid::id();
+    if (y_lo <= ny_lo and ny_hi <= y_hi) return node->data;
+    Int ny_mid = (ny_lo + ny_hi) >> 1;
+    return Monoid::op(fold_y(y_lo, y_hi, node->left, ny_lo, ny_mid),
+                      fold_y(y_lo, y_hi, node->right, ny_mid, ny_hi));
   }
 
-  T fold_x(Int iu, Int id, Int jl, Int jr, RowNodePtr np, Int nu,
-           Int nd) const {
-    if (np == nullptr) return Monoid::id();
-    if (nd <= iu or id <= nu) return Monoid::id();
-    if (iu <= nu and nd <= id) return fold_y(jl, jr, np->col, 0, ncol_);
-    Int nm = (nu + nd) >> 1;
-    return Monoid::op(fold_x(iu, id, jl, jr, np->u, nu, nm),
-                      fold_x(iu, id, jl, jr, np->d, nm, nd));
+  T fold_x(Int x_lo, Int x_hi, Int y_lo, Int y_hi, RowNodePtr node, Int nx_lo,
+           Int nx_hi) const {
+    if (node == nullptr) return Monoid::id();
+    if (nx_hi <= x_lo or x_hi <= nx_lo) return Monoid::id();
+    if (x_lo <= nx_lo and nx_hi <= x_hi) {
+      return fold_y(y_lo, y_hi, node->col, 0, ncol_);
+    }
+    Int nx_mid = (nx_lo + nx_hi) >> 1;
+    return Monoid::op(
+        fold_x(x_lo, x_hi, y_lo, y_hi, node->lower, nx_lo, nx_mid),
+        fold_x(x_lo, x_hi, y_lo, y_hi, node->upper, nx_mid, nx_hi));
   }
 };

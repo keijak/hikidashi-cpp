@@ -1,9 +1,13 @@
+// Offline 2D point-update range-fold
+// All (x, y) coordinates must be known in advance.
+// No need to compress X and Y coordinates.
+
 #include <bits/stdc++.h>
 using namespace std;
 using Int = long long;
 
 template <typename Monoid>
-struct StaticSegmentTree2d {
+struct SegmentTree2d {
   using T = typename Monoid::T;
   int offset_;
   vector<SegmentTree<Monoid>> segs_;
@@ -14,7 +18,7 @@ struct StaticSegmentTree2d {
   vector<pair<Int, Int>> xy_;
 
   // [(x,y) => value]
-  explicit StaticSegmentTree2d(const map<pair<Int, Int>, T> &data)
+  explicit SegmentTree2d(const map<pair<Int, Int>, T> &data)
       : offset_(1), xy_(data.size()) {
     const int n = (int)data.size();  // number of data points
     while (offset_ < n) offset_ *= 2;
@@ -72,51 +76,68 @@ struct StaticSegmentTree2d {
   }
 
   // Query a rectangle: [x_lo, x_hi) x [y_lo, y_hi).
-  T fold(const Int x_lo, const Int x_hi, const Int y_lo, const Int y_hi) {
-    const int qtid =
-        lower_bound(ALL(xy_), pair{x_lo, numeric_limits<Int>::min()}) -
+  T fold(Int x_lo, Int x_hi, Int y_lo, Int y_hi) const {
+    const int xid_lo =
+        std::lower_bound(ALL(xy_),
+                         pair{x_lo, std::numeric_limits<Int>::min()}) -
         xy_.begin();
-    const int qbid =
-        upper_bound(ALL(xy_), pair{x_hi, numeric_limits<Int>::min()}) -
+    const int xid_hi =
+        std::lower_bound(ALL(xy_),
+                         pair{x_hi, std::numeric_limits<Int>::min()}) -
         xy_.begin();
-    return (qtid >= qbid) ? Monoid::id()
-                          : fold_x(qtid, qbid, y_lo, y_hi, 0, 0, offset_);
+    if (xid_lo >= xid_hi) return Monoid::id();
+    return fold_x(xid_lo, xid_hi, y_lo, y_hi, 0, 0, offset_);
   }
 
-  T get(Int x, Int y) { return fold(x, y, x + 1, y + 1); }
+  T get(Int x, Int y) const {
+    auto key = std::pair(x, y);
+    auto it = std::lower_bound(ALL(xy_), key);
+    if (it == xy_.end() or *it != key) return Monoid::id();
+    int xid = int(it - xy_.begin()) + offset_ - 1;
+    int yid = std::lower_bound(ALL(yx_[xid]), pair(y, x)) - yx_[xid].begin();
+    return segs_[xid][yid];
+  }
 
+  // Requirement: (x, y) must be one of existing points.
+  // Cannot insert a new point.
   void set(Int x, Int y, T val) {
-    int id = lower_bound(ALL(xy_), pair(x, y)) - xy_.begin();
-    return set_x(id, x, y, std::move(val));
+    auto key = std::pair(x, y);
+    auto it = std::lower_bound(ALL(xy_), key);
+    assert(it != xy_.end() and *it == key);  // must be found
+    int xid = it - xy_.begin();
+    return set_x(xid, x, y, std::move(val));
   }
 
  private:
-  T fold_x(const int qtid, const int qbid, const Int ql, const Int qr,
-           const int k, const int ntid, const int nbid) {
-    if (nbid <= qtid or qbid <= ntid) return Monoid::id();
-    if (qtid <= ntid and nbid <= qbid) {
-      const int qlid =
-          lower_bound(ALL(yx_[k]), pair{ql, numeric_limits<Int>::min()}) -
+  T fold_x(int xid_lo, int xid_hi, Int y_lo, Int y_hi, int k, int nxid_lo,
+           int nxid_hi) const {
+    if (nxid_hi <= xid_lo or xid_hi <= nxid_lo) return Monoid::id();
+    if (xid_lo <= nxid_lo and nxid_hi <= xid_hi) {
+      const int yid_lo =
+          lower_bound(ALL(yx_[k]),
+                      pair{y_lo, std::numeric_limits<Int>::min()}) -
           yx_[k].begin();
-      const int qrid =
-          upper_bound(ALL(yx_[k]), pair{qr, numeric_limits<Int>::min()}) -
+      const int yid_hi =
+          lower_bound(ALL(yx_[k]),
+                      pair{y_hi, std::numeric_limits<Int>::min()}) -
           yx_[k].begin();
-      return (qlid >= qrid) ? Monoid::id() : segs_[k].fold(qlid, qrid);
+      return (yid_lo >= yid_hi) ? Monoid::id() : segs_[k].fold(yid_lo, yid_hi);
     } else {
-      int m = (ntid + nbid) >> 1;
-      return Monoid::op(fold_x(qtid, qbid, ql, qr, 2 * k + 1, ntid, m),
-                        fold_x(qtid, qbid, ql, qr, 2 * k + 2, m, nbid));
+      int m = (nxid_lo + nxid_hi) >> 1;
+      return Monoid::op(
+          fold_x(xid_lo, xid_hi, y_lo, y_hi, 2 * k + 1, nxid_lo, m),
+          fold_x(xid_lo, xid_hi, y_lo, y_hi, 2 * k + 2, m, nxid_hi));
     }
   }
 
-  void set_x(int id, Int x, Int y, T val) {
-    id += offset_ - 1;
-    int yid = lower_bound(ALL(yx_[id]), pair(y, x)) - yx_[id].begin();
-    segs_[id].set(yid, val);
-    while (id > 0) {
-      id = (id - 1) / 2;
-      yid = lower_bound(ALL(yx_[id]), pair(y, x)) - yx_[id].begin();
-      segs_[id].set(yid, val);
+  void set_x(int xid, Int x, Int y, T val) {
+    xid += offset_ - 1;
+    int yid = std::lower_bound(ALL(yx_[xid]), pair(y, x)) - yx_[xid].begin();
+    segs_[xid].set(yid, val);
+    while (xid > 0) {
+      xid = (xid - 1) / 2;
+      yid = std::lower_bound(ALL(yx_[xid]), pair(y, x)) - yx_[xid].begin();
+      segs_[xid].set(yid, val);
     }
   }
 };
