@@ -17,6 +17,21 @@ using rb_tree_set =
 // `std::unordered_map::reserve()`.
 #include <ext/pb_ds/assoc_container.hpp>
 
+// https://codeforces.com/blog/entry/62393
+struct custom_hash {
+  // splitmix64
+  // http://xorshift.di.unimi.it/splitmix64.c
+  size_t operator()(std::uint64_t x) const {
+    static const std::uint64_t FIXED_RANDOM =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    x += FIXED_RANDOM;
+    x += 0x9e3779b97f4a7c15;
+    x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+    x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
+    return x ^ (x >> 31);
+  }
+};
+
 template <class K, class V>
 using gp_hash_table = __gnu_pbds::gp_hash_table<
     K, V, std::hash<K>, std::equal_to<K>,
