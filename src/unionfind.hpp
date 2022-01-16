@@ -1,39 +1,28 @@
 #include <bits/stdc++.h>
 
-template <bool keep_roots = true>
 struct UnionFind {
-  int n;
-  mutable std::vector<int> parent;  // positive: parent, negative: size
-  std::set<int> roots_;
+  int n_;
+  std::vector<int> parent_;  // negative: size
 
-  explicit UnionFind(int sz) : n(sz), parent(sz, -1) {
-    if constexpr (keep_roots) {
-      for (int i = 0; i < sz; ++i) roots_.insert(i);
-    }
-  }
+  explicit UnionFind(int n) : n_(n), parent_(n, -1) {}
 
   bool unite(int x, int y) {
     x = find(x), y = find(y);
     if (x == y) return false;
-    if (-parent[x] < -parent[y]) std::swap(x, y);
-    parent[x] += parent[y];
-    parent[y] = x;
-    if constexpr (keep_roots) {
-      roots_.erase(y);
-    }
+    if (-parent_[x] < -parent_[y]) std::swap(x, y);
+    parent_[x] += parent_[y];
+    parent_[y] = x;
     return true;
   }
 
-  int find(int v) const {
-    if (parent[v] < 0) return v;
-    return parent[v] = find(parent[v]);
+  int find(int v) {
+    if (parent_[v] < 0) return v;
+    return parent_[v] = find(parent_[v]);
   }
 
-  int size(int v) const { return -parent[find(v)]; }
+  int size(int v) { return -parent_[find(v)]; }
 
-  bool same(int x, int y) const { return find(x) == find(y); }
-
-  const std::set<int>& roots() const { return roots_; }
+  bool same(int x, int y) { return find(x) == find(y); }
 };
 
 template <typename Abelian>  // Abelian Monoid
