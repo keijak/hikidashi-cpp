@@ -96,7 +96,8 @@ class MinCostFlow {
 
   void add_demand(const V_id v, const Flow amount) { b[v] -= amount; }
 
-  // lower/upper: flow limit (inclusive).
+  // lower/upper: flow limits (inclusive, non-negative).
+  // cost: cost if the objective is MINIMIZE. gain if the objective is MAXIMIZE.
   EdgePtr add_edge(const V_id src, const V_id dst, const Flow lower,
                    const Flow upper, const Cost cost) {
     const E_id e = g[src].size(), re = src == dst ? e + 1 : g[dst].size();
