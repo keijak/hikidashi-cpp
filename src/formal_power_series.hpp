@@ -737,6 +737,26 @@ FPS pow_logexp(FPS f, long long k) {
   return f;
 }
 
+// \product_{i=0}^{N-1} (1 - x^a[i]) / (1 - x)
+// O((N+D)log(D))
+template <typename FPS, typename T = typename FPS::T>
+FPS product_of_geometric_series(std::vector<int> a) {
+  std::sort(a.begin(), a.end());
+  const int n = int(a.size());
+  const int m = FPS::dmax() + 1;
+  FPS nume(std::vector<Mint>(m, 0));
+  for (long long k = 1; k < m; ++k) {
+    const Mint kinv = T(k).inv();
+    for (const auto &e : a) {
+      long long t = k * e;
+      if (t >= m) break;
+      nume.coeff_[t] -= kinv;
+    }
+  }
+  auto deno = T(n) * log(FPS{1, -1});
+  return exp(std::move(nume) - std::move(deno));
+}
+
 // (1 - x)^-n in O(D)
 template <typename Factorials, typename FPS, typename T = typename FPS::T>
 FPS negative_binom(int n, const Factorials &fs) {

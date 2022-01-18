@@ -4,9 +4,10 @@
 //   template <unsigned& M> struct ModInt { ... };
 //   using Mint = ModInt<MOD>;
 
-template <unsigned M>
+template<unsigned M>
 struct ModInt {
-  constexpr ModInt(long long val = 0) : _v(0) {
+  constexpr ModInt() : _v(0) {}
+  constexpr ModInt(long long val) {
     if (val < 0) {
       long long k = (std::abs(val) + M - 1) / M;
       val += k * M;
@@ -51,7 +52,7 @@ struct ModInt {
     return *this;
   }
   constexpr ModInt &operator*=(const ModInt &a) {
-    _v = ((unsigned long long)(_v)*a._v) % M;
+    _v = ((unsigned long long) (_v) * a._v) % M;
     return *this;
   }
   constexpr ModInt pow(unsigned long long t) const {
@@ -68,17 +69,19 @@ struct ModInt {
     return res;
   }
 
+  // https://qiita.com/Mitarushi/items/8d7fb52e8a80e8008463
   constexpr ModInt inv() const {
-    // Inverse by Extended Euclidean algorithm.
-    // M doesn't need to be prime, but x and M must be coprime.
-    assert(_v != 0);
-    auto [g, x, y] = ext_gcd(_v, M);
-    assert(g == 1);  // The GCD must be 1.
-    return x;
-
-    // Inverse by Fermat's little theorem. M must be prime.
-    //
-    //     return pow(M - 2);
+    long long b = 1, a = _v;
+    while (a > 1) {
+      long long q = M / a;
+      a = M - a * q;
+      b = -b * q % M;
+    }
+    assert(a == 1);  // Otherwise _v and M are not coprime. Inverse doesn't exit.
+    if (b < 0) b += M;
+    ModInt ret;
+    ret._v = (unsigned) b;
+    return ret;
   }
   constexpr ModInt &operator/=(const ModInt &a) { return *this *= a.inv(); }
 
@@ -108,18 +111,8 @@ struct ModInt {
   }
 
  private:
-  // Extended Euclidean algorithm.
-  // Returns [g, x, y] where g = a*x + b*y = GCD(a, b).
-  static constexpr std::array<long long, 3> ext_gcd(int a, int b) {
-    if (b == 0) return {a, 1, 0};
-    auto res = ext_gcd(b, a % b);  // = (g, x, y)
-    res[1] -= (a / b) * res[2];
-    std::swap(res[1], res[2]);
-    return res;  // = (g, y, x - (a/b)*y)
-  }
-
   unsigned _v;  // raw value
 };
 // const unsigned MOD = int(1e9) + 7;
 // const unsigned MOD = 998244353;
-using Mint = ModInt<MOD>;
+// using Mint = ModInt<MOD>;
