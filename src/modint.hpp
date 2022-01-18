@@ -4,7 +4,7 @@
 //   template <unsigned& M> struct ModInt { ... };
 //   using Mint = ModInt<MOD>;
 
-template<unsigned M>
+template <unsigned M>
 struct ModInt {
   constexpr ModInt() : _v(0) {}
   constexpr ModInt(long long val) {
@@ -52,7 +52,7 @@ struct ModInt {
     return *this;
   }
   constexpr ModInt &operator*=(const ModInt &a) {
-    _v = ((unsigned long long) (_v) * a._v) % M;
+    _v = ((unsigned long long)(_v)*a._v) % M;
     return *this;
   }
   constexpr ModInt pow(unsigned long long t) const {
@@ -77,10 +77,10 @@ struct ModInt {
       a = M - a * q;
       b = -b * q % M;
     }
-    assert(a == 1);  // Otherwise _v and M are not coprime. Inverse doesn't exit.
+    assert(a == 1);  // if a = 0, _v and M are not coprime.
     if (b < 0) b += M;
     ModInt ret;
-    ret._v = (unsigned) b;
+    ret._v = (unsigned)b;
     return ret;
   }
   constexpr ModInt &operator/=(const ModInt &a) { return *this *= a.inv(); }

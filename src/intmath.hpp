@@ -190,6 +190,7 @@ std::optional<int> log_mod(Int a, Int b, const int m) {
   return std::nullopt;
 }
 
+// verified: https://judge.yosupo.jp/problem/sqrt_mod
 std::optional<Int> sqrt_mod(Int a, int p) {
   if (a == 0) return 0;
   if (p == 2) return a;
