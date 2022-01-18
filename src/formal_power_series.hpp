@@ -36,10 +36,11 @@ struct NaiveMult {
     return res;
   }
 
-  static std::vector<T> invert(const std::vector<T> &x) {
-    std::vector<T> res(DMAX + 1);
+  static std::vector<T> invert(const std::vector<T> &x, int sz = -1) {
+    if (sz == -1) sz = dmax() + 1;
+    std::vector<T> res(sz);
     res[0] = T(1) / x[0];
-    for (int i = 1; i <= DMAX; ++i) {
+    for (int i = 1; i < sz; ++i) {
       T s = 0;
       const int mj = std::min<int>(i + 1, x.size());
       for (int j = 1; j < mj; ++j) {
@@ -67,13 +68,13 @@ struct NTTMult {
     return res;
   }
 
-  static std::vector<T> invert(const std::vector<T> &x, int d = -1) {
+  static std::vector<T> invert(const std::vector<T> &x, int sz = -1) {
     int n = x.size();
     assert(n != 0 && x[0].val() != 0);  // must be invertible
-    if (d == -1) d = n;
-    assert(d >= 0);
+    if (sz == -1) sz = dmax() + 1;
+    assert(sz > 0);
     std::vector<T> res{x[0].inv()};
-    for (int m = 1, m2 = 2; m < d; m = m2, m2 *= 2) {
+    for (int m = 1, m2 = 2; m < sz; m = m2, m2 *= 2) {
       std::vector<T> f(x.begin(), x.begin() + std::min(n, m2));
       std::vector<T> g(res);
       f.resize(m2), atcoder::internal::butterfly(f);
@@ -89,7 +90,7 @@ struct NTTMult {
       for (int i = 0; i < m; ++i) f[i] *= iz;
       res.insert(res.end(), f.begin(), f.begin() + m);
     }
-    res.resize(d);
+    res.resize(sz);
     return res;
   }
 };
@@ -170,22 +171,26 @@ struct ArbitraryModMult {
     return convolution(x, y, dmax() + 1);
   }
 
-  static std::vector<T> invert(const std::vector<T> &x) {
-    assert(x[0].val() != 0);  // must be invertible
-    const int n = x.size();
-    std::vector<T> res(n);
-    res[0] = T(1) / x[0];
-    for (int i = 1; i < n; i <<= 1) {
-      const int m = std::min(2 * i, n);
-      std::vector<T> f(2 * i), g(2 * i);
-      for (int j = 0; j < m; ++j) f[j] = x[j];
-      for (int j = 0; j < i; ++j) g[j] = res[j];
-      f = convolution(f, g, 2 * i);
-      f.resize(2 * i);
-      for (int j = 0; j < i; ++j) f[j] = 0;
-      f = convolution(f, g, 2 * i);
-      for (int j = i; j < m; ++j) res[j] = -f[j];
+  static std::vector<T> invert(const std::vector<T> &x, int sz = -1) {
+    const int n = int(x.size());
+    assert(n != 0 && x[0] != 0);
+    if (sz == -1) sz = dmax() + 1;
+    assert(sz > 0);
+    std::vector<T> res{x[0].inv()};
+    while (int(res.size()) < sz) {
+      const int m = res.size();
+      const int m2 = m << 1;
+      std::vector<T> f(x.begin(), x.begin() + std::min<int>(n, m2));
+      f.resize(m2);
+      res.resize(m2);
+      std::vector<T> s = convolution(f, res, m2);
+      s.resize(m2);
+      for (int i = 0; i < m2; i++) s[i] = -s[i];
+      s[0] += 2;
+      res = convolution(s, res, m2);
+      res.resize(m2);
     }
+    res.resize(sz);
     return res;
   }
 };
@@ -293,8 +298,10 @@ struct DenseFPS {
     return res;
   }
 
+  DenseFPS inv(int size = -1) const {}
   DenseFPS &operator/=(const T &scalar) {
-    for (auto &x : coeff_) x /= scalar;
+    T d_inv = T(1) / scalar;
+    for (auto &x : coeff_) x *= d_inv;
     return *this;
   }
   friend DenseFPS operator/(const DenseFPS &f, const T &scalar) {
@@ -308,7 +315,7 @@ struct DenseFPS {
     const int msz = std::min(size(), other.size());
     while (z < msz and (*this)[z] == T(0) and other[z] == T(0)) ++z;
     if (z == size()) {
-      return *this;  // 0/y == 0 regardless of y.
+      return *this;  // (0/y) == 0 regardless of y.
     }
     if (z == 0) {
       return *this *= DenseFPS(Mult::invert(other.coeff_));
@@ -321,37 +328,6 @@ struct DenseFPS {
   }
   friend DenseFPS operator/(const DenseFPS &f, const DenseFPS &g) {
     return DenseFPS(f) /= g;
-  }
-
-  // Multiplies by (1 + c * x^k).
-  void multiply2_inplace(int k, int c) {
-    assert(k > 0);
-    if (size() <= dmax()) {
-      coeff_.resize(min(size() + k, dmax() + 1), 0);
-    }
-    for (int i = size() - 1; i >= k; --i) {
-      coeff_[i] += coeff_[i - k] * c;
-    }
-  }
-  // Multiplies by (1 + c * x^k).
-  DenseFPS multiply2(int k, int c) const {
-    DenseFPS res = *this;
-    res.multiply2_inplace(k, c);
-    return res;
-  }
-
-  // Divides by (1 + c * x^k).
-  void divide2_inplace(int k, int c) {
-    assert(k > 0);
-    for (int i = k; i < size(); ++i) {
-      coeff_[i] -= coeff_[i - k] * c;
-    }
-  }
-  // Divides by (1 + c * x^k).
-  DenseFPS divide2(int k, int c) const {
-    DenseFPS res = *this;
-    res.divide2_inplace(k, c);
-    return res;
   }
 };
 
@@ -544,15 +520,38 @@ FPS operator/(const FPS &f, const SparseFPS<T> &g) {
   return res;
 }
 
+// Multiplies by (1 + c * x^k).
 template <typename FPS>
-FPS pow(FPS base, long long t) {
-  assert(t >= 0);
-  FPS res = {1};
-  while (t) {
-    if (t & 1) res *= base;
-    base *= base;
-    t >>= 1;
+void multiply2_inplace(FPS &f, int k, int c) {
+  assert(k > 0);
+  if (f.size() <= FPS::dmax()) {
+    f.coeff_.resize(std::min(f.size() + k, FPS::dmax() + 1), 0);
   }
+  for (int i = f.size() - 1; i >= k; --i) {
+    f.coeff_[i] += f.coeff_[i - k] * c;
+  }
+}
+// Multiplies by (1 + c * x^k).
+template <typename FPS>
+FPS multiply2(FPS f, int k, int c) {
+  auto res = std::move(f);
+  res.multiply2_inplace(k, c);
+  return res;
+}
+
+// Divides by (1 + c * x^k).
+template <typename FPS>
+void divide2_inplace(FPS &f, int k, int c) {
+  assert(k > 0);
+  for (int i = k; i < f.size(); ++i) {
+    f.coeff_[i] -= f.coeff_[i - k] * c;
+  }
+}
+// Divides by (1 + c * x^k).
+template <typename FPS>
+FPS divide2(FPS f, int k, int c) {
+  auto res = std::move(f);
+  res.divide2_inplace(k, c);
   return res;
 }
 
@@ -569,7 +568,7 @@ T eval(const FPS &f, const T a) {
 
 template <typename FPS, typename T = typename FPS::T>
 FPS derivative(const FPS &f) {
-  std::vector<T> res(f.size() - 1);
+  std::vector<T> res(std::max<int>(f.size() - 1, 1));
   for (int i = 1; i < f.size(); ++i) {
     res[i - 1] = f[i] * i;
   }
@@ -577,19 +576,167 @@ FPS derivative(const FPS &f) {
 }
 
 template <typename FPS, typename T = typename FPS::T>
-FPS integral(const FPS &f, const T &c) {
-  std::vector<T> res(f.size() + 1);
-  res[0] = c;
-  for (int i = 1; i <= f.size(); ++i) {
-    res[i] = f[i - 1] / i;
+FPS integral(const FPS &f, T c0 = 0) {
+  const int n = int(f.size());
+  assert(n >= 1);
+  std::vector<T> res(n + 1);
+  res[0] = c0;
+  res[1] = f[0];
+  if (n >= 2) {
+    std::vector<T> inv(n + 1);
+    inv[1] = 1;
+    for (int i = 2; i <= n; ++i) {
+      auto d = std::div(T::mod(), i);
+      inv[i] = -inv[d.rem] * d.quot;
+    }
+    for (int i = 2; i <= n; ++i) {
+      res[i] = f.coeff_[i - 1] * inv[i];
+    }
   }
   return FPS(std::move(res));
 }
 
-// log(f(x)) = ∫ f'(x)/f(x) dx
 template <typename FPS, typename T = typename FPS::T>
-FPS log(const FPS &f) {
-  return integral(derivative(f) / f);
+FPS log(const FPS &f, int sz = -1) {
+  if (sz == -1) sz = FPS::dmax() + 1;
+  FPS g = derivative(f) * f.inv(sz);
+  g.coeff_.resize(sz);
+  return integral(g);
+}
+
+template <typename FPS, typename T = typename FPS::T>
+FPS exp(FPS g) {
+  int n = g.size();
+  FPS ret = {1};
+  for (int i = 1; i < n; i <<= 1) {
+    FPS f(std::vector<T>(i, 0));
+    FPS logr = log(ret, i << 1);
+    for (int j = 0; j < i; ++j) {
+      f.coeff_[j] += g[i + j] - logr[i + j];
+    }
+    f *= ret;
+    std::copy(f.coeff_.begin(), f.coeff_.begin() + i,
+              std::back_inserter(ret.coeff_));
+  }
+  ret.coeff_.resize(n);
+  return ret;
+}
+
+template <typename FPS, typename T = typename FPS::T>
+FPS exp_ntt(FPS f) {
+  static_assert(T::mod() == 998244353, "Requires an NTT-friendly mod.");
+  const int n = int(f.size());
+  assert(n > 0 && f[0] == 0);
+  std::vector<T> h_drv = std::move(derivative(f).coeff_);
+  std::vector<T> g{1}, g_fft{0}, res(std::move(f.coeff_));
+  res[0] = 1;
+  for (int m = 1; m < n; m <<= 1) {
+    const int m2 = m << 1;
+    const T m2_inv = Mint(m2).inv();
+    std::vector<T> f_fft(res.begin(), res.begin() + m);
+    std::vector<T> t = std::move(derivative(FPS(f_fft)).coeff_);
+    t.resize(m);
+    f_fft.resize(m2);
+    atcoder::internal::butterfly(f_fft);
+
+    // Step 2.a'
+    if (m > 1) {
+      std::vector<T> _f(m);
+      for (int i = 0; i < m; ++i) _f[i] = f_fft[i] * g_fft[i];
+      atcoder::internal::butterfly_inv(_f);
+      _f.erase(_f.begin(), _f.begin() + (m >> 1));
+      _f.resize(m);
+      atcoder::internal::butterfly(_f);
+      for (int i = 0; i < m; ++i) _f[i] *= g_fft[i];
+      atcoder::internal::butterfly_inv(_f);
+      _f.resize(m / 2);
+      T di = (T(-m) * m).inv();
+      for (int i = 0, q = m >> 1; i < q; ++i) {
+        g.push_back(_f[i] * di);
+      }
+    }
+
+    // Step 2.b'--d'
+    {
+      // Step 2.b'
+      std::vector<T> r(h_drv.begin(), h_drv.begin() + (m - 1));
+      // Step 2.c'
+      r.resize(m);
+      atcoder::internal::butterfly(r);
+      for (int i = 0; i < m; ++i) r[i] *= f_fft[i];
+      atcoder::internal::butterfly_inv(r);
+      // Step 2.d'
+      auto mm = Mint(-m).inv();
+      for (int i = 0; i < m; ++i) t[i] += r[i] * mm;
+      std::rotate(t.begin(), t.begin() + (m - 1), t.end());
+    }
+
+    // Step 2.e'
+    t.resize(m2);
+    atcoder::internal::butterfly(t);
+    g_fft = g;
+    g_fft.resize(m2);
+    atcoder::internal::butterfly(g_fft);
+    for (int i = 0; i < m2; ++i) t[i] *= g_fft[i];
+    atcoder::internal::butterfly_inv(t);
+    t.resize(m);
+    for (auto &x : t) x *= m2_inv;
+
+    // Step 2.f'
+    std::vector<T> v(res.begin() + m, res.begin() + std::min(n, m2));
+    v.resize(m);
+    t.insert(t.begin(), m - 1, 0);
+    t = std::move(integral(FPS(std::move(t))).coeff_);
+    for (int i = 0; i < m; ++i) v[i] -= t[m + i];
+
+    // Step 2.g'
+    v.resize(m2);
+    atcoder::internal::butterfly(v);
+    for (int i = 0; i < m2; ++i) v[i] *= f_fft[i];
+    atcoder::internal::butterfly_inv(v);
+    v.resize(m);
+    for (auto &x : v) x *= m2_inv;
+
+    // Step 2.h'
+    for (int i = 0, q = std::min(n - m, m); i < q; ++i) {
+      res[m + i] = v[i];
+    }
+  }
+  return FPS(std::move(res));
+}
+
+template <typename FPS>
+FPS pow_binexp(FPS base, long long t) {
+  assert(t >= 0);
+  FPS res = {1};
+  while (t) {
+    if (t & 1) res *= base;
+    base *= base;
+    t >>= 1;
+  }
+  return res;
+}
+
+// Fast power
+template <typename FPS, typename T = typename FPS::T>
+FPS pow_logexp(FPS f, long long k) {
+  assert(k >= 0);
+  if (k == 0) return FPS{1};
+  if (k == 1) return f;
+  const int n = int(f.size());
+  int l = 0;
+  while (l < n && f[l] == 0) ++l;
+  if (l > (n - 1) / k) return FPS{};
+  T c = f[l];
+  if (l != 0) f.coeff_.erase(f.coeff_.begin(), f.coeff_.begin() + l);
+  if (c != 1) f /= c;
+  f = log(std::move(f));
+  const long long ssz = FPS::dmax() + 1 - l * k;
+  if ((long long)f.size() > ssz) f.coeff_.resize(ssz);  // shrink
+  f = exp(std::move(f) * k);
+  if (c != 1) f *= c.pow(k);
+  if (l != 0) f.coeff_.insert(f.coeff_.begin(), size_t(l * k), T(0));
+  return f;
 }
 
 // (1 - x)^-n in O(D)
@@ -633,6 +780,7 @@ std::optional<long long> sqrt_mod(long long a, int p) {
 
 template <typename FPS, typename T = typename FPS::T>
 FPS sqrt_fft(const FPS &f_square) {
+  static_assert(T::mod() == 998244353, "Requires an NTT-friendly mod.");
   assert(f_square[0] == T(1));
   static const T kHalf = T(1) / 2;
   std::vector<T> f{1}, g{1}, z{1};
@@ -684,7 +832,7 @@ FPS sqrt_fft(const FPS &f_square) {
 }  // namespace fps_internal
 
 template <typename FPS, typename T = typename FPS::T>
-std::optional<FPS> fps_sqrt(const FPS &f) {
+std::optional<FPS> sqrt(const FPS &f) {
   // fast path
   if (f[0].val() == 1) return fps_internal::sqrt_fft(f);
 
