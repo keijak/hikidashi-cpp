@@ -534,9 +534,8 @@ void multiply2_inplace(FPS &f, int k, int c) {
 // Multiplies by (1 + c * x^k).
 template <typename FPS>
 FPS multiply2(FPS f, int k, int c) {
-  auto res = std::move(f);
-  res.multiply2_inplace(k, c);
-  return res;
+  multiply2_inplace(f, k, c);
+  return f;
 }
 
 // Divides by (1 + c * x^k).
@@ -550,9 +549,8 @@ void divide2_inplace(FPS &f, int k, int c) {
 // Divides by (1 + c * x^k).
 template <typename FPS>
 FPS divide2(FPS f, int k, int c) {
-  auto res = std::move(f);
-  res.divide2_inplace(k, c);
-  return res;
+  divide2_inplace(f, k, c);
+  return f;
 }
 
 // Computes `f(a)` evaluating an FPS as a polynomial.
