@@ -96,6 +96,19 @@ struct AggFunctionalGraph {
 
   bool build_done_;
 
+  // Builds transition tables.
+  void build_() {
+    if (build_done_) return;
+    for (int d = 0; d + 1 < kMaxBits; ++d) {
+      for (int i = 0; i < size; ++i) {
+        int p = next_pos[d][i];
+        next_pos[d + 1][i] = next_pos[d][p];
+        acc_value[d + 1][i] = Monoid::op(acc_value[d][i], acc_value[d][p]);
+      }
+    }
+    build_done_ = true;
+  }
+
  public:
   explicit AggFunctionalGraph(int n)
       : size(n),
@@ -115,24 +128,11 @@ struct AggFunctionalGraph {
   // Sets value `x` at node `pos`.
   void set_value(int pos, T value) { acc_value[0][pos] = value; }
 
-  // Builds transition tables.
-  void build() {
-    if (build_done_) return;
-    for (int d = 0; d + 1 < kMaxBits; ++d) {
-      for (int i = 0; i < size; ++i) {
-        int p = next_pos[d][i];
-        next_pos[d + 1][i] = next_pos[d][p];
-        acc_value[d + 1][i] = Monoid::op(acc_value[d][i], acc_value[d][p]);
-      }
-    }
-    build_done_ = true;
-  }
-
   // Starting from `start`, `steps` times goes forward and accumulates values.
-  std::pair<T, int> go(int start, long long steps) const {
-    build();
+  std::pair<T, int> go(int start, long long steps) {
     // steps >= 2^kMaxBits is not supported.
     assert(steps < (1LL << kMaxBits));
+    build_();
 
     T res = Monoid::id();
     int i = start;
@@ -145,9 +145,8 @@ struct AggFunctionalGraph {
     return {res, i};
   }
 
-  long long min_steps(int start,
-                      std::function<bool(const T &, int)> pred) const {
-    build();
+  long long min_steps(int start, std::function<bool(const T &, int)> pred) {
+    build_();
     long long max_false = 0;
     T val = Monoid::id();
     int i = start;

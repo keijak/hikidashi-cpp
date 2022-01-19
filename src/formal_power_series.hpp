@@ -298,7 +298,8 @@ struct DenseFPS {
     return res;
   }
 
-  DenseFPS inv(int size = -1) const {}
+  DenseFPS inv(int sz = -1) const { return DenseFPS(Mult::invert(coeff_, sz)); }
+
   DenseFPS &operator/=(const T &scalar) {
     T d_inv = T(1) / scalar;
     for (auto &x : coeff_) x *= d_inv;
@@ -703,18 +704,6 @@ FPS exp_ntt(FPS f) {
   return FPS(std::move(res));
 }
 
-template <typename FPS>
-FPS pow_binexp(FPS base, long long t) {
-  assert(t >= 0);
-  FPS res = {1};
-  while (t) {
-    if (t & 1) res *= base;
-    base *= base;
-    t >>= 1;
-  }
-  return res;
-}
-
 // Fast power
 template <typename FPS, typename T = typename FPS::T>
 FPS pow_logexp(FPS f, long long k) {
@@ -735,6 +724,18 @@ FPS pow_logexp(FPS f, long long k) {
   if (c != 1) f *= c.pow(k);
   if (l != 0) f.coeff_.insert(f.coeff_.begin(), size_t(l * k), T(0));
   return f;
+}
+
+template <typename FPS>
+FPS pow_binexp(FPS base, long long t) {
+  assert(t >= 0);
+  FPS res = {1};
+  while (t) {
+    if (t & 1) res *= base;
+    base *= base;
+    t >>= 1;
+  }
+  return res;
 }
 
 // \product_{i=0}^{N-1} (1 - x^a[i]) / (1 - x)
