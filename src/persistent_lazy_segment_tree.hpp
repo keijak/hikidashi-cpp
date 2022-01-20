@@ -1,10 +1,10 @@
 #include <bits/stdc++.h>
 
-template <typename LazyMonoid>
+template <typename Monoids>
 struct PersistentLazySegmentTree {
   using Int = long long;
-  using T = typename LazyMonoid::T;
-  using F = typename LazyMonoid::F;
+  using T = typename Monoids::T;
+  using F = typename Monoids::F;
   struct Node;
   using NodePtr = Node *;
 
@@ -12,14 +12,14 @@ struct PersistentLazySegmentTree {
     T data;
     F lazy;
     NodePtr l, r;
-    Node() {}
+    Node() = default;
     Node(const T &data, const F &lazy)
         : data(data), lazy(lazy), l(nullptr), r(nullptr) {}
   };
 
   struct NodePool {
-    static constexpr size_t kInitialBlockSize = 1u << 12;
-    static constexpr double kBlockSizeGrowthRate = 1.5;  // Try smaller rate if MLE.
+    static constexpr size_t kInitialBlockSize = 1u << 16;
+    static constexpr double kBlockSizeGrowthRate = 1.5;
 
     std::vector<std::unique_ptr<Node[]>> blocks_;
     size_t bsize_;
@@ -61,11 +61,11 @@ struct PersistentLazySegmentTree {
   }
 
   T fold(Int kl, Int kr) const {
-    return fold_(kl, kr, LazyMonoid::f_id(), root_, 0, size_);
+    return fold_(kl, kr, Monoids::f_id(), root_, 0, size_);
   }
   T fold_all() const { return root_->data; }
   T operator[](Int k) const {
-    return fold_(k, k + 1, LazyMonoid::f_id(), root_, 0, size_);
+    return fold_(k, k + 1, Monoids::f_id(), root_, 0, size_);
   }
 
   PersistentLazySegmentTree apply(Int kl, Int kr, const F &f) const {
@@ -95,7 +95,7 @@ struct PersistentLazySegmentTree {
   }
 
   static NodePtr make_nil() {
-    static Node nil_node(LazyMonoid::id(), LazyMonoid::f_id());
+    static Node nil_node(Monoids::id(), Monoids::f_id());
     nil_node.l = nil_node.r = &nil_node;
     return &nil_node;
   }
@@ -103,15 +103,15 @@ struct PersistentLazySegmentTree {
   NodePtr make_leaf(T data) const {
     NodePtr p = pool_->new_node();
     p->data = std::move(data);
-    p->lazy = LazyMonoid::f_id();
+    p->lazy = Monoids::f_id();
     p->l = p->r = nil_;
     return p;
   }
 
   NodePtr merge(NodePtr l, NodePtr r) const {
     NodePtr p = pool_->new_node();
-    p->data = LazyMonoid::op(l->data, r->data);
-    p->lazy = LazyMonoid::f_id();
+    p->data = Monoids::op(l->data, r->data);
+    p->lazy = Monoids::f_id();
     p->l = l;
     p->r = r;
     return p;
@@ -130,19 +130,19 @@ struct PersistentLazySegmentTree {
   }
 
   T fold_(Int kl, Int kr, const F &f, NodePtr np, Int l, Int r) const {
-    if (np == nil_) return LazyMonoid::id();
-    if (r <= kl or kr <= l) return LazyMonoid::id();
-    if (kl <= l and r <= kr) return LazyMonoid::f_apply(f, np->data);
-    F f_down = LazyMonoid::f_compose(f, np->lazy);
+    if (np == nil_) return Monoids::id();
+    if (r <= kl or kr <= l) return Monoids::id();
+    if (kl <= l and r <= kr) return Monoids::f_apply(f, np->data);
+    F f_down = Monoids::f_compose(f, np->lazy);
     Int m = (l + r) >> 1;
-    return LazyMonoid::op(fold_(kl, kr, f_down, np->l, l, m),
-                          fold_(kl, kr, f_down, np->r, m, r));
+    return Monoids::op(fold_(kl, kr, f_down, np->l, l, m),
+                       fold_(kl, kr, f_down, np->r, m, r));
   }
 
   NodePtr apply_one(const F &f, NodePtr np) const {
     NodePtr p = pool_->new_node();
-    p->data = LazyMonoid::f_apply(f, np->data);
-    p->lazy = LazyMonoid::f_compose(f, np->lazy);
+    p->data = Monoids::f_apply(f, np->data);
+    p->lazy = Monoids::f_compose(f, np->lazy);
     p->l = np->l;
     p->r = np->r;
     return p;
@@ -151,7 +151,7 @@ struct PersistentLazySegmentTree {
   NodePtr apply_(Int kl, Int kr, const F &f, NodePtr np, Int l, Int r) const {
     if (r <= kl or kr <= l) return np;
     if (l + 1 == r) {  // leaf
-      return make_leaf(LazyMonoid::f_apply(f, np->data));
+      return make_leaf(Monoids::f_apply(f, np->data));
     }
     if (kl <= l and r <= kr) {
       return apply_one(f, np);

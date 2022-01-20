@@ -18,8 +18,7 @@ using rb_tree_set =
 #include <ext/pb_ds/assoc_container.hpp>
 
 // https://codeforces.com/blog/entry/62393
-struct custom_hash {
-  // splitmix64
+struct splitmix64 {
   // http://xorshift.di.unimi.it/splitmix64.c
   size_t operator()(std::uint64_t x) const {
     static const std::uint64_t FIXED_RANDOM =

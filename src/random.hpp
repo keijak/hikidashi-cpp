@@ -5,6 +5,19 @@ using u64 = unsigned long long;
 // Time seed
 // std::chrono::steady_clock::now().time_since_epoch().count()
 
+// https://codeforces.com/blog/entry/62393
+struct splitmix64 {
+  // http://xorshift.di.unimi.it/splitmix64.c
+  size_t operator()(std::uint64_t x) const {
+    static const std::uint64_t FIXED_RANDOM = std::random_device{}();
+    x += FIXED_RANDOM;
+    x += 0x9e3779b97f4a7c15;
+    x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+    x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
+    return x ^ (x >> 31);
+  }
+};
+
 std::mt19937_64& PRNG() {
   static std::mt19937_64 engine(std::random_device{}());
   return engine;
