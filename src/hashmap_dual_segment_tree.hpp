@@ -52,17 +52,10 @@ struct DualSegmentTree {
     }
   }
 
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const HashDualSegmentTree &st) {
-    static const int kMaxOutput = 100;
-    os << "[";
-    for (Int i = 0; i < std::min<Int>(st.size(), kMaxOutput); ++i) {
-      if (i != 0) os << ", ";
-      os << st[i];
-    }
-    if (st.size() > kMaxOutput) {
-      os << ", ...";
-    }
-    return os << "]";
+  std::vector<T> to_vec(int sz = -1) const {
+    if (sz < 0 or sz > size()) sz = size();
+    std::vector<T> res(sz);
+    for (int i = 0; i < sz; ++i) res[i] = (*this)[i];
+    return res;
   }
 };

@@ -60,14 +60,11 @@ struct SegmentTree {
   // Returns i-th value (0-indexed).
   T operator[](int i) const { return data_[offset_ + i]; }
 
-  friend std::ostream &operator<<(std::ostream &os, const SegmentTree &st) {
-    os << "[";
-    for (int i = 0; i < st.size(); ++i) {
-      if (i != 0) os << ", ";
-      const auto &x = st[i];
-      os << x;
-    }
-    return os << "]";
+  std::vector<T> to_vec(int sz = -1) const {
+    if (sz < 0 or sz > size()) sz = size();
+    std::vector<T> res(sz);
+    for (int i = 0; i < sz; ++i) res[i] = (*this)[i];
+    return res;
   }
 };
 

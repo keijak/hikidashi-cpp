@@ -36,13 +36,11 @@ struct DualSegmentTree {
     }
   }
 
-  friend std::ostream &operator<<(std::ostream &os, const DualSegmentTree &st) {
-    os << "[";
-    for (int i = 0; i < st.size(); ++i) {
-      if (i != 0) os << ", ";
-      os << st[i];
-    }
-    return os << "]";
+  std::vector<T> to_vec(int sz = -1) const {
+    if (sz < 0 or sz > size()) sz = size();
+    std::vector<T> res(sz);
+    for (int i = 0; i < sz; ++i) res[i] = (*this)[i];
+    return res;
   }
 
  private:

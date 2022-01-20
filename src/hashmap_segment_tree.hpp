@@ -89,17 +89,10 @@ struct SegmentTree {
     }
   }
 
-  friend std::ostream &operator<<(std::ostream &os, const HashSegmentTree &st) {
-    static const int kMaxOutput = 100;
-    os << "[";
-    for (Int i = 0; i < std::min<Int>(st.size(), kMaxOutput); ++i) {
-      if (i != 0) os << ", ";
-      const auto &x = st[i];
-      os << x;
-    }
-    if (st.size() > kMaxOutput) {
-      os << ", ...";
-    }
-    return os << "]";
+  std::vector<T> to_vec(int sz = -1) const {
+    if (sz < 0 or sz > size()) sz = size();
+    std::vector<T> res(sz);
+    for (int i = 0; i < sz; ++i) res[i] = (*this)[i];
+    return res;
   }
 };
