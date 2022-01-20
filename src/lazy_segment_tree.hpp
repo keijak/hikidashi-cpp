@@ -23,7 +23,7 @@ struct LazySegmentTree {
     lazy_ = std::vector<F>(offset_, Monoids::f_id());
     for (int i = 0; i < n_; i++) data_[offset_ + i] = v[i];
     for (int i = offset_ - 1; i >= 1; i--) {
-      update(i);
+      pull_up(i);
     }
   }
 
@@ -31,16 +31,16 @@ struct LazySegmentTree {
     assert(0 <= p && p < n_);
     p += offset_;
     // Update the leaf.
-    for (int i = bits_; i >= 1; i--) push(p >> i);
+    for (int i = bits_; i >= 1; i--) push_down(p >> i);
     data_[p] = x;
     // Update its ancestors.
-    for (int i = 1; i <= bits_; i++) update(p >> i);
+    for (int i = 1; i <= bits_; i++) pull_up(p >> i);
   }
 
   const T &operator[](int p) const {
     assert(0 <= p && p < n_);
     p += offset_;
-    for (int i = bits_; i >= 1; i--) push(p >> i);
+    for (int i = bits_; i >= 1; i--) push_down(p >> i);
     return data_[p];
   }
 
@@ -52,8 +52,8 @@ struct LazySegmentTree {
     r += offset_;
 
     for (int i = bits_; i >= 1; i--) {
-      if (((l >> i) << i) != l) push(l >> i);
-      if (((r >> i) << i) != r) push(r >> i);
+      if (((l >> i) << i) != l) push_down(l >> i);
+      if (((r >> i) << i) != r) push_down(r >> i);
     }
 
     T sml = Monoids::id(), smr = Monoids::id();
@@ -72,9 +72,9 @@ struct LazySegmentTree {
   void apply(int p, F f) {
     assert(0 <= p && p < n_);
     p += offset_;
-    for (int i = bits_; i >= 1; i--) push(p >> i);
+    for (int i = bits_; i >= 1; i--) push_down(p >> i);
     data_[p] = Monoids::apply(f, data_[p]);
-    for (int i = 1; i <= bits_; i++) update(p >> i);
+    for (int i = 1; i <= bits_; i++) pull_up(p >> i);
   }
   void apply(int l, int r, F f) {
     assert(0 <= l && l <= r && r <= n_);
@@ -84,10 +84,9 @@ struct LazySegmentTree {
     r += offset_;
 
     for (int i = bits_; i >= 1; i--) {
-      if (((l >> i) << i) != l) push(l >> i);
-      if (((r >> i) << i) != r) push((r - 1) >> i);
+      if (((l >> i) << i) != l) push_down(l >> i);
+      if (((r >> i) << i) != r) push_down((r - 1) >> i);
     }
-
     {
       int l2 = l, r2 = r;
       while (l < r) {
@@ -99,10 +98,9 @@ struct LazySegmentTree {
       l = l2;
       r = r2;
     }
-
     for (int i = 1; i <= bits_; i++) {
-      if (((l >> i) << i) != l) update(l >> i);
-      if (((r >> i) << i) != r) update((r - 1) >> i);
+      if (((l >> i) << i) != l) pull_up(l >> i);
+      if (((r >> i) << i) != r) pull_up((r - 1) >> i);
     }
   }
 
@@ -116,25 +114,30 @@ struct LazySegmentTree {
     return os << "]";
   }
 
-  void update(int k) { data_[k] = Monoids::op(data_[2 * k], data_[2 * k + 1]); }
-  void apply_all(int k, F f) const {
-    data_[k] = Monoids::f_apply(f, data_[k]);
-    if (k < offset_) {
-      lazy_[k] = Monoids::f_compose(f, lazy_[k]);
-#ifdef SEGMENT_TREE_BEATS
-      if (data_[k].failed) push(k), update(k);
-#endif
-    }
+ private:
+  int n_, offset_, bits_;
+  mutable std::vector<T> data_;
+  mutable std::vector<F> lazy_;
+
+  void pull_up(int k) const {
+    data_[k] = Monoids::op(data_[2 * k], data_[2 * k + 1]);
   }
-  void push(int k) const {
+
+  void push_down(int k) const {
     apply_all(2 * k, lazy_[k]);
     apply_all(2 * k + 1, lazy_[k]);
     lazy_[k] = Monoids::f_id();
   }
 
-  int n_, offset_, bits_;
-  mutable std::vector<T> data_;
-  mutable std::vector<F> lazy_;
+  void apply_all(int k, F f) const {
+    data_[k] = Monoids::f_apply(f, data_[k]);
+    if (k < offset_) {
+      lazy_[k] = Monoids::f_compose(f, lazy_[k]);
+#ifdef SEGMENT_TREE_BEATS
+      if (data_[k].failed) push_down(k), pull_up(k);
+#endif
+    }
+  }
 };
 
 template <class M, class F>
@@ -146,14 +149,14 @@ int max_right(const LazySegmentTree<M> &seg, int l, F pred) {
   if (l == seg.size()) return seg.size();
   l += seg.offset_;
   for (int i = seg.bits_; i >= 1; --i) {
-    seg.push(l >> i);
+    seg.push_down(l >> i);
   }
   auto sm = M::id();
   do {
     while (l % 2 == 0) l >>= 1;
     if (not pred(M::op(sm, seg.data_[l]))) {
       while (l < seg.offset_) {
-        seg.push(l);
+        seg.push_down(l);
         l <<= 1;
         if (pred(M::op(sm, seg.data_[l]))) {
           sm = M::op(sm, seg.data_[l]);
@@ -177,7 +180,7 @@ int min_left(const LazySegmentTree<M> &seg, int r, F pred) {
   if (r == 0) return 0;
   r += seg.offset_;
   for (int i = seg.bits_; i >= 1; --i) {
-    seg.push((r - 1) >> i);
+    seg.push_down((r - 1) >> i);
   }
   auto sm = M::id();
   do {
@@ -185,7 +188,7 @@ int min_left(const LazySegmentTree<M> &seg, int r, F pred) {
     while (r > 1 && (r % 2)) r >>= 1;
     if (not pred(M::op(seg.data_[r], sm))) {
       while (r < seg.offset_) {
-        seg.push(r);
+        seg.push_down(r);
         r = 2 * r + 1;
         if (pred(M::op(seg.data_[r], sm))) {
           sm = M::op(seg.data_[r], sm);
