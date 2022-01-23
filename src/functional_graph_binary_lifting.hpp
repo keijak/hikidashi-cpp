@@ -64,13 +64,12 @@ struct SimpleFunctionalGraph {
     build_();
     long long max_steps_false = 0;
     int cur_node = start;
-    for (int d = kNumBits - 1; d >= 0;) {
-      int next_node = next_pos[d][cur_node];
-      if (pred(next_node)) {
-        // Overrun. Retry with a smaller jump.
-        --d;
-      } else {
-        // Continue jumping by the same d.
+    for (int d = kNumBits - 1; d >= 0; --d) {
+      const int next_node = next_pos[d][cur_node];
+      const bool overrun = pred(next_node);
+      if (d == kNumBits - 1) {  // First time, the biggest jump.
+        assert(overrun);        // kNumBits is too small!
+      } else if (not overrun) {
         max_steps_false += 1LL << d;
         cur_node = next_node;
       }
@@ -83,7 +82,7 @@ struct SimpleFunctionalGraph {
 //
 // Precomputes every (2^d)-th step (0 <= d < kNumBits).
 // Be careful about overflow!
-template <typename Monoid, int kNumBits = 32>
+template <typename Monoid, int kNumBits = 60>
 struct AggFunctionalGraph {
  private:
   using T = typename Monoid::T;
@@ -157,14 +156,13 @@ struct AggFunctionalGraph {
     long long max_steps_false = 0;
     T cur_agg = Monoid::id();
     int cur_node = start;
-    for (int d = kNumBits - 1; d >= 0;) {
+    for (int d = kNumBits - 1; d >= 0; --d) {
       T next_agg = Monoid::op(cur_agg, acc_value[d][cur_node]);
       int next_node = next_pos[d][cur_node];
-      if (pred(next_agg, next_node)) {
-        // Overrun. Retry with a smaller jump.
-        --d;
-      } else {
-        // Continue jumping by the same d.
+      bool overrun = pred(next_agg, next_node);
+      if (d == kNumBits - 1) {  // First time, the biggest jump.
+        assert(overrun);        // kNumBits is too small!
+      } else if (not overrun) {
         max_steps_false += 1LL << d;
         std::swap(cur_agg, next_agg);
         std::swap(cur_node, next_node);
