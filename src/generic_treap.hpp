@@ -131,7 +131,7 @@ class GenericTreap {
 
   void insert_(int k, T v, size_t pri) {
     if (root == nullptr) {
-      root = create_node(v, pri);
+      root = create_node(std::move(v), pri);
       return;
     }
     NodePtr l, r;
