@@ -6,8 +6,8 @@ struct Matrix {
   std::vector<Row> data;
 
   Matrix() {}
-  Matrix(int n, int m) : data(n, Row(m, 0)) {}
-  explicit Matrix(int n) : data(n, Row(n, 0)){};
+  Matrix(int n, int m) : data(n, Row(m, T(0))) {}
+  explicit Matrix(int n) : data(n, Row(n, T(0))){};
   explicit Matrix(std::vector<Row> a) : data(std::move(a)) {}
   Matrix(std::initializer_list<Row> a) : data(std::move(a)) {}
 
@@ -21,7 +21,7 @@ struct Matrix {
 
   static Matrix I(int n) {
     Matrix mat(n);
-    for (int i = 0; i < n; i++) mat[i][i] = 1;
+    for (int i = 0; i < n; i++) mat[i][i] = T(1);
     return mat;
   }
 
@@ -52,27 +52,36 @@ struct Matrix {
   Matrix &operator+=(const Matrix &B) {
     int n = height(), m = width();
     assert(n == B.height() and m == B.width());
-    for (int i = 0; i < n; ++i)
-      for (int j = 0; j < m; ++j) (*this)[i][j] += B[i][j];
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < m; ++j) {
+        (*this)[i][j] += B[i][j];
+      }
+    }
     return *this;
   }
 
   Matrix &operator-=(const Matrix &B) {
     int n = height(), m = width();
     assert(n == B.height() and m == B.width());
-    for (int i = 0; i < n; ++i)
-      for (int j = 0; j < m; ++j) (*this)[i][j] -= B[i][j];
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < m; ++j) {
+        (*this)[i][j] -= B[i][j];
+      }
+    }
     return *this;
   }
 
   Matrix &operator*=(const Matrix &B) {
     int n = height(), m = B.width(), p = width();
     assert(p == B.height());
-    std::vector<Row> C(n, Row(m, 0));
-    for (int i = 0; i < n; i++)
-      for (int j = 0; j < m; j++)
-        for (int k = 0; k < p; k++)
+    std::vector<Row> C(n, Row(m, T(0)));
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < m; j++) {
+        for (int k = 0; k < p; k++) {
           C[i][j] = (C[i][j] + (*this)[i][k] * B[k][j]);
+        }
+      }
+    }
     std::swap(data, C);
     return *this;
   }
