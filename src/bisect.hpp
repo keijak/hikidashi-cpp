@@ -29,7 +29,7 @@ Float bisect_float(Float truthy, Float falsy, F pred) {
   static_assert(std::is_floating_point_v<Float>);
   static_assert(std::is_invocable_r_v<bool, F, Float>);
   for (int iter = 0; iter < 80; ++iter) {
-    auto mid = (truthy + falsy) * 0.5;
+    auto mid = (truthy + falsy) * Float(0.5);
     auto ok = pred(mid);
     (ok ? truthy : falsy) = std::move(mid);
   }
