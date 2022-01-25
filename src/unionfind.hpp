@@ -193,27 +193,29 @@ struct UndoableUnionFind {
   std::vector<int> parent_;
   std::stack<std::pair<int, int>> history_;
 
-  explicit UndoableUnionFind(int sz) { parent_.assign(sz, -1); }
+  explicit UndoableUnionFind(int sz) : parent_(sz, -1) {}
 
   bool unite(int x, int y) {
     x = find(x), y = find(y);
     history_.emplace(x, parent_[x]);
     history_.emplace(y, parent_[y]);
-    if (x == y) return (false);
-    if (parent_[x] > parent_[y]) std::swap(x, y);
+    if (x == y) return false;
+    if (-parent_[x] < -parent_[y]) std::swap(x, y);
     parent_[x] += parent_[y];
     parent_[y] = x;
-    return (true);
+    return true;
   }
 
   int find(int k) {
-    if (parent_[k] < 0) return (k);
-    return (find(parent_[k]));
+    if (parent_[k] < 0) return k;
+    return find(parent_[k]);  // no path compression
   }
 
-  int size(int k) { return (-parent_[find(k)]); }
+  int size(int k) { return -parent_[find(k)]; }
+
   bool same(int x, int y) { return find(x) == find(y); }
 
+  // Undoes one unite() call.
   void undo() {
     parent_[history_.top().first] = history_.top().second;
     history_.pop();
@@ -225,6 +227,7 @@ struct UndoableUnionFind {
     while (history_.size()) history_.pop();
   }
 
+  // Undoes till the snapshot.
   void rollback() {
     while (history_.size()) undo();
   }
