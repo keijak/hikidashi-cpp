@@ -212,6 +212,7 @@ struct UndoableUnionFind {
   }
 
   int size(int k) { return (-parent_[find(k)]); }
+  bool same(int x, int y) { return find(x) == find(y); }
 
   void undo() {
     parent_[history_.top().first] = history_.top().second;
