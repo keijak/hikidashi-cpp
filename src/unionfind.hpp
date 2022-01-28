@@ -191,16 +191,19 @@ struct UnionFindWithTime {
 
 struct UndoableUnionFind {
   std::vector<int> parent_;
-  std::stack<std::pair<int, int>> history_;
+  struct Record {
+    int x, y;
+    int parent_x, parent_y;
+  };
+  std::stack<Record> history_;
 
   explicit UndoableUnionFind(int sz) : parent_(sz, -1) {}
 
   bool unite(int x, int y) {
     x = find(x), y = find(y);
-    history_.emplace(x, parent_[x]);
-    history_.emplace(y, parent_[y]);
-    if (x == y) return false;
     if (-parent_[x] < -parent_[y]) std::swap(x, y);
+    history_.push({x, y, parent_[x], parent_[y]});
+    if (x == y) return false;
     parent_[x] += parent_[y];
     parent_[y] = x;
     return true;
@@ -217,18 +220,17 @@ struct UndoableUnionFind {
 
   // Undoes one unite() call.
   void undo() {
-    parent_[history_.top().first] = history_.top().second;
+    auto record = history_.top();
     history_.pop();
-    parent_[history_.top().first] = history_.top().second;
-    history_.pop();
+    parent_[record.x] = record.parent_x;
+    parent_[record.y] = record.parent_y;
   }
 
-  void snapshot() {
-    while (history_.size()) history_.pop();
-  }
+  // Returns a checkpoint.
+  int snapshot() const { return history_.size(); }
 
-  // Undoes till the snapshot.
-  void rollback() {
-    while (history_.size()) undo();
+  // Undoes till the checkpoint.
+  void rollback(int checkpoint) {
+    while ((int)history_.size() > checkpoint) undo();
   }
 };
