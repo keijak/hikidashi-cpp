@@ -234,3 +234,72 @@ struct UndoableUnionFind {
     while ((int)history_.size() > checkpoint) undo();
   }
 };
+
+// https://codeforces.com/blog/entry/83467
+struct FIFOUndoableUnionFind {
+  std::vector<int> parent_;
+
+  struct Record {
+    int record_type;  // 1: reversed
+    int time;
+    int x, y;    // original arguments
+    int xr, yr;  // component representatives
+    int parent_xr, parent_yr;
+  };
+  std::stack<Record> history_;
+
+  void restore(const Record& record) {
+    parent_[record.xr] = record.parent_xr;
+    parent_[record.yr] = record.parent_yr;
+  }
+
+  explicit FIFOUndoableUnionFind(int sz) : parent_(sz, -1) {}
+
+  bool unite(int x, int y, int time, int record_type = 0) {
+    int xr = find(x), yr = find(y);
+    if (xr == yr) return false;
+    if (-parent_[xr] < -parent_[yr]) std::swap(xr, yr);
+    history_.push({record_type, time, x, y, xr, yr, parent_[xr], parent_[yr]});
+    parent_[x] += parent_[y];
+    parent_[y] = x;
+    return true;
+  }
+
+  int find(int k) {
+    if (parent_[k] < 0) return k;
+    return find(parent_[k]);  // no path compression
+  }
+
+  int size(int k) { return -parent_[find(k)]; }
+
+  bool same(int x, int y) { return find(x) == find(y); }
+
+  void undo(int until) {
+    while (not history_.empty()) {
+      auto record = history_.top();
+      if (record.record_type == 1 and record.time > until) break;
+      history_.pop();
+      restore(record);
+      if (record.record_type == 1) continue;
+      std::vector<Record> records0 = {record}, records1 = {};
+      while (not history_.empty()) {
+        if (records0.size() == records1.size()) break;
+        auto r = history_.top();
+        history_.pop();
+        restore(r);
+        (r.record_type == 1 ? records1 : records0).push_back(r);
+      }
+      bool reversing = false;
+      if (history_.empty()) {
+        reversing = true;
+        std::reverse(records0.begin(), records0.end());
+      }
+      for (auto it = records0.rbegin(); it != records0.rend(); ++it) {
+        unite(it->x, it->y, it->time, reversing);
+      }
+      for (auto it = records1.rbegin(); it != records1.rend(); ++it) {
+        unite(it->x, it->y, it->time, true);
+      }
+    }
+  }
+};
