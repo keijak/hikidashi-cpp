@@ -1,27 +1,26 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// if reshape_graph=true, `g_` is mutated into a tree.
+// if reshape_graph=true, `g_` is trimmed into a tree.
 template <bool reshape_graph = false>
 struct DFSTree {
+  using Graph = std::vector<std::vector<int>>;
+
   int n_;
   int root_;
+  Graph g_;
   std::vector<int> parent_;
   std::vector<int> depth_;
-
-  // The graph.
-  // if reshape_graph=true, `g_` is mutated into a tree.
-  std::vector<std::vector<int>> g_;
 
   // edge(u,v) where v is an ancestor of u in the DFS tree.
   std::set<std::pair<int, int>> back_edges_;
 
-  explicit DFSTree(std::vector<std::vector<int>> g, int root = 0)
+  explicit DFSTree(Graph g, int root = 0)
       : n_(int(g.size())),
         root_(root),
+        g_(std::move(g)),
         parent_(n_, -1),
-        depth_(n_, -1),
-        g_(std::move(g)) {
+        depth_(n_, -1) {
     dfs(root_, -1, 0);
   }
 
