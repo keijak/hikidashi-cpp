@@ -8,6 +8,8 @@ inline bool chmin(T &a, U b) {
 template <typename T>
 constexpr T kBigVal = std::numeric_limits<T>::max() / 2;
 
+////
+
 template <class T>
 using MinHeap = std::priority_queue<T, vector<T>, greater<T>>;
 
@@ -18,8 +20,8 @@ struct Edge {
 using Graph = std::vector<std::vector<Edge>>;
 
 struct State {
-  Int cost;
   int node;
+  Int cost;
 };
 bool operator>(const State &x, const State &y) { return x.cost > y.cost; }
 
@@ -30,7 +32,7 @@ auto search_shortest_path(const Graph &g, int start, int goal) {
   MinHeap<State> que;
   auto push = [&](Int cost, int node) -> bool {
     if (chmin(mincost[node], cost)) {
-      que.push(State{cost, node});
+      que.push(State{node, cost});
       return true;
     }
     return false;
@@ -51,9 +53,9 @@ auto search_shortest_path(const Graph &g, int start, int goal) {
 }
 
 struct GridState {
-  Int cost;
   int r;
   int c;
+  Int cost;
 };
 bool operator>(const GridState &x, const GridState &y) {
   return x.cost > y.cost;
@@ -75,7 +77,7 @@ auto search_shortest_path_on_grid(const vector<string> &g,
     if (not inside(r, c)) return false;
     if (g[r][c] == '#') return false;
     if (not chmin(mincost[r][c], cost)) return false;
-    que.push(GridState{cost, r, c});
+    que.push(GridState{r, c, cost});
     return true;
   };
   assert(push(0LL, start.first, start.second));

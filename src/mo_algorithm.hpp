@@ -44,13 +44,13 @@ struct Mo {
   void add_query(Query query) { queries.push_back(std::move(query)); }
 
   void solve(Task &task) const {
-    int q = queries.size();
-    int bs = n / min<int>(n, sqrt(q));
-    vector<int> ord(q);
+    const int Q = (int)queries.size();
+    const int B = n / min<int>(n, sqrt(Q));
+    vector<int> ord(Q);
     iota(begin(ord), end(ord), 0);
     sort(begin(ord), end(ord), [&](int a, int b) {
-      int ablock = queries[a].l / bs;
-      int bblock = queries[b].l / bs;
+      int ablock = queries[a].l / B;
+      int bblock = queries[b].l / B;
       if (ablock != bblock) return ablock < bblock;
       return (ablock & 1) ? queries[a].r > queries[b].r
                           : queries[a].r < queries[b].r;
