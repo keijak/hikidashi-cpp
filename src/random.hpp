@@ -11,9 +11,15 @@ std::mt19937_64& PRNG() {
 }
 
 // Generates values in [lo, hi].
-int randint_example(int lo, int hi) {
+int rand_int(int lo, int hi) {
   std::uniform_int_distribution<int> rand(lo, hi);
   return rand(PRNG());
+}
+
+uint64_t rand_u64() {
+  static std::uniform_int_distribution<uint64_t> dist(
+      1000, std::numeric_limits<uint64_t>::max());
+  return dist(PRNG());
 }
 
 void shuffle_example(vector<int>& v) {
