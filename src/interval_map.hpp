@@ -40,6 +40,7 @@ class IntervalMap : public std::map<Int, Interval> {
 
   // Inserts interval [l, r)
   void add_interval(const Interval &interval) {
+    if (interval.l >= interval.r) return;  // empty interval
     remove_interval(interval.l, interval.r);
     event_handler_.on_add(interval);
     (*this)[interval.l] = interval;
