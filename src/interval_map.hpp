@@ -1,116 +1,48 @@
+// Mapping disjoint half-open intervals [l, r) to values.
+// Each interval is associated with a value.
+// ref. https://noimi.hatenablog.com/entry/2021/05/02/195143
 #include <bits/stdc++.h>
 using namespace std;
 using Int = long long;
 
-// Disjoint closed intervals [l, r] (mapping l to r).
-class ClosedIntervalMap : public std::map<Int, Int> {
- private:
-  // If true, automatically merges [l, c] and [c+1, r].
-  bool merge_adjacent;
+struct Interval {
+  Int l, r;
+  Int val;
+};
+ostream &operator<<(ostream &os, const Interval &iv) {
+  return os << "{[" << iv.l << ", " << iv.r << ") => " << iv.val << "}";
+}
 
- public:
-  ClosedIntervalMap(bool merge_adjacent = true)
-      : merge_adjacent(merge_adjacent) {}
+struct EventHandler {
+  Int length_sum = 0;
 
-  // Returns the interval [l, r] which contains p if available.
-  // Otherwise returns this->end().
-  std::map<Int, Int>::iterator find_interval(Int p) {
-    auto it = upper_bound(p);
-    if (it == begin() || (--it)->second < p) return end();
-    return it;
-  }
-
-  // Inserts interval [l, r]
-  void add_interval(Int l, Int r) {
-    auto itl = upper_bound(l), itr = upper_bound(r + merge_adjacent);
-    if (itl != begin()) {
-      if ((--itl)->second < l - merge_adjacent) ++itl;
-    }
-    if (itl != itr) {
-      l = std::min(l, itl->first);
-      r = std::max(r, std::prev(itr)->second);
-      for (auto it = itl; it != itr;) {
-        it = erase(it);
-      }
-    }
-    (*this)[l] = r;
-  }
-
-  // Removes interval [l, r]
-  void remove_interval(Int l, Int r) {
-    auto itl = upper_bound(l), itr = upper_bound(r);
-    if (itl != begin()) {
-      if ((--itl)->second < l) ++itl;
-    }
-    if (itl == itr) return;
-    Int tl = std::min(l, itl->first);
-    Int tr = std::max(r, std::prev(itr)->second);
-    for (auto it = itl; it != itr;) {
-      it = erase(it);
-    }
-    if (tl < l) {
-      (*this)[tl] = l - 1;
-    }
-    if (r < tr) {
-      (*this)[r + 1] = tr;
-    }
-  }
-
-  // Are p and q in the same interval?
-  bool same(Int p, Int q) {
-    const auto it = find_interval(p);
-    return it != end() and it->first <= q and q <= it->second;
-  }
-
-  // Minimum excluded value greater than or equal to X.
-  Int mex(int bottom = 0) {
-    const auto it = find_interval(bottom);
-    if (it == end()) return bottom;
-    return it->second + 1;
-  }
+  EventHandler() = default;
+  void on_add(const Interval &iv) { length_sum += iv.r - iv.l; }
+  void on_remove(const Interval &iv) { length_sum -= iv.r - iv.l; }
 };
 
-// Disjoint half-open intervals [l, r) (mapping l to r).
-class IntervalMap : public std::map<Int, Int> {
- private:
-  // If true, automatically merges [l, c) and [c, r).
-  bool merge_adjacent;
-  Int length_sum_;
-
+class IntervalMap : public std::map<Int, Interval> {
  public:
-  IntervalMap(bool merge_adjacent = true)
-      : merge_adjacent(merge_adjacent), length_sum_(0) {}
+  EventHandler event_handler_;
 
-  Int length_sum() const { return length_sum_; }
+  IntervalMap() = default;
 
-  // Returns the interval [l, r) which contains p if available.
+  // Returns the interval which contains p if available.
   // Otherwise returns this->end().
-  std::map<Int, Int>::iterator find_interval(Int p) {
+  std::map<Int, Interval>::iterator find_interval(Int p) {
     auto it = upper_bound(p);
     if (it != begin()) {
       --it;
-      if (it->second > p) return it;
+      if (it->second.r > p) return it;
     }
     return end();
   }
 
   // Inserts interval [l, r)
-  void add_interval(Int l, Int r) {
-    auto itl = upper_bound(l), itr = lower_bound(r + merge_adjacent);
-    if (itl != begin()) {
-      --itl;
-      if (itl->second <= l - merge_adjacent) ++itl;
-    }
-    if (itl != itr) {
-      l = std::min(l, itl->first);
-      r = std::max(r, std::prev(itr)->second);
-      for (auto it = itl; it != itr;) {
-        length_sum_ -= it->second - it->first;
-        it = erase(it);
-      }
-    }
-    (*this)[l] = r;
-    length_sum_ += r - l;
+  void add_interval(const Interval &interval) {
+    remove_interval(interval.l, interval.r);
+    event_handler_.on_add(interval);
+    (*this)[interval.l] = interval;
   }
 
   // Removes interval [l, r)
@@ -118,35 +50,30 @@ class IntervalMap : public std::map<Int, Int> {
     auto itl = upper_bound(l), itr = lower_bound(r);
     if (itl != begin()) {
       --itl;
-      if (itl->second <= l) ++itl;
+      if (itl->second.r <= l) ++itl;
     }
     if (itl == itr) return;
-    Int tl = std::min(l, itl->first);
-    Int tr = std::max(r, std::prev(itr)->second);
-    for (auto it = itl; it != itr;) {
-      length_sum_ -= it->second - it->first;
-      it = erase(it);
+    std::optional<Interval> ltip, rtip;
+    if (itl->first < l) {
+      ltip = itl->second;
+      assert(ltip->r >= l);
+      ltip->r = l;
     }
-    if (tl < l) {
-      (*this)[tl] = l;
-      length_sum_ += l - tl;
+    if (auto riv = std::prev(itr)->second; riv.r > r) {
+      rtip = riv;
+      assert(rtip->l <= r);
+      rtip->l = r;
     }
-    if (r < tr) {
-      (*this)[r] = tr;
-      length_sum_ += tr - r;
+    for (auto it = itl; it != itr; it = erase(it)) {
+      event_handler_.on_remove(it->second);
     }
-  }
-
-  // Are p and q in the same interval?
-  bool same(Int p, Int q) {
-    const auto it = find_interval(p);
-    return it != end() and it->first <= q and q < it->second;
-  }
-
-  // Minimum excluded value greater than or equal to X.
-  Int mex(int bottom = 0) {
-    const auto it = find_interval(bottom);
-    if (it == end()) return bottom;
-    return it->second;
+    if (ltip) {
+      event_handler_.on_add(*ltip);
+      (*this)[ltip->l] = *ltip;
+    }
+    if (rtip) {
+      event_handler_.on_add(*rtip);
+      (*this)[rtip->l] = *rtip;
+    }
   }
 };
