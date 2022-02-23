@@ -48,6 +48,7 @@ class IntervalMap : public std::map<Int, Interval> {
 
   // Removes interval [l, r)
   void remove_interval(Int l, Int r) {
+    if (l >= r) return;  // empty interval
     auto itl = upper_bound(l), itr = lower_bound(r);
     if (itl != begin()) {
       --itl;
