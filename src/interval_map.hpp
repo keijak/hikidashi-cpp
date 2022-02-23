@@ -38,8 +38,8 @@ class IntervalMap : public std::map<Int, Interval> {
     return end();
   }
 
-  // Inserts interval [l, r)
-  void add_interval(const Interval &interval) {
+  // Sets interval [l, r) => value.
+  void set_interval(const Interval &interval) {
     if (interval.l >= interval.r) return;  // empty interval
     remove_interval(interval.l, interval.r);
     event_handler_.on_add(interval);
