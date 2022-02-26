@@ -164,8 +164,8 @@ struct AggFunctionalGraph {
         assert(overrun);        // kNumBits is too small!
       } else if (not overrun) {
         max_steps_false += 1LL << d;
-        std::swap(cur_agg, next_agg);
-        std::swap(cur_node, next_node);
+        cur_node = next_node;
+        cur_agg = std::move(next_agg);
       }
     }
     return max_steps_false + 1;
