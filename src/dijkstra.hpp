@@ -37,7 +37,7 @@ auto search_shortest_path(const Graph &g, int start, int goal) {
     }
     return false;
   };
-  assert(push(0LL, start));
+  push(0LL, start);
 
   while (not que.empty()) {
     State cur = que.top();
@@ -80,7 +80,7 @@ auto search_shortest_path_on_grid(const vector<string> &g,
     que.push(GridState{r, c, cost});
     return true;
   };
-  assert(push(0LL, start.first, start.second));
+  push(0LL, start.first, start.second);
 
   while (not que.empty()) {
     GridState cur = que.top();
