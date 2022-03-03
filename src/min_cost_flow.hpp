@@ -1,5 +1,6 @@
-// https://misawa.github.io/others/flow/library_design.html
 #include <bits/stdc++.h>
+
+// https://misawa.github.io/others/flow/library_design.html
 
 enum Objective {
   MINIMIZE = 1,
@@ -11,11 +12,11 @@ enum class Status {
   INFEASIBLE,
 };
 
+using V_id = uint32_t;
+using E_id = uint32_t;
+
 template <class Flow, class Cost, Objective objective = Objective::MINIMIZE>
 class MinCostFlow {
-  using V_id = uint32_t;
-  using E_id = uint32_t;
-
   class Edge {
     friend class MinCostFlow;
 
