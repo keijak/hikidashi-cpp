@@ -178,7 +178,7 @@ std::vector<Int> enumerate_divisors(
 // On a large N, often faster than simple `divisors()`.
 std::vector<Int> divisors2(Int n) { return enumerate_divisors(factorize(n)); }
 
-// Euler's phi function.
+// Euler's phi function in O(sqrt(n)).
 // Number of integers coprime to n (between 1 and n inclusive).
 Int totient(Int n) {
   Int res = n;
