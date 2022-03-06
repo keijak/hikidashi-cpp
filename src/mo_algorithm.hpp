@@ -9,7 +9,7 @@ struct Query {
 
 struct Task {
   int n;
-  vector<long long> answer;
+  std::vector<long long> answer;
 
   Task(int N, int Q) : n(N), answer(Q) {}
 
@@ -40,29 +40,23 @@ struct Mo {
   // https://nyaannyaan.github.io/library/misc/mo.hpp
   static constexpr int B = 100;
 
-  vector<Query> queries_;
-  vector<int> ord_;
-  bool build_done_ = false;
+  std::vector<Query> queries_;
 
   void add_query(Query query) { queries_.push_back(std::move(query)); }
 
-  void build() {
-    ord_.resize(queries_.size());
-    iota(begin(ord_), end(ord_), 0);
-    sort(begin(ord_), end(ord_), [&](int a, int b) {
-      int ablock = queries_[a].l / B;
-      int bblock = queries_[b].l / B;
-      if (ablock != bblock) return ablock < bblock;
-      return (ablock & 1) ? queries_[a].r > queries_[b].r
-                          : queries_[a].r < queries_[b].r;
-    });
-    build_done_ = true;
-  }
-
   void solve(Task &task) {
-    if (not build_done_) build();
+    std::vector<int> ord(queries_.size());
+    std::iota(ord.begin(), ord.end(), 0);
+    std::sort(ord.begin(), ord.end(), [&](int a, int b) {
+      const int a_block = queries_[a].l / B;
+      const int b_block = queries_[b].l / B;
+      if (a_block != b_block) return a_block < b_block;
+      return (a_block & 1) ? queries_[a].r > queries_[b].r
+                           : queries_[a].r < queries_[b].r;
+    });
+
     int l = 0, r = 0;
-    for (auto idx : ord_) {
+    for (auto idx : ord) {
       while (l > queries_[idx].l) task.add_left(--l);
       while (r < queries_[idx].r) task.add_right(r++);
       while (l < queries_[idx].l) task.remove_left(l++);
