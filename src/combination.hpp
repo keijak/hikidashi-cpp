@@ -11,7 +11,7 @@ struct Factorials {
   std::vector<T> fact, ifact;
 
   // n: max cached value.
-  Factorials(int n) : fact(n + 1), ifact(n + 1) {
+  explicit Factorials(int n) : fact(n + 1), ifact(n + 1) {
     assert(n >= 0);
     assert(n < T::mod());
     fact[0] = 1;
