@@ -1,4 +1,4 @@
-// In-place Zeta Transform and Moebius Transform.
+// In-place Fast Zeta Transform and Fast Moebius Transform.
 #include <cassert>
 #include <vector>
 
@@ -18,7 +18,7 @@ void subset_zeta_transform(std::vector<T> &f) {
 
 // f(S) = sum_{T ⊂ S} g(T) * (-1)^|S \ T|
 template <typename T>
-void subset_mobius_transform(std::vector<T> &f) {
+void subset_moebius_transform(std::vector<T> &f) {
   const int n = f.size();
   assert((n & (n - 1)) == 0);  // n must be power of 2.
   for (int i = 1; i < n; i <<= 1) {
@@ -38,7 +38,7 @@ std::vector<T> bitwise_or_convolution(std::vector<T> f, std::vector<T> g) {
   for (int i = 0; i < int(f.size()); ++i) {
     f[i] *= g[i];
   }
-  subset_mobius_transform(f);
+  subset_moebius_transform(f);
   return f;
 }
 
@@ -58,7 +58,7 @@ void superset_zeta_transform(std::vector<T> &f) {
 
 // f(S) = sum_{T ⊃ S} g(T) * (-1)^|T \ S|
 template <typename T>
-void superset_mobius_transform(std::vector<T> &f) {
+void superset_moebius_transform(std::vector<T> &f) {
   const int n = f.size();
   assert((n & (n - 1)) == 0);  // n must be power of 2.
   for (int i = 1; i < n; i <<= 1) {
@@ -78,7 +78,7 @@ std::vector<T> bitwise_and_convolution(std::vector<T> f, std::vector<T> g) {
   for (int i = 0; i < int(f.size()); ++i) {
     f[i] *= g[i];
   }
-  superset_mobius_transform(f);
+  superset_moebius_transform(f);
   return f;
 }
 
