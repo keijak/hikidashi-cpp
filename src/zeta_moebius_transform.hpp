@@ -2,11 +2,11 @@
 #include <cassert>
 #include <vector>
 
-// F(T) = sum_{S ⊂ T} f(S)
+// g(S) = sum_{T ⊂ S} f(T)
 template <typename T>
 void subset_zeta_transform(std::vector<T> &f) {
   const int n = f.size();
-  assert((n & (n - 1)) == 0);  // n: power of 2.
+  assert((n & (n - 1)) == 0);  // n must be power of 2.
   for (int i = 1; i < n; i <<= 1) {
     for (int j = 0; j < n; j++) {
       if ((j & i) == 0) {
@@ -16,10 +16,11 @@ void subset_zeta_transform(std::vector<T> &f) {
   }
 }
 
+// f(S) = sum_{T ⊂ S} g(T) * (-1)^|S \ T|
 template <typename T>
 void subset_mobius_transform(std::vector<T> &f) {
   const int n = f.size();
-  assert((n & (n - 1)) == 0);  // n: power of 2.
+  assert((n & (n - 1)) == 0);  // n must be power of 2.
   for (int i = 1; i < n; i <<= 1) {
     for (int j = 0; j < n; j++) {
       if ((j & i) == 0) {
@@ -41,11 +42,11 @@ std::vector<T> bitwise_or_convolution(std::vector<T> f, std::vector<T> g) {
   return f;
 }
 
-// F(T) = sum_{S ⊃ T} f(S)
+// g(S) = sum_{T ⊃ S} f(T)
 template <typename T>
 void superset_zeta_transform(std::vector<T> &f) {
   const int n = f.size();
-  assert((n & (n - 1)) == 0);  // n: power of 2.
+  assert((n & (n - 1)) == 0);  // n must be power of 2.
   for (int i = 1; i < n; i <<= 1) {
     for (int j = 0; j < n; j++) {
       if ((j & i) == 0) {
@@ -55,10 +56,11 @@ void superset_zeta_transform(std::vector<T> &f) {
   }
 }
 
+// f(S) = sum_{T ⊃ S} g(T) * (-1)^|T \ S|
 template <typename T>
 void superset_mobius_transform(std::vector<T> &f) {
   const int n = f.size();
-  assert((n & (n - 1)) == 0);  // n: power of 2.
+  assert((n & (n - 1)) == 0);  // n must be power of 2.
   for (int i = 1; i < n; i <<= 1) {
     for (int j = 0; j < n; j++) {
       if ((j & i) == 0) {
@@ -80,7 +82,7 @@ std::vector<T> bitwise_and_convolution(std::vector<T> f, std::vector<T> g) {
   return f;
 }
 
-// F(n) = sum_{i|n} f(i)
+// g(n) = sum_{d|n} f(d)
 // O(N log log N)
 template <class T>
 void divisor_zeta_transform(std::vector<T> &f, const std::vector<int> &primes) {
@@ -93,7 +95,7 @@ void divisor_zeta_transform(std::vector<T> &f, const std::vector<int> &primes) {
   }
 }
 
-// f(n) = sum_{i|n} mu(n/i)*F(i)
+// f(n) = sum_{d|n} g(d) * mu(n/d)
 // O(N log log N)
 template <class T>
 void divisor_moebius_transform(std::vector<T> &f,
@@ -120,7 +122,7 @@ std::vector<T> lcm_convolution(std::vector<T> f, std::vector<T> g,
   return f;
 }
 
-// F(n) = sum_{n|i} f(i)
+// g(n) = sum_{n|k} f(k)
 // O(N log log N)
 template <class T>
 void multiple_zeta_transform(std::vector<T> &f,
@@ -134,7 +136,7 @@ void multiple_zeta_transform(std::vector<T> &f,
   }
 }
 
-// f(n) = sum_{n|i} mu(i/n)*F(i)
+// f(n) = sum_{n|k} g(k) * mu(k/n)
 // O(N log log N)
 template <class T>
 void multiple_moebius_transform(std::vector<T> &f,
