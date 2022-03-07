@@ -179,8 +179,8 @@ std::vector<Int> enumerate_divisors(
 std::vector<Int> divisors2(Int n) { return enumerate_divisors(factorize(n)); }
 
 // Moebius function in O(sqrt(n)).
-Int moebius(Int n) {
-  Int res = 1;
+int moebius(Int n) {
+  int res = 1;
   for (auto [p, k] : factorize(n)) {
     if (k >= 2) return 0;
     res *= -1;
