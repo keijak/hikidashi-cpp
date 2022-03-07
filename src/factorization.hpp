@@ -178,8 +178,8 @@ std::vector<Int> enumerate_divisors(
 // On a large N, often faster than simple `divisors()`.
 std::vector<Int> divisors2(Int n) { return enumerate_divisors(factorize(n)); }
 
-// Mobius function in O(sqrt(n)).
-Int mobius(Int n) {
+// Moebius function in O(sqrt(n)).
+Int moebius(Int n) {
   Int res = 1;
   for (auto [p, k] : factorize(n)) {
     if (k >= 2) return 0;
