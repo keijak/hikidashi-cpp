@@ -1,6 +1,9 @@
 #include <bits/stdc++.h>
 using Int = long long;
 
+// Precalculating multiplicative functions from 1 to N in O(N).
+// https://codeforces.com/blog/entry/54090
+
 struct PrimeSieve {
   std::vector<int> spf;  // smallest prime factors table.
   std::vector<int> primes;
@@ -13,8 +16,9 @@ struct PrimeSieve {
         primes.push_back(i);
       }
       for (const auto &p : primes) {
-        if (i * p > n or p > spf[i]) break;
+        if (i * p > n) break;
         spf[i * p] = p;
+        if (i % p == 0) break;
       }
     }
   }
