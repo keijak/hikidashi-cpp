@@ -114,6 +114,40 @@ struct PrimeSieve {
   }
 };
 
+// Linear Sieve for precalculating multiplicative function tables.
+// https://codeforces.com/blog/entry/54090
+struct LinearSieve {
+  std::vector<int> spf;  // smallest prime factors.
+  std::vector<int> mu;   // Moebius function
+  std::vector<int> phi;  // Euler's totient function
+  std::vector<int> primes;
+
+  explicit LinearSieve(int n) : spf(n + 1), mu(n + 1), phi(n + 1) {
+    mu[1] = 1;
+    phi[1] = 1;
+    for (int i = 2; i <= n; ++i) {
+      if (spf[i] == 0) {
+        spf[i] = i;
+        mu[i] = -1;
+        phi[i] = i - 1;
+        primes.push_back(i);
+      }
+      for (const auto &p : primes) {
+        if (i * p > n) break;
+        spf[i * p] = p;
+        if (i % p == 0) {
+          mu[i * p] = 0;
+          phi[i * p] = phi[i] * p;
+          break;
+        } else {
+          mu[i * p] = -mu[i];
+          phi[i * p] = phi[i] * phi[p];
+        }
+      }
+    }
+  }
+};
+
 // Returns all divisors of n. O(sqrt(n)) + sorting.
 std::vector<Int> divisors(Int n) {
   std::vector<Int> res;
