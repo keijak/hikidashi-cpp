@@ -6,8 +6,9 @@
 
 using Int = long long;
 
+// Saturating addition
 template <class T>
-T saturating_add(T x, T y) {
+T sat_add(T x, T y) {
   static_assert(std::is_integral<T>::value);
   static constexpr T kMin = std::numeric_limits<T>::lowest();
   static constexpr T kMax = std::numeric_limits<T>::max();
@@ -21,8 +22,9 @@ T saturating_add(T x, T y) {
   }
 }
 
+// Saturating multiplication
 template <class T>
-T saturating_mul(T x, T y) {
+T sat_mul(T x, T y) {
   static_assert(std::is_integral<T>::value);
   static constexpr T kMin = std::numeric_limits<T>::lowest();
   static constexpr T kMax = std::numeric_limits<T>::max();
