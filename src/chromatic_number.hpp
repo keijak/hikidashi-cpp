@@ -1,8 +1,8 @@
+#include <bits/stdc++.h>
 
-
-// Chromatic Number
+// Chromatic Number: O(2^n n)
 // g: adjacency matrix. Each row is a bitset.
-int chromatic_number(const vector<uint32_t> &g) {
+int chromatic_number(const std::vector<uint32_t> &g) {
   uint32_t n = (int)g.size();
 
   // Requires: g[i][i] == true.
@@ -15,7 +15,7 @@ int chromatic_number(const vector<uint32_t> &g) {
       for (uint32_t i = 0; i < n; ++i) {
         if ((b & (1 << i)) and (g[i] & b) != b) return;
       }
-      ret = max(ret, __builtin_popcount(b));
+      ret = std::max(ret, __builtin_popcount(b));
     }();
   }
   return ret;
