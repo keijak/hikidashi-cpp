@@ -32,7 +32,7 @@ int chromatic_number(const Graph &graph) {
   vector<uint32_t> es(N);
   for (int i = 0; i < N; i++) {
     for (int j = 0; j < N; j++) {
-      es[i] |= graph[i][j] << j;
+      if (graph[i][j]) es[i] |= 1 << j;
     }
   }
   vector<uint32_t> ind(1 << N);
