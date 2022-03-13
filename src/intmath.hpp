@@ -38,6 +38,13 @@ T sat_mul(T x, T y) {
   }
 }
 
+// Saturating LCM
+template <typename T>
+T sat_lcm(T x, T y) {
+  auto g = std::gcd(x, y);
+  return sat_mul(x, y / g);
+}
+
 // Returns floor(sqrt(x)).
 Int floor_sqrt(Int x) {
   assert(x >= 0);
