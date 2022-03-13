@@ -1,8 +1,94 @@
 #include <bits/stdc++.h>
 using Int = long long;
 
-// Precalculating multiplicative functions from 1 to N in O(N).
-// https://codeforces.com/blog/entry/54090
+// Returns all divisors of n. O(sqrt(n)) + sorting.
+std::vector<Int> divisors(Int n) {
+  std::vector<Int> res;
+  for (Int k = 1; k * k <= n; ++k) {
+    if (n % k != 0) continue;
+    res.push_back(k);
+    Int q = n / k;
+    if (q != k) res.push_back(q);
+  }
+  std::sort(res.begin(), res.end());
+  return res;
+}
+
+// Factorizes a number into {prime, count} pairs. O(sqrt(n)).
+std::vector<std::pair<Int, int>> factorize(Int n) {
+  assert(n > 0);
+  std::vector<std::pair<Int, int>> res;
+  for (Int k = 2; k * k <= n; ++k) {
+    if (n % k != 0) continue;
+    int count = 0;
+    do {
+      n /= k;
+      ++count;
+    } while (n % k == 0);
+    res.emplace_back(k, count);
+  }
+  if (n > 1) {
+    res.emplace_back(n, 1);
+  }
+  return res;
+}
+
+// Enumerates divisors from prime factorization.
+// O(d(n)) + sorting
+std::vector<Int> enumerate_divisors(
+    const std::vector<std::pair<Int, int>> &fac) {
+  std::vector<Int> res = {1};
+  for (auto [p, k] : fac) {
+    int sz = res.size();
+    for (int i = 0; i < sz; ++i) {
+      Int pp = 1;
+      for (int j = 0; j < k; ++j) {
+        pp *= p;
+        res.push_back(res[i] * pp);
+      }
+    }
+  }
+  std::sort(res.begin(), res.end());
+  return res;
+}
+
+// On a large N, often faster than simple `divisors()`.
+std::vector<Int> divisors2(Int n) { return enumerate_divisors(factorize(n)); }
+
+// Moebius function in O(sqrt(n)).
+int moebius(Int n) {
+  int res = 1;
+  for (auto [p, k] : factorize(n)) {
+    if (k >= 2) return 0;
+    res *= -1;
+  }
+  return res;
+}
+
+// Euler's phi function in O(sqrt(n)).
+// Number of integers coprime to n (between 1 and n inclusive).
+Int totient(Int n) {
+  Int res = n;
+  for (auto [p, _] : factorize(n)) {
+    res /= p;
+    res *= p - 1;
+  }
+  return res;
+}
+
+// Returns a table of divisor counts of integers <= n.
+std::vector<int> divisor_count_table(int n) {
+  assert(n >= 1);
+  std::vector<int> counts(n + 1, 2);  // 1 and self
+  counts[0] = 0;
+  counts[1] = 1;
+  for (int d = 2; d * 2 <= n; ++d) {
+    for (int x = d * 2; x <= n; x += d) {
+      ++counts[x];
+    }
+  }
+  return counts;
+}
 
 struct PrimeSieve {
   std::vector<int> spf;  // smallest prime factors table.
@@ -147,95 +233,6 @@ struct LinearSieve {
     }
   }
 };
-
-// Returns all divisors of n. O(sqrt(n)) + sorting.
-std::vector<Int> divisors(Int n) {
-  std::vector<Int> res;
-  for (Int k = 1; k * k <= n; ++k) {
-    if (n % k != 0) continue;
-    res.push_back(k);
-    Int q = n / k;
-    if (q != k) res.push_back(q);
-  }
-  std::sort(res.begin(), res.end());
-  return res;
-}
-
-// Returns a table of divisor counts of integers <= n.
-std::vector<int> divisor_count_table(int n) {
-  assert(n >= 1);
-  std::vector<int> counts(n + 1, 2);  // 1 and self
-  counts[0] = 0;
-  counts[1] = 1;
-  for (int d = 2; d * 2 <= n; ++d) {
-    for (int x = d * 2; x <= n; x += d) {
-      ++counts[x];
-    }
-  }
-  return counts;
-}
-
-// Factorizes a number into {prime, count} pairs. O(sqrt(n)).
-std::vector<std::pair<Int, int>> factorize(Int n) {
-  assert(n > 0);
-  std::vector<std::pair<Int, int>> res;
-  for (Int k = 2; k * k <= n; ++k) {
-    if (n % k != 0) continue;
-    int count = 0;
-    do {
-      n /= k;
-      ++count;
-    } while (n % k == 0);
-    res.emplace_back(k, count);
-  }
-  if (n > 1) {
-    res.emplace_back(n, 1);
-  }
-  return res;
-}
-
-// Enumerates divisors from prime factorization.
-// O(d(n)) + sorting
-std::vector<Int> enumerate_divisors(
-    const std::vector<std::pair<Int, int>> &fac) {
-  std::vector<Int> res = {1};
-  for (auto [p, k] : fac) {
-    int sz = res.size();
-    for (int i = 0; i < sz; ++i) {
-      Int pp = 1;
-      for (int j = 0; j < k; ++j) {
-        pp *= p;
-        res.push_back(res[i] * pp);
-      }
-    }
-  }
-  std::sort(res.begin(), res.end());
-  return res;
-}
-
-// On a large N, often faster than simple `divisors()`.
-std::vector<Int> divisors2(Int n) { return enumerate_divisors(factorize(n)); }
-
-// Moebius function in O(sqrt(n)).
-int moebius(Int n) {
-  int res = 1;
-  for (auto [p, k] : factorize(n)) {
-    if (k >= 2) return 0;
-    res *= -1;
-  }
-  return res;
-}
-
-// Euler's phi function in O(sqrt(n)).
-// Number of integers coprime to n (between 1 and n inclusive).
-Int totient(Int n) {
-  Int res = n;
-  for (auto [p, _] : factorize(n)) {
-    res /= p;
-    res *= p - 1;
-  }
-  return res;
-}
 
 // Returns a bitset to tell if each number is prime. O(n log log n).
 std::vector<bool> prime_sieve(int n) {

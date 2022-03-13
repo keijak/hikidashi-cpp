@@ -55,9 +55,12 @@ struct ModInt {
     _v = ((unsigned long long)(_v)*a._v) % M;
     return *this;
   }
-  constexpr ModInt pow(unsigned long long t) const {
+  constexpr ModInt pow(long long t) const {
     if (_v == 0) {
       return 0;  // corner case: 0^0 = ?
+    }
+    if (t < 0) {
+      return this->inv().pow(-t);
     }
     ModInt base = *this;
     ModInt res = 1;

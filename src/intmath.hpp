@@ -96,8 +96,8 @@ T power(T b, Int e) {
 
 // [1, x, x^2, x^3, ..., x^n]
 template <typename T>
-std::vector<T> pow_seq(int n, int base = 2) {
-  assert(n >= 0 and base > 0);
+std::vector<T> pow_seq(int n, T base = 2) {
+  assert(n >= 0);
   std::vector<T> p(n + 1);
   p[0] = 1;
   for (int i = 0; i < n; ++i) {
