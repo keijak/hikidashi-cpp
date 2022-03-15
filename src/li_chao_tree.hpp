@@ -19,10 +19,7 @@ struct Max {
   static constexpr T id() { return std::numeric_limits<T>::lowest(); }
 };
 
-// Line-like function.
-//
-// Not necessarily a line, but must hold the transcending property:
-// Two curves cross at most once in the specified range.
+// y = ax + b
 template <class T>
 struct Line {
   T a;
