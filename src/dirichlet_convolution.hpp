@@ -1,15 +1,13 @@
 #include <bits/stdc++.h>
 
-// Dirichlet Convolution.
-// Updates `f` in place:
+// Updates `f[k]` for 1 <= k <= n in place by Dirichlet Convolution
 //   f = f * g
-//     = \sum_{d|n} f(d)g(n/d)
 // Time complexity: O(n log log n)
 template <typename T>
 void dirichlet_convolution_inplace(std::vector<T>& f, const std::vector<T>& g,
                                    const int n,
                                    const std::vector<int>& primes) {
-  assert(n < (int)f.size() and n < (int)g.size());
+  assert(N < (int)f.size() and N < (int)g.size());
   for (int p : primes) {
     for (int i = n / p; i > 0; --i) {
       const int to = i * p;
@@ -21,6 +19,7 @@ void dirichlet_convolution_inplace(std::vector<T>& f, const std::vector<T>& g,
   }
 }
 
+// Returns Dirichlet Convolution (f * g)(k) for 1 <= k <= n.
 template <typename T>
 std::vector<T> dirichlet_convolution(const std::vector<T>& f,
                                      const std::vector<T>& g, const int n,
