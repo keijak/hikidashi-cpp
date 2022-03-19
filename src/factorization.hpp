@@ -90,12 +90,12 @@ std::vector<int> divisor_count_table(int n) {
   return counts;
 }
 
+// O(n) sieve
 struct PrimeSieve {
   std::vector<int> spf;  // smallest prime factors table.
   std::vector<int> primes;
 
   explicit PrimeSieve(int n) : spf(n + 1) {
-    // O(n)
     for (int i = 2; i <= n; ++i) {
       if (spf[i] == 0) {
         spf[i] = i;
