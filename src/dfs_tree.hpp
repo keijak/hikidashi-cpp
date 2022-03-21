@@ -1,8 +1,9 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// if reshape_graph=true, `g_` is trimmed into a tree.
-template <bool reshape_graph = false>
+// if reshape_graph=true, `g_` is trimmed into a tree (parents are
+// kept as adjacent nodes).
+template<bool reshape_graph = false>
 struct DFSTree {
   using Graph = std::vector<std::vector<int>>;
 
@@ -34,7 +35,7 @@ struct DFSTree {
     parent_[v] = p;
     depth_[v] = d;
     std::set<int> non_neighbors;
-    for (auto u : g_[v]) {
+    for (auto u: g_[v]) {
       if (u == p) {  // parent
         continue;
       }
@@ -52,7 +53,7 @@ struct DFSTree {
       }
     }
     if constexpr (reshape_graph) {
-      auto& adj = g_[v];
+      auto &adj = g_[v];
       adj.erase(std::remove_if(adj.begin(), adj.end(),
                                [&](int u) { return non_neighbors.count(u); }),
                 adj.end());
