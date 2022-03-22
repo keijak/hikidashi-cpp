@@ -28,7 +28,7 @@ struct AncestorBinaryLifting {
 
   explicit AncestorBinaryLifting(const G& g, int root = 0)
       : n(g.size()),
-        max_bits(power2_ceil(n + 1)),
+        max_bits(bit_width(n)),
         root(root),
         adj(g),
         upper(max_bits, vector<int>(n)),
@@ -112,10 +112,9 @@ struct AncestorBinaryLifting {
   }
 
  private:
-  static int power2_ceil(int n) {
-    int b = 1;
-    while ((1u << b) < (unsigned)n) ++b;
-    return b;
+  static int bit_width(unsigned x) {
+    if (x == 0) return 0;
+    return std::numeric_limits<unsigned>::digits - __builtin_clz(x);
   }
 
   void dfs(int v, int p) {
