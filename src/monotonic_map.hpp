@@ -1,6 +1,13 @@
 #include <bits/stdc++.h>
 
 // Monotonic key-value map.
+//
+// Data structure to dynamically manage
+// piecewise linear curve on optimal (cost, value).
+//
+// Note: For an offline solution, cumulative max/min over
+// a vector will be faster.
+
 struct MonotonicMap {
   // Minimum necessary `cost` to get `value`.
   std::map<Int, Int> value_to_cost;
