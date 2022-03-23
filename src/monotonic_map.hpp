@@ -33,7 +33,7 @@ struct MonotonicMap {
     if (it != cost_to_value.begin() and prev(it)->second >= value) {
       return;
     }
-    cost_to_value[value] = cost;
+    cost_to_value[cost] = value;
     it = cost_to_value.find(cost);
     ++it;
     while (it != cost_to_value.end()) {
