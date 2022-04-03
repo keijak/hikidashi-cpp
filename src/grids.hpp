@@ -1,5 +1,47 @@
 #include <bits/stdc++.h>
 
+template <typename T>
+struct Array2d {
+  std::vector<T> data_;
+  size_t h_, w_;
+  bool transposed_ = false;
+  int rotate_ = 0;
+
+  Array2d(size_t h, size_t w) : data_(h * w, T{0}), h_(h), w_(w) {}
+
+  inline T &get(size_t i, size_t j) {
+    int h = h_, w = w_;
+    REP(k, rotate_) {
+      size_t tmp = i;
+      i = j;
+      j = h - 1 - tmp;
+      swap(h, w);
+    }
+    if (transposed_) {
+      swap(i, j);
+      swap(h, w);
+    }
+    return data_[i * w + j];
+  }
+
+  void rotate90(int k = 1) { rotate_ = (rotate_ + k + 4) % 4; }
+
+  void transpose() {
+    transposed_ = !transposed_;
+    rotate_ = (4 - rotate_) % 4;
+  }
+
+  void flip_v() {
+    transpose();
+    rotate90(1);
+  }
+
+  void flip_h() {
+    transpose();
+    rotate90(-1);
+  }
+};
+
 auto make_neighbors(int H, int W) {
   static const int dx[4] = {1, 0, -1, 0};
   static const int dy[4] = {0, 1, 0, -1};
