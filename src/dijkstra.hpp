@@ -30,14 +30,14 @@ auto search_shortest_path(const Graph &g, int start, int goal) {
   const int n = g.size();
   auto mincost = vector(n, kBigVal<Int>);
   MinHeap<State> que;
-  auto push = [&](Int cost, int node) -> bool {
+  auto push = [&](int node, Int cost) -> bool {
     if (chmin(mincost[node], cost)) {
       que.push(State{node, cost});
       return true;
     }
     return false;
   };
-  push(0LL, start);
+  push(start, 0LL);
 
   while (not que.empty()) {
     State cur = que.top();
@@ -46,7 +46,7 @@ auto search_shortest_path(const Graph &g, int start, int goal) {
     if (cur.node == goal) break;
     for (const auto &e : g[cur.node]) {
       auto new_cost = cur.cost + e.cost;
-      push(new_cost, e.to);
+      push(e.to, new_cost);
     }
   }
   return mincost[goal];
@@ -73,14 +73,14 @@ auto search_shortest_path_on_grid(const vector<string> &g,
   };
   auto mincost = vector(H, vector(W, kBigVal<Int>));
   MinHeap<GridState> que;
-  auto push = [&](Int cost, int r, int c) -> bool {
+  auto push = [&](int r, int c, Int cost) -> bool {
     if (not inside(r, c)) return false;
     if (g[r][c] == '#') return false;
     if (not chmin(mincost[r][c], cost)) return false;
     que.push(GridState{r, c, cost});
     return true;
   };
-  push(0LL, start.first, start.second);
+  push(start.first, start.second, 0LL);
 
   while (not que.empty()) {
     GridState cur = que.top();
@@ -93,7 +93,7 @@ auto search_shortest_path_on_grid(const vector<string> &g,
       const int nc = cur.c + dy[i];
       // Note: If the cost delta is always 0 or 1, BFS should be enough.
       const auto new_cost = cur.cost + 1;
-      push(new_cost, nr, nc);
+      push(nr, nc, new_cost);
     }
   }
   return mincost[goal.first][goal.second];
