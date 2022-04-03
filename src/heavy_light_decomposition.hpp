@@ -52,7 +52,7 @@ struct HLDecomp {
     }
   }
 
-  // Returns the set of nodes on the u-v path, including both u and v.
+  // Returns the set of nodes in the u-v path, including both u and v.
   //
   // The return value is half-open intervals of the preorder indices of the
   // nodes. One interval corresponds to one heavy path component.
@@ -73,8 +73,8 @@ struct HLDecomp {
   // Returns the set of edges in the u-v path.
   //
   // The return value is half-open intervals of the preorder indices of nodes
-  // corresponding to the deeper end (closer to leaves) of each edge in the
-  // path. Here we identify Edge(v, parent[v]) as v.
+  // corresponding to the deeper end of each edge in the path. Here we identify
+  // a node `v` with `Edge(v, parent[v])`.
   IntervalVec edge_ranges_on_path(NodeID u, NodeID v) const {
     IntervalVec res;
     for (;;) {
@@ -112,7 +112,8 @@ struct HLDecomp {
     auto &edges = child[v];
     if constexpr (not kChildrenOnlyGraph) {
       if (parent[v] != -1) {
-        // Remove the parent from `child[v]`. Amortized O(N).
+        // Remove the parent from `child[v]`.
+        // O(N) in total for processing the entire tree.
         auto it = std::find(edges.begin(), edges.end(), parent[v]);
         if (it != edges.end()) {
           std::swap(*it, edges.back());
