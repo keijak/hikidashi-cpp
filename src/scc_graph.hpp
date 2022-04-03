@@ -2,9 +2,8 @@
 
 #include <atcoder/scc>
 
-// Strongly Connected Components.
 // A wrapper class of atcoder::scc_graph.
-struct SCC {
+struct StronglyConnectedComponents {
   template <class T>
   using Vec = std::vector<T>;
 
