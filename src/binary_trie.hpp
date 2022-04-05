@@ -68,13 +68,13 @@ struct BinaryTrie {
   // Returns the minimum index i s.t. trie[i] > val.
   int upper_bound(T val) const { return count_less_(root_, val + 1); }
 
-  // Returns k-th (0-indexed) smallest value.
+  // Returns the k-th (0-indexed) smallest value.
   T operator[](int k) const {
     assert(0 <= k and k < size());
     return get_(root_, k);
   }
 
-  // Returns k-th (0-indexed) largest value.
+  // Returns the k-th (0-indexed) largest value.
   T kth_largest(int k) const {
     assert(0 <= k and k < size());
     return get_(root_, size() - k - 1);
@@ -86,7 +86,7 @@ struct BinaryTrie {
     return {BinaryTrie(t1), BinaryTrie(t2)};
   }
 
-  // Merges two tries into this. Destructs the other.
+  // Merges the other trie into this and destructs the other.
   void merge(BinaryTrie other) { root_ = merge_(root_, other.root_); }
 
  private:
