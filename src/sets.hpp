@@ -1,19 +1,20 @@
+// set/multiset utilities.
 #include <set>
 
 // s |= t;
 // Set Union.
 // The first argument will be updated to the result.
 // cf. https://qiita.com/i_saint/items/a8bdce5146bb38e69f72
-template <typename T>
-std::set<T> &operator|=(std::set<T> &s, const std::set<T> &t) {
+template <typename S = std::set<int>>
+S &operator|=(S &s, const S &t) {
   auto pos = s.begin();
   for (auto it = t.begin(); it != t.end(); ++it, ++pos) {
     pos = s.emplace_hint(pos, *it);
   }
   return s;
 }
-template <typename T>
-std::set<T> &operator|=(std::set<T> &s, std::set<T> &&t) {
+template <typename S = std::set<int>>
+S &operator|=(S &s, S &&t) {
   if (s.size() < t.size()) s.swap(t);  // small-to-large merging
   for (auto pos = s.begin(); !t.empty(); ++pos) {
     pos = s.insert(pos, t.extract(t.begin()));
@@ -24,8 +25,8 @@ std::set<T> &operator|=(std::set<T> &s, std::set<T> &&t) {
 // s &= t;
 // Set Intersection.
 // The first argument will be updated to the result.
-template <typename T>
-std::set<T> &operator&=(std::set<T> &s, const std::set<T> &t) {
+template <typename S = std::set<int>>
+S &operator&=(S &s, const S &t) {
   auto it = s.begin();
   auto jt = t.begin();
   while (it != s.end()) {
@@ -42,13 +43,13 @@ std::set<T> &operator&=(std::set<T> &s, const std::set<T> &t) {
   }
   return s;
 }
-template <typename T>
-std::set<T> &operator&=(std::set<T> &s, std::set<T> &&t) {
+template <typename S = std::set<int>>
+S &operator&=(S &s, S &&t) {
   if (s.size() <= t.size()) {
-    const std::set<T> &c(t);
+    const S &c(t);
     s &= c;
   } else {
-    const std::set<T> &c(s);
+    const S &c(s);
     t &= c;
     s.swap(t);
   }
@@ -58,8 +59,8 @@ std::set<T> &operator&=(std::set<T> &s, std::set<T> &&t) {
 // s -= t;
 // Set Difference.
 // The first argument will be updated to the result.
-template <typename T>
-std::set<T> &operator-=(std::set<T> &s, const std::set<T> &t) {
+template <typename S = std::set<int>>
+S &operator-=(S &s, const S &t) {
   auto it = s.begin();
   for (auto jt = t.begin(); jt != t.end(); ++jt) {
     while (it != s.end() and *it < *jt) ++it;
