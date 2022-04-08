@@ -1,38 +1,87 @@
 #include <bits/stdc++.h>
 using namespace std;
+using Int = long long;
+using Real = long double;
 
-using D = long double;      // Coordinate value
-using P = std::complex<D>;  // Point
+// compatible with std::complex
+template <typename T>  // T: int, double, etc.
+struct Point2d {
+  T x;
+  T y;
+
+  Point2d() : x(0), y(0) {}
+  Point2d(T x, T y) : x(x), y(y) {}
+  Point2d(const Point2d &) = default;
+  Point2d(Point2d &&) = default;
+  Point2d &operator=(const Point2d &) = default;
+  Point2d &operator=(Point2d &&) = default;
+  const T &real() const { return x; }
+  const T &imag() const { return y; }
+
+  // inner product
+  friend T dot(const Point2d &a, const Point2d &b) {
+    return a.x * b.x + a.y * b.y;
+  }
+
+  // outer product
+  friend T cross(const Point2d &a, const Point2d &b) {
+    return a.x * b.y - a.y * b.x;
+  }
+
+  // |a|^2
+  friend T norm(const Point2d &a) { return dot(a, a); }
+
+  // |a|
+  friend Real abs(const Point2d &a) { return std::sqrt((Real)norm()); }
+
+  bool operator==(const Point2d &other) {
+    return x == other.x and y == other.y;
+  }
+  bool operator!=(const Point2d &other) { return x != other.x or y != other.y; }
+
+  Point2d &operator+=(const Point2d &other) {
+    x += other.x;
+    y += other.y;
+    return *this;
+  }
+  friend Point2d operator+(const Point2d &p1, const Point2d &p2) {
+    return (Point2d(p1) += p2);
+  }
+
+  Point2d &operator-=(const Point2d &other) {
+    x -= other.x;
+    y -= other.y;
+    return *this;
+  }
+  friend Point2d operator-(const Point2d &p1, const Point2d &p2) {
+    return (Point2d(p1) -= p2);
+  }
+
+  Point2d &operator*=(T scalar) {
+    x *= scalar;
+    y *= scalar;
+    return *this;
+  }
+  friend Point2d operator*(const Point2d &p, T scalar) {
+    return (Point2d(p) *= scalar);
+  }
+  friend Point2d operator*(T scalar, const Point2d &p) {
+    return (Point2d(p) *= scalar);
+  }
+};
+using P = Point2d<Int>;
 using L = std::pair<P, P>;  // Line
 using VP = std::vector<P>;  // Points
-
-const D EPS = 1e-8;
-const D PI = std::cos(-1.0);
-
-template <typename T, typename U>
-inline bool EQ(const T &n, const U &m) {
-  return std::abs(n - m) < EPS;
-}
-inline bool LE(const D &n, const D &m) { return n < m + EPS; }
-inline bool GE(const D &n, const D &m) { return n + EPS > m; }
-
-// inner product: dot(a,b) = |a||b|cosθ
-// for checking if two vectors are orthogonal.
-D dot(const P &a, const P &b) { return (std::conj(a) * b).real(); }
-
-// outer product: cross(a,b) = |a||b|sinθ
-// for checking if two vectors are parallel.
-D cross(const P &a, const P &b) { return (std::conj(a) * b).imag(); }
 
 // relative positions of a->b and a->c.
 int ccw(P a, P b, P c) {
   b -= a;
   c -= a;
-  if (cross(b, c) > EPS) return +1;   // counter clockwise
-  if (cross(b, c) < -EPS) return -1;  // clockwise
-  if (dot(b, c) < -EPS) return +2;    // c--a--b on line
-  if (norm(b) < norm(c)) return -2;   // a--b--c on line or a==b
-  return 0;                           // a--c--b on line or a==c or b==c
+  if (cross(b, c) > 0) return +1;    // counter clockwise
+  if (cross(b, c) < 0) return -1;    // clockwise
+  if (dot(b, c) < 0) return +2;      // c--a--b on line
+  if (norm(b) < norm(c)) return -2;  // a--b--c on line or a==b
+  return 0;                          // a--c--b on line or a==c or b==c
 }
 
 // intersection: line and point
@@ -47,7 +96,7 @@ bool isecLL(P a1, P a2, P b1, P b2) {
 
 // intersection: line and segment
 bool isecLS(P a1, P a2, P b1, P b2) {
-  return cross(a2 - a1, b1 - a1) * cross(a2 - a1, b2 - a1) < EPS;
+  return cross(a2 - a1, b1 - a1) * cross(a2 - a1, b2 - a1) == 0;
 }
 
 // intersection: segment and segment
@@ -294,62 +343,3 @@ std::pair<std::vector<P>, std::vector<P>> scan_convex_hull(std::vector<P> ps) {
   reverse(upper.begin(), upper.end());
   return {lower, upper};
 }
-
-template <typename T>  // T: int, double, etc.
-struct Point2d {
-  T x;
-  T y;
-
-  Point2d() : x(0), y(0) {}
-  Point2d(T x, T y) : x(x), y(y) {}
-  Point2d(const Point2d &) = default;
-  Point2d(Point2d &&) = default;
-  Point2d &operator=(const Point2d &) = default;
-  Point2d &operator=(Point2d &&) = default;
-  const T &real() const { return x; }  // std::complex compat
-  const T &imag() const { return y; }  // std::complex compat
-
-  // inner product
-  friend T dot(const Point2d &a, const Point2d &b) {
-    return a.x * b.x + a.y * b.y;
-  }
-
-  // outer product
-  friend T cross(const Point2d &a, const Point2d &b) {
-    return a.x * b.y - a.y * b.x;
-  }
-
-  T abs2() const { return dot(*this, *this); }              // |x|^2
-  double abs() const { return std::sqrt((double)abs2()); }  // |x|
-
-  Point2d &operator+=(const Point2d &other) {
-    x += other.x;
-    y += other.y;
-    return *this;
-  }
-  friend Point2d operator+(const Point2d &p1, const Point2d &p2) {
-    return (Point2d(p1) += p2);
-  }
-
-  Point2d &operator-=(const Point2d &other) {
-    x -= other.x;
-    y -= other.y;
-    return *this;
-  }
-  friend Point2d operator-(const Point2d &p1, const Point2d &p2) {
-    return (Point2d(p1) -= p2);
-  }
-
-  Point2d &operator*=(T scalar) {
-    x *= scalar;
-    y *= scalar;
-    return *this;
-  }
-  friend Point2d operator*(const Point2d &p, T scalar) {
-    return (Point2d(p) *= scalar);
-  }
-  friend Point2d operator*(T scalar, const Point2d &p) {
-    return (Point2d(p) *= scalar);
-  }
-};
-// using P = Point2d<long long>;
