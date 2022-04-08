@@ -261,10 +261,14 @@ P minEnclosingCircle(const VP &ps) {
 }
 
 // Convex Hull by Monotone Chain
-// Populates the lower hull and the upper hull separately.
-void scan_convex_hull(const vector<P> &ps, vector<P> &lower, vector<P> &upper) {
+// Returns {lower_hull, upper_hull}.
+std::pair<std::vector<P>, std::vector<P>> scan_convex_hull(std::vector<P> ps) {
+  std::sort(ps.begin(), ps.end(), [](const P &a, const P &b) {
+    return std::tie(a.real(), a.imag()) < std::tie(b.real(), b.imag());
+  });
+  std::vector<P> lower, upper;
   for (int i = 0; i < (int)ps.size(); ++i) {
-    auto ax = ps[i].real(), ay = ps[i].imag();
+    auto ax = ps[i].x, ay = ps[i].y;
     P now{ax, ay};
     while (lower.size() >= 2) {
       P &p2 = lower[lower.size() - 2];
@@ -276,19 +280,19 @@ void scan_convex_hull(const vector<P> &ps, vector<P> &lower, vector<P> &upper) {
     lower.push_back(move(now));
   }
   for (int i = ps.size() - 1; i >= 0; --i) {
-    auto ax = ps[i].real(), ay = ps[i].imag();
+    auto ax = ps[i].x, ay = ps[i].y;
     P now{ax, ay};
     while (upper.size() >= 2) {
       P &p2 = upper[upper.size() - 2];
       P v1 = upper.back() - p2;
       P v2 = now - p2;
       if (cross(v1, v2) > EPS) break;
-
       upper.pop_back();
     }
     upper.push_back(move(now));
   }
   reverse(upper.begin(), upper.end());
+  return {lower, upper};
 }
 
 template <typename T>  // T: int, double, etc.
@@ -302,8 +306,8 @@ struct Point2d {
   Point2d(Point2d &&) = default;
   Point2d &operator=(const Point2d &) = default;
   Point2d &operator=(Point2d &&) = default;
-  const T &real() const { return x; }
-  const T &imag() const { return y; }
+  const T &real() const { return x; }  // std::complex compat
+  const T &imag() const { return y; }  // std::complex compat
 
   // inner product
   friend T dot(const Point2d &a, const Point2d &b) {
