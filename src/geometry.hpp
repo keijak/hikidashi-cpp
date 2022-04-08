@@ -10,19 +10,19 @@ const D EPS = 1e-8;
 const D PI = std::cos(-1.0);
 
 template <typename T, typename U>
-inline bool EQ(const T& n, const U& m) {
+inline bool EQ(const T &n, const U &m) {
   return std::abs(n - m) < EPS;
 }
-inline bool LE(const D& n, const D& m) { return n < m + EPS; }
-inline bool GE(const D& n, const D& m) { return n + EPS > m; }
+inline bool LE(const D &n, const D &m) { return n < m + EPS; }
+inline bool GE(const D &n, const D &m) { return n + EPS > m; }
 
 // inner product: dot(a,b) = |a||b|cosθ
 // for checking if two vectors are orthogonal.
-D dot(const P& a, const P& b) { return (std::conj(a) * b).real(); }
+D dot(const P &a, const P &b) { return (std::conj(a) * b).real(); }
 
 // outer product: cross(a,b) = |a||b|sinθ
 // for checking if two vectors are parallel.
-D cross(const P& a, const P& b) { return (std::conj(a) * b).imag(); }
+D cross(const P &a, const P &b) { return (std::conj(a) * b).imag(); }
 
 // relative positions of a->b and a->c.
 int ccw(P a, P b, P c) {
@@ -236,9 +236,9 @@ VP circlesPointsTangent(P a, P b, P l1, P l2) {
 }
 
 // 点集合を含む最小の円の中心
-P minEnclosingCircle(const VP& ps) {
+P minEnclosingCircle(const VP &ps) {
   P c = {0, 0};
-  for (const P& p : ps) c += p;
+  for (const P &p : ps) c += p;
   c /= D(ps.size());
 
   D move_delta = 0.5;
@@ -262,12 +262,12 @@ P minEnclosingCircle(const VP& ps) {
 
 // Convex Hull by Monotone Chain
 // Populates the lower hull and the upper hull separately.
-void scan_convex_hull(const vector<P>& ps, vector<P>& lower, vector<P>& upper) {
+void scan_convex_hull(const vector<P> &ps, vector<P> &lower, vector<P> &upper) {
   for (int i = 0; i < (int)ps.size(); ++i) {
     auto ax = ps[i].real(), ay = ps[i].imag();
     P now{ax, ay};
     while (lower.size() >= 2) {
-      P& p2 = lower[lower.size() - 2];
+      P &p2 = lower[lower.size() - 2];
       P v1 = lower.back() - p2;
       P v2 = now - p2;
       if (cross(v1, v2) > EPS) break;
@@ -279,7 +279,7 @@ void scan_convex_hull(const vector<P>& ps, vector<P>& lower, vector<P>& upper) {
     auto ax = ps[i].real(), ay = ps[i].imag();
     P now{ax, ay};
     while (upper.size() >= 2) {
-      P& p2 = upper[upper.size() - 2];
+      P &p2 = upper[upper.size() - 2];
       P v1 = upper.back() - p2;
       P v2 = now - p2;
       if (cross(v1, v2) > EPS) break;
@@ -298,47 +298,53 @@ struct Point2d {
 
   Point2d() : x(0), y(0) {}
   Point2d(T x, T y) : x(x), y(y) {}
-  Point2d(const Point2d&) = default;
-  Point2d(Point2d&&) = default;
-  Point2d& operator=(const Point2d&) = default;
-  Point2d& operator=(Point2d&&) = default;
+  Point2d(const Point2d &) = default;
+  Point2d(Point2d &&) = default;
+  Point2d &operator=(const Point2d &) = default;
+  Point2d &operator=(Point2d &&) = default;
+  const T &real() const { return x; }
+  const T &imag() const { return y; }
 
   // inner product
-  T dot(const Point2d& other) const { return x * other.x + y * other.y; }
+  friend T dot(const Point2d &a, const Point2d &b) {
+    return a.x * b.x + a.y * b.y;
+  }
 
   // outer product
-  T cross(const Point2d& other) const { return y * other.x - x * other.y; }
+  friend T cross(const Point2d &a, const Point2d &b) {
+    return a.x * b.y - a.y * b.x;
+  }
 
-  T abs2() const { return this->dot(*this); }               // |x|^2
+  T abs2() const { return dot(*this, *this); }              // |x|^2
   double abs() const { return std::sqrt((double)abs2()); }  // |x|
 
-  Point2d& operator+=(const Point2d& other) {
+  Point2d &operator+=(const Point2d &other) {
     x += other.x;
     y += other.y;
     return *this;
   }
-  friend Point2d operator+(const Point2d& p1, const Point2d& p2) {
+  friend Point2d operator+(const Point2d &p1, const Point2d &p2) {
     return (Point2d(p1) += p2);
   }
 
-  Point2d& operator-=(const Point2d& other) {
+  Point2d &operator-=(const Point2d &other) {
     x -= other.x;
     y -= other.y;
     return *this;
   }
-  friend Point2d operator-(const Point2d& p1, const Point2d& p2) {
+  friend Point2d operator-(const Point2d &p1, const Point2d &p2) {
     return (Point2d(p1) -= p2);
   }
 
-  Point2d& operator*=(T scalar) {
+  Point2d &operator*=(T scalar) {
     x *= scalar;
     y *= scalar;
     return *this;
   }
-  friend Point2d operator*(const Point2d& p, T scalar) {
+  friend Point2d operator*(const Point2d &p, T scalar) {
     return (Point2d(p) *= scalar);
   }
-  friend Point2d operator*(T scalar, const Point2d& p) {
+  friend Point2d operator*(T scalar, const Point2d &p) {
     return (Point2d(p) *= scalar);
   }
 };
