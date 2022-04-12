@@ -11,10 +11,10 @@ struct StronglyConnectedComponents {
   const Vec<Vec<int>> &graph;  // original graph (directed)
 
   // There may be an edge from components[i] to components[j] if i <= j.
-  int scc_n;                // number of SCCs.
-  Vec<Vec<int>> scc_graph;  // scc graph (directed)
-  Vec<Vec<int>> components;
-  Vec<int> component_id;
+  int scc_n;                 // number of SCCs.
+  Vec<Vec<int>> scc_graph;   // scc graph (directed)
+  Vec<Vec<int>> components;  // component id -> node list
+  Vec<int> component_id;     // node id -> component id
 
   explicit SCC(const Vec<Vec<int>> &g) : n(int(g.size())), graph(g) {
     // Compute SCCs.
