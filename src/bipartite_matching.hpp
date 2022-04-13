@@ -17,6 +17,8 @@ struct HopcroftKarp {
     graph[u].push_back(v);
   }
 
+  // Returns the number of max bipartite matching.
+  // The matching result is stored in `match` (match[v] == u).
   int bipartite_matching() {
     int ret = 0;
     while (true) {
@@ -31,10 +33,10 @@ struct HopcroftKarp {
     }
   }
 
-  friend std::ostream& operator<<(std::ostream& os, const HopcroftKarp& bm) {
+  friend std::ostream &operator<<(std::ostream &os, const HopcroftKarp &bm) {
     os << "Matching{";
     for (int i = 0; i < (int)bm.match.size(); i++) {
-      if (~bm.match[i]) {
+      if (bm.match[i] != -1) {
         os << "(" << bm.match[i] << ", " << i << "),\n";
       }
     }
@@ -55,7 +57,7 @@ struct HopcroftKarp {
     while (!que.empty()) {
       int a = que.front();
       que.pop();
-      for (auto& b : graph[a]) {
+      for (auto &b : graph[a]) {
         int c = match[b];
         if (c >= 0 && dist[c] == -1) {
           dist[c] = dist[a] + 1;
@@ -67,14 +69,14 @@ struct HopcroftKarp {
 
   bool dfs(int a) {
     vv[a] = true;
-    for (auto& b : graph[a]) {
+    for (auto &b : graph[a]) {
       int c = match[b];
       if (c < 0 || (!vv[c] && dist[c] == dist[a] + 1 && dfs(c))) {
         match[b] = a;
         used[a] = true;
-        return (true);
+        return true;
       }
     }
-    return (false);
+    return false;
   }
 };
