@@ -6,12 +6,13 @@
 int lcp_length(const std::string &s) {
   // Initialize
   assert(not s.empty());
-  const int n = s.size();
   const std::vector<int> sa = atcoder::suffix_array(s);
   const std::vector<int> lcp = atcoder::lcp_array(s, sa);
-  assert((int)lcp.size() == n - 1);
-  std::vector<int> rsa(n);  // the position of s[i:] in the suffix array.
-  for (int i = 0; i < n; ++i) rsa[sa[i]] = i;
+  assert((int)lcp.size() == (int)s.size() - 1);
+  std::vector<int> rsa(s.size());  // the position of s[i:] in the suffix array.
+  for (int i = 0; i < (int)s.size(); ++i) {
+    rsa[sa[i]] = i;
+  }
   SparseTableRMQ rmq(lcp.size(), [&](int i, int j) { return lcp[i] < lcp[j]; });
 
   // Query
@@ -22,6 +23,6 @@ int lcp_length(const std::string &s) {
     int ri = rsa[i], rj = rsa[j];
     if (ri > rj) std::swap(ri, rj);
     assert(ri < rj);
-    return lcp[rmq.fold(ri, rj)];
+    return lcp[rmq.fold_index(ri, rj)];
   };
 }

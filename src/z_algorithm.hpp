@@ -5,7 +5,7 @@
 // Returns the Z array of the given string.
 // Z[i] := the longest common prefix length between S[0:] and S[i:].
 std::vector<int> ZArray(std::string_view s) {
-  const int n = s.size();
+  const int n = (int)s.size();
   std::vector<int> Z(n);
   Z[0] = n;
   int i = 1, j = 0;
