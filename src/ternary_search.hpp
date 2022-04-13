@@ -52,7 +52,7 @@ Int find_min_ternary_search(Int low, Int high, F f) {
 template <class F, class T = std::invoke_result_t<F, Int>>
 Int find_min_golden_section_search(Int low, Int high, F f) {
   static_assert(std::is_invocable_v<F, Int>);
-  std::less<T> compare;  // Change it to greater<T> if you want max.
+  std::less<T> compare;  // Change it to greater<T> to find max.
 
   --low;             // Make it an open interval: (low, high).
   Int l = 1, r = 1;  // Left and right offsets from `low`.
