@@ -17,10 +17,10 @@ using Int = long long;
 
 namespace multiplication {
 
-template <typename T, int DMAX>
+template <typename T, Int DMAX>
 struct NaiveMult {
   using value_type = T;
-  static constexpr int dmax() { return DMAX; }
+  static constexpr Int dmax() { return DMAX; }
 
   static std::vector<T> multiply(const std::vector<T> &x,
                                  const std::vector<T> &y) {
@@ -36,7 +36,7 @@ struct NaiveMult {
     return res;
   }
 
-  static std::vector<T> invert(const std::vector<T> &x, int sz = -1) {
+  static std::vector<T> invert(const std::vector<T> &x, Int sz = -1) {
     if (sz == -1) sz = dmax() + 1;
     std::vector<T> res(sz);
     res[0] = T(1) / x[0];
@@ -53,22 +53,22 @@ struct NaiveMult {
 };
 
 // T: modint
-template <typename T, int DMAX>
+template <typename T, Int DMAX>
 struct NTTMult {
   static_assert(atcoder::internal::is_modint<T>::value, "Requires ACL modint.");
   static_assert(T::mod() == 998244353, "Requires an NTT-friendly mod.");
 
   using value_type = T;
-  static constexpr int dmax() { return DMAX; }
+  static constexpr Int dmax() { return DMAX; }
 
   static std::vector<T> multiply(const std::vector<T> &x,
                                  const std::vector<T> &y) {
     std::vector<T> res = atcoder::convolution(x, y);
-    if (int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
+    if (Int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
     return res;
   }
 
-  static std::vector<T> invert(const std::vector<T> &x, int sz = -1) {
+  static std::vector<T> invert(const std::vector<T> &x, Int sz = -1) {
     int n = x.size();
     assert(n != 0 && x[0].val() != 0);  // must be invertible
     if (sz == -1) sz = dmax() + 1;
@@ -95,15 +95,15 @@ struct NTTMult {
   }
 };
 
-template <int DMAX>
+template <Int DMAX>
 struct IntMult {
   using value_type = long long;
-  static constexpr int dmax() { return DMAX; }
+  static constexpr Int dmax() { return DMAX; }
 
   static std::vector<value_type> multiply(const std::vector<value_type> &x,
                                           const std::vector<value_type> &y) {
     auto res = atcoder::convolution_ll(x, y);
-    if (int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
+    if (Int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
     return res;
   }
 
@@ -112,10 +112,10 @@ struct IntMult {
   }
 };
 
-template <int DMAX>
+template <Int DMAX>
 struct FloatMult {
   using value_type = double;
-  static constexpr int dmax() { return DMAX; }
+  static constexpr Int dmax() { return DMAX; }
 
   static std::vector<value_type> multiply(const std::vector<value_type> &x,
                                           const std::vector<value_type> &y) {
@@ -131,15 +131,15 @@ struct FloatMult {
 };
 
 // T: modint
-template <typename T, int DMAX>
+template <typename T, Int DMAX>
 struct ArbitraryModMult {
   using value_type = T;
   static_assert(atcoder::internal::is_modint<T>::value);
 
-  static constexpr int dmax() { return DMAX; }
+  static constexpr Int dmax() { return DMAX; }
 
   static std::vector<T> convolution(const std::vector<T> &x,
-                                    const std::vector<T> &y, int size_limit) {
+                                    const std::vector<T> &y, Int size_limit) {
     std::vector<int> xv(x.size());
     std::vector<int> yv(y.size());
     for (int i = 0; i < (int)x.size(); ++i) xv[i] = x[i].val();
@@ -153,7 +153,7 @@ struct ArbitraryModMult {
     const Int m1_inv_m2 = atcoder::inv_mod(M1, M2);
     const Int m12_inv_m3 = atcoder::inv_mod(Int(M1) * M2, M3);
     const Int m12 = Int(M1) * M2 % T::mod();
-    const int n = std::min<int>(x.size() + y.size() - 1, size_limit);
+    const Int n = std::min<Int>(x.size() + y.size() - 1, size_limit);
     std::vector<T> res(n);
     for (int i = 0; i < n; ++i) {
       atcoder::static_modint<M2> v1 = z2[i] - z1[i];
@@ -171,13 +171,13 @@ struct ArbitraryModMult {
     return convolution(x, y, dmax() + 1);
   }
 
-  static std::vector<T> invert(const std::vector<T> &x, int sz = -1) {
+  static std::vector<T> invert(const std::vector<T> &x, Int sz = -1) {
     const int n = int(x.size());
     assert(n != 0 && x[0] != 0);
     if (sz == -1) sz = dmax() + 1;
     assert(sz > 0);
     std::vector<T> res{x[0].inv()};
-    while (int(res.size()) < sz) {
+    while (Int(res.size()) < sz) {
       const int m = res.size();
       const int m2 = m << 1;
       std::vector<T> f(x.begin(), x.begin() + std::min<int>(n, m2));
@@ -201,7 +201,7 @@ struct ArbitraryModMult {
 template <typename Mult>
 struct DenseFPS {
   using T = typename Mult::value_type;
-  static constexpr int dmax() { return Mult::dmax(); }
+  static constexpr Int dmax() { return Mult::dmax(); }
 
   // Coefficients of terms from x^0 to x^DMAX.
   std::vector<T> coeff_;
@@ -277,7 +277,7 @@ struct DenseFPS {
   void shift_inplace(int k) {
     if (k > 0) {
       if (size() <= dmax()) {
-        coeff_.resize(std::min(size() + k, dmax() + 1), 0);
+        coeff_.resize(std::min<Int>(size() + k, dmax() + 1), 0);
       }
       for (int i = size() - 1; i >= k; --i) {
         coeff_[i] = coeff_[i - k];
@@ -706,7 +706,7 @@ FPS exp_ntt(FPS f) {
 
 // Fast power
 template <typename FPS, typename T = typename FPS::T>
-FPS pow_logexp(FPS f, long long k) {
+FPS pow_logexp(FPS f, Int k) {
   assert(k >= 0);
   if (k == 0) return FPS{1};
   if (k == 1) return f;
@@ -718,8 +718,8 @@ FPS pow_logexp(FPS f, long long k) {
   if (l != 0) f.coeff_.erase(f.coeff_.begin(), f.coeff_.begin() + l);
   if (c != 1) f /= c;
   f = log(std::move(f));
-  const long long ssz = FPS::dmax() + 1 - l * k;
-  if ((long long)f.size() > ssz) f.coeff_.resize(ssz);  // shrink
+  const Int ssz = FPS::dmax() + 1 - l * k;
+  if ((Int)f.size() > ssz) f.coeff_.resize(ssz);  // shrink
   f = exp(std::move(f) * k);
   if (c != 1) f *= c.pow(k);
   if (l != 0) f.coeff_.insert(f.coeff_.begin(), size_t(l * k), T(0));
@@ -727,7 +727,7 @@ FPS pow_logexp(FPS f, long long k) {
 }
 
 template <typename FPS>
-FPS pow_binexp(FPS base, long long t) {
+FPS pow_binexp(FPS base, Int t) {
   assert(t >= 0);
   FPS res = {1};
   while (t) {
@@ -746,10 +746,10 @@ FPS product_of_geometric_series(std::vector<int> a) {
   const int n = int(a.size());
   const int m = FPS::dmax() + 1;
   FPS nume(std::vector<Mint>(m, 0));
-  for (long long k = 1; k < m; ++k) {
+  for (Int k = 1; k < m; ++k) {
     const Mint kinv = T(k).inv();
     for (const auto &e : a) {
-      long long t = k * e;
+      Int t = k * e;
       if (t >= m) break;
       nume.coeff_[t] -= kinv;
     }
@@ -770,20 +770,20 @@ FPS negative_binom(int n, const Factorials &fs) {
 
 namespace fps_internal {
 
-std::optional<long long> sqrt_mod(long long a, int p) {
+std::optional<Int> sqrt_mod(Int a, int p) {
   if (a == 0) return 0;
   if (p == 2) return a;
   if (atcoder::pow_mod(a, (p - 1) >> 1, p) != 1) return std::nullopt;
-  long long b = 1;
+  Int b = 1;
   while (atcoder::pow_mod(b, (p - 1) >> 1, p) == 1) ++b;
-  long long e = 0, m = p - 1;
+  Int e = 0, m = p - 1;
   while (m % 2 == 0) m >>= 1, ++e;
   auto x = atcoder::pow_mod(a, (m - 1) >> 1, p);
   auto y = a * (x * x % p) % p;
   (x *= a) %= p;
   auto z = atcoder::pow_mod(b, m, p);
   while (y != 1) {
-    long long j = 0, t = y;
+    Int j = 0, t = y;
     while (t != 1) {
       j += 1;
       (t *= t) %= p;
