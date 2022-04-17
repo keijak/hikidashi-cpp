@@ -1,7 +1,7 @@
 // Returns [x^k] P(x)/Q(x).
-template <typename Mint, typename FPS>
-Mint bostan_mori(long long k, FPS P, FPS Q) {
-  Mint ret = 0;
+template <typename FPS>
+typename FPS::T bostan_mori(long long k, FPS P, FPS Q) {
+  typename FPS::T ret = 0;
   P.coeff_.resize(Q.size() - 1);
   while (k) {
     auto Q2 = Q;
