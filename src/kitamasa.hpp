@@ -5,20 +5,20 @@ template <typename T>
 struct Kitamasa {
   const int k;
 
-  // Initial k elements (a[1] .. a[k]).
+  // Initial k elements (a[0] .. a[k-1]).
   const std::vector<T> a_;
 
   // Coefficients of the recurrence.
-  //   a[n] = coeff[1]*a[n-1] + coeff[2]*a[n-2] + ... + coeff[k]*a[n-k].
+  //   a[n] = coeff[0]*a[n-1] + coeff[1]*a[n-2] + ... + coeff[k-1]*a[n-k].
   const std::vector<T> coeff_;
 
   explicit Kitamasa(std::vector<T> a, std::vector<T> c)
       : k(a.size()), a_(a), coeff_(std::move(c)) {}
 
-  // n: 1-indexed.
+  // n: 0-indexed.
   T nth(long long n) const {
-    assert(n >= 1);
-    auto x = nth_coeff(n);
+    assert(n >= 0);
+    auto x = nth_coeff(n + 1);
     T res = 0;
     for (int i = 0; i < k; ++i) {
       res += x[i] * a_[i];
