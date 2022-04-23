@@ -32,7 +32,7 @@ struct Point2d {
   friend T norm(const Point2d &a) { return dot(a, a); }
 
   // |a|
-  friend Real abs(const Point2d &a) { return std::sqrt((Real)norm()); }
+  friend Real abs(const Point2d &a) { return std::sqrt((Real)norm(a)); }
 
   bool operator==(const Point2d &other) {
     return x == other.x and y == other.y;
