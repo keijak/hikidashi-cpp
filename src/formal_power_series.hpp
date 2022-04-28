@@ -231,6 +231,12 @@ struct DenseFPS {
     while (coeff.size() > 1 and coeff.back() == T(0)) coeff.pop_back();
   }
 
+  // Convenience method for debug dump.
+  std::vector<T> head(int n = 10) const {
+    n = min<int>(n, coeff.size());
+    return std::vector<T>(coeff.begin(), coeff.begin() + n);
+  }
+
   DenseFPS &operator+=(const T &scalar) {
     coeff[0] += scalar;
     return *this;
