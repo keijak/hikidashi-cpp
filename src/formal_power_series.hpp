@@ -10,6 +10,7 @@
 
 #include <bits/stdc++.h>
 using Int = long long;
+using Mint = atcoder::modint998244353;
 
 #include <atcoder/convolution>
 #include <atcoder/math>
@@ -204,40 +205,42 @@ struct DenseFPS {
   static constexpr Int dmax() { return Mult::dmax(); }
 
   // Coefficients of terms from x^0 to x^DMAX.
-  std::vector<T> coeff_;
+  std::vector<T> coeff;
 
-  DenseFPS() : coeff_(1, 0) {}  // zero
+  DenseFPS() : coeff(1, 0) {}  // zero
 
-  explicit DenseFPS(std::vector<T> c) : coeff_(std::move(c)) {
-    while (size() > dmax() + 1) coeff_.pop_back();
+  explicit DenseFPS(std::vector<T> c) : coeff(std::move(c)) {
+    while (size() > dmax() + 1) coeff.pop_back();
     assert(size() > 0);
   }
-  DenseFPS(std::initializer_list<T> c) : coeff_(c.begin(), c.end()) {
-    while (size() > dmax() + 1) coeff_.pop_back();
+  DenseFPS(std::initializer_list<T> c) : coeff(c.begin(), c.end()) {
+    while (size() > dmax() + 1) coeff.pop_back();
     assert(size() > 0);
   }
 
   // size <= dmax + 1
-  inline int size() const { return static_cast<int>(coeff_.size()); }
+  inline int size() const { return static_cast<int>(coeff.size()); }
 
   // Returns the coefficient of x^k.
-  inline T operator[](int k) const { return (k >= size()) ? 0 : coeff_[k]; }
+  inline const T operator[](int k) const {
+    return (k >= size()) ? 0 : coeff[k];
+  }
 
   // Removes trailing zeros.
   void shrink() {
-    while (coeff_.size() > 1 and coeff_.back() == T(0)) coeff_.pop_back();
+    while (coeff.size() > 1 and coeff.back() == T(0)) coeff.pop_back();
   }
 
   DenseFPS &operator+=(const T &scalar) {
-    coeff_[0] += scalar;
+    coeff[0] += scalar;
     return *this;
   }
   friend DenseFPS operator+(const DenseFPS &f, const T &scalar) {
     return DenseFPS(f) += scalar;
   }
   DenseFPS &operator+=(const DenseFPS &other) {
-    if (size() < other.size()) coeff_.resize(other.size());
-    for (int i = 0; i < other.size(); ++i) coeff_[i] += other[i];
+    if (size() < other.size()) coeff.resize(other.size());
+    for (int i = 0; i < other.size(); ++i) coeff[i] += other[i];
     return *this;
   }
   friend DenseFPS operator+(const DenseFPS &f, const DenseFPS &g) {
@@ -245,8 +248,8 @@ struct DenseFPS {
   }
 
   DenseFPS &operator-=(const DenseFPS &other) {
-    if (size() < other.size()) coeff_.resize(other.size());
-    for (int i = 0; i < other.size(); ++i) coeff_[i] -= other[i];
+    if (size() < other.size()) coeff.resize(other.size());
+    for (int i = 0; i < other.size(); ++i) coeff[i] -= other[i];
     return *this;
   }
   friend DenseFPS operator-(const DenseFPS &f, const DenseFPS &g) {
@@ -256,7 +259,7 @@ struct DenseFPS {
   DenseFPS operator-() const { return *this * -1; }
 
   DenseFPS &operator*=(const T &scalar) {
-    for (auto &x : coeff_) x *= scalar;
+    for (auto &x : coeff) x *= scalar;
     return *this;
   }
   friend DenseFPS operator*(const DenseFPS &f, const T &scalar) {
@@ -267,28 +270,28 @@ struct DenseFPS {
   }
   DenseFPS &operator*=(const DenseFPS &other) {
     return *this =
-               DenseFPS(Mult::multiply(std::move(this->coeff_), other.coeff_));
+               DenseFPS(Mult::multiply(std::move(this->coeff), other.coeff));
   }
   friend DenseFPS operator*(const DenseFPS &f, const DenseFPS &g) {
-    return DenseFPS(Mult::multiply(f.coeff_, g.coeff_));
+    return DenseFPS(Mult::multiply(f.coeff, g.coeff));
   }
 
   // Multiplies by x^k (with truncation).
   void shift_inplace(int k) {
     if (k > 0) {
       if (size() <= dmax()) {
-        coeff_.resize(std::min<Int>(size() + k, dmax() + 1), 0);
+        coeff.resize(std::min<Int>(size() + k, dmax() + 1), 0);
       }
       for (int i = size() - 1; i >= k; --i) {
-        coeff_[i] = coeff_[i - k];
+        coeff[i] = coeff[i - k];
       }
       for (int i = k - 1; i >= 0; --i) {
-        coeff_[i] = 0;
+        coeff[i] = 0;
       }
     } else if (k < 0) {
       // If coefficients of degrees higher than dmax() were truncated
       // beforehand, you lose the information. Ensure dmax() is big enough.
-      coeff_.erase(coeff_.begin(), coeff_.begin() + std::min(-k, size()));
+      coeff.erase(coeff.begin(), coeff.begin() + std::min(-k, size()));
     }
   }
   // Multiplies by x^k.
@@ -298,11 +301,11 @@ struct DenseFPS {
     return res;
   }
 
-  DenseFPS inv(int sz = -1) const { return DenseFPS(Mult::invert(coeff_, sz)); }
+  DenseFPS inv(int sz = -1) const { return DenseFPS(Mult::invert(coeff, sz)); }
 
   DenseFPS &operator/=(const T &scalar) {
     T d_inv = T(1) / scalar;
-    for (auto &x : coeff_) x *= d_inv;
+    for (auto &x : coeff) x *= d_inv;
     return *this;
   }
   friend DenseFPS operator/(const DenseFPS &f, const T &scalar) {
@@ -319,11 +322,11 @@ struct DenseFPS {
       return *this;  // (0/y) == 0 regardless of y.
     }
     if (z == 0) {
-      return *this *= DenseFPS(Mult::invert(other.coeff_));
+      return *this *= DenseFPS(Mult::invert(other.coeff));
     } else {
       shift_inplace(-z);
-      std::vector<T> y(other.coeff_.begin() + std::min(z, other.size()),
-                       other.coeff_.end());
+      std::vector<T> y(other.coeff.begin() + std::min(z, other.size()),
+                       other.coeff.end());
       return *this *= DenseFPS(Mult::invert(std::move(y)));
     }
   }
@@ -336,21 +339,21 @@ struct DenseFPS {
 template <typename T>
 struct SparseFPS {
   int size_;
-  std::vector<int> degree_;
-  std::vector<T> coeff_;
+  std::vector<int> degree;
+  std::vector<T> coeff;
 
   SparseFPS() : size_(0) {}  // zero
 
   explicit SparseFPS(std::vector<std::pair<int, T>> terms)
-      : size_(terms.size()), degree_(size_), coeff_(size_) {
+      : size_(terms.size()), degree(size_), coeff(size_) {
     // Sort by degree.
     std::sort(terms.begin(), terms.end(),
               [](const auto &x, const auto &y) { return x.first < y.first; });
     for (int i = 0; i < size_; ++i) {
       auto [d, c] = terms[i];
       assert(d >= 0);
-      degree_[i] = d;
-      coeff_[i] = c;
+      degree[i] = d;
+      coeff[i] = c;
     }
   }
 
@@ -358,30 +361,28 @@ struct SparseFPS {
       : SparseFPS(std::vector<std::pair<int, T>>(terms.begin(), terms.end())) {}
 
   inline int size() const { return size_; }
-  inline const T &coeff(int i) const { return coeff_[i]; }
-  inline int degree(int i) const { return degree_[i]; }
-  int max_degree() const { return (size_ == 0) ? 0 : degree_.back(); }
+  int max_degree() const { return (size_ == 0) ? 0 : degree.back(); }
 
   void emplace_back(int d, T c) {
     assert(d >= 0);
-    if (not degree_.empty()) {
-      assert(d > degree_.back());
+    if (not degree.empty()) {
+      assert(d > degree.back());
     }
-    degree_.push_back(std::move(d));
-    coeff_.push_back(std::move(c));
+    degree.push_back(std::move(d));
+    coeff.push_back(std::move(c));
     ++size_;
   }
 
   // Returns the coefficient of x^d.
-  T operator[](int d) const {
-    auto it = std::lower_bound(degree_.begin(), degree_.end(), d);
-    if (it == degree_.end() or *it != d) return (T)(0);
-    int j = std::distance(degree_.begin(), it);
-    return coeff_[j];
+  const T operator[](int d) const {
+    auto it = std::lower_bound(degree.begin(), degree.end(), d);
+    if (it == degree.end() or *it != d) return (T)(0);
+    int j = std::distance(degree.begin(), it);
+    return coeff[j];
   }
 
   SparseFPS &operator+=(const T &scalar) {
-    for (auto &x : coeff_) x += scalar;
+    for (auto &x : coeff) x += scalar;
     return *this;
   }
   friend SparseFPS operator+(const SparseFPS &f, const T &scalar) {
@@ -398,7 +399,7 @@ struct SparseFPS {
   }
 
   SparseFPS &operator*=(const T &scalar) {
-    for (auto &x : coeff_) x *= scalar;
+    for (auto &x : coeff) x *= scalar;
     return *this;
   }
   friend SparseFPS operator*(const SparseFPS &f, const T &scalar) {
@@ -420,13 +421,13 @@ struct SparseFPS {
     SparseFPS res;
     int j = 0;  // two pointers (i, j)
     for (int i = 0; i < size(); ++i) {
-      const int deg = this->degree(i);
-      for (; j < other.size() and other.degree(j) < deg; ++j) {
-        res.emplace_back(other.degree(j), other.coeff(j));
+      const int deg = this->degree[i];
+      for (; j < other.size() and other.degree[j] < deg; ++j) {
+        res.emplace_back(other.degree[j], other.coeff[j]);
       }
-      T c = this->coeff(i);
-      if (j < other.size() and other.degree(j) == deg) {
-        c += other.coeff(j);
+      T c = this->coeff[i];
+      if (j < other.size() and other.degree[j] == deg) {
+        c += other.coeff[j];
         ++j;
       }
       if (c != 0) {
@@ -434,7 +435,7 @@ struct SparseFPS {
       }
     }
     for (; j < other.size(); ++j) {
-      res.emplace_back(other.degree(j), other.coeff(j));
+      res.emplace_back(other.degree[j], other.coeff[j]);
     }
     return res;
   }
@@ -444,8 +445,8 @@ struct SparseFPS {
 template <typename FPS, typename T = typename FPS::T>
 FPS &operator+=(FPS &f, const SparseFPS<T> &g) {
   for (int i = 0; i < g.size(); ++i) {
-    if (g.degree(i) > FPS::dmax()) break;  // ignore
-    f.coeff_[g.degree(i)] += g.coeff(i);
+    if (g.degree[i] > FPS::dmax()) break;  // ignore
+    f.coeff[g.degree[i]] += g.coeff[i];
   }
   return f;
 }
@@ -466,24 +467,24 @@ FPS &operator*=(FPS &f, const SparseFPS<T> &g) {
   if (g.size() == 0) {
     return f *= 0;
   }
-  const int gd_max = g.degree(g.size() - 1);
+  const int gd_max = g.degree[g.size() - 1];
   const int fd_max = f.size() - 1;
   const int n = std::min(fd_max + gd_max, FPS::dmax()) + 1;
-  if (f.size() < n) f.coeff_.resize(n);
+  if (f.size() < n) f.coeff.resize(n);
 
   T c0 = 0;
   int j0 = 0;
-  if (g.degree(0) == 0) {
-    c0 = g.coeff(0);
+  if (g.degree[0] == 0) {
+    c0 = g.coeff[0];
     j0 = 1;
   }
 
   for (int fd = n - 1; fd >= 0; --fd) {
-    f.coeff_[fd] *= c0;
+    f.coeff[fd] *= c0;
     for (int j = j0; j < g.size(); ++j) {
-      int gd = g.degree(j);
+      int gd = g.degree[j];
       if (gd > fd) break;
-      f.coeff_[fd] += f[fd - gd] * g.coeff(j);
+      f.coeff[fd] += f[fd - gd] * g.coeff[j];
     }
   }
   return f;
@@ -502,15 +503,15 @@ FPS operator*(const SparseFPS<T> &f, const FPS &g) {
 // Polynomial division (dense / sparse).
 template <typename FPS, typename T = typename FPS::T>
 FPS &operator/=(FPS &f, const SparseFPS<T> &g) {
-  assert(g.size() > 0 and g.degree(0) == 0 and g.coeff(0) != 0);
-  const auto ic0 = T(1) / g.coeff(0);
+  assert(g.size() > 0 and g.degree[0] == 0 and g.coeff[0] != 0);
+  const auto ic0 = T(1) / g.coeff[0];
   for (int fd = 0; fd < f.size(); ++fd) {
     for (int j = 1; j < g.size(); ++j) {
-      int gd = g.degree(j);
+      const int gd = g.degree[j];
       if (fd < gd) break;
-      f.coeff_[fd] -= f.coeff_[fd - gd] * g.coeff(j);
+      f.coeff[fd] -= f.coeff[fd - gd] * g.coeff[j];
     }
-    f.coeff_[fd] *= ic0;
+    f.coeff[fd] *= ic0;
   }
   return f;
 }
@@ -526,10 +527,10 @@ template <typename FPS>
 void multiply2_inplace(FPS &f, int k, int c) {
   assert(k > 0);
   if (f.size() <= FPS::dmax()) {
-    f.coeff_.resize(std::min(f.size() + k, FPS::dmax() + 1), 0);
+    f.coeff.resize(std::min(f.size() + k, FPS::dmax() + 1), 0);
   }
   for (int i = f.size() - 1; i >= k; --i) {
-    f.coeff_[i] += f.coeff_[i - k] * c;
+    f.coeff[i] += f.coeff[i - k] * c;
   }
 }
 // Multiplies by (1 + c * x^k).
@@ -544,7 +545,7 @@ template <typename FPS>
 void divide2_inplace(FPS &f, int k, int c) {
   assert(k > 0);
   for (int i = k; i < f.size(); ++i) {
-    f.coeff_[i] -= f.coeff_[i - k] * c;
+    f.coeff[i] -= f.coeff[i - k] * c;
   }
 }
 // Divides by (1 + c * x^k).
@@ -558,7 +559,7 @@ FPS divide2(FPS f, int k, int c) {
 template <typename FPS, typename T = typename FPS::T>
 T eval(const FPS &f, const T a) {
   T res = 0, x = 1;
-  for (auto c : f.coeff_) {
+  for (auto c : f.coeff) {
     res += c * x;
     x *= a;
   }
@@ -589,7 +590,7 @@ FPS integral(const FPS &f, T c0 = 0) {
       inv[i] = -inv[d.rem] * d.quot;
     }
     for (int i = 2; i <= n; ++i) {
-      res[i] = f.coeff_[i - 1] * inv[i];
+      res[i] = f.coeff[i - 1] * inv[i];
     }
   }
   return FPS(std::move(res));
@@ -599,7 +600,7 @@ template <typename FPS, typename T = typename FPS::T>
 FPS log(const FPS &f, int sz = -1) {
   if (sz == -1) sz = FPS::dmax() + 1;
   FPS g = derivative(f) * f.inv(sz);
-  g.coeff_.resize(sz);
+  g.coeff.resize(sz);
   return integral(g);
 }
 
@@ -611,13 +612,13 @@ FPS exp(FPS g) {
     FPS f(std::vector<T>(i, 0));
     FPS logr = log(ret, i << 1);
     for (int j = 0; j < i; ++j) {
-      f.coeff_[j] += g[i + j] - logr[i + j];
+      f.coeff[j] += g[i + j] - logr[i + j];
     }
     f *= ret;
-    std::copy(f.coeff_.begin(), f.coeff_.begin() + i,
-              std::back_inserter(ret.coeff_));
+    std::copy(f.coeff.begin(), f.coeff.begin() + i,
+              std::back_inserter(ret.coeff));
   }
-  ret.coeff_.resize(n);
+  ret.coeff.resize(n);
   return ret;
 }
 
@@ -626,14 +627,14 @@ FPS exp_ntt(FPS f) {
   static_assert(T::mod() == 998244353, "Requires an NTT-friendly mod.");
   const int n = int(f.size());
   assert(n > 0 && f[0] == 0);
-  std::vector<T> h_drv = std::move(derivative(f).coeff_);
-  std::vector<T> g{1}, g_fft{0}, res(std::move(f.coeff_));
+  std::vector<T> h_drv = std::move(derivative(f).coeff);
+  std::vector<T> g{1}, g_fft{0}, res(std::move(f.coeff));
   res[0] = 1;
   for (int m = 1; m < n; m <<= 1) {
     const int m2 = m << 1;
     const T m2_inv = Mint(m2).inv();
     std::vector<T> f_fft(res.begin(), res.begin() + m);
-    std::vector<T> t = std::move(derivative(FPS(f_fft)).coeff_);
+    std::vector<T> t = std::move(derivative(FPS(f_fft)).coeff);
     t.resize(m);
     f_fft.resize(m2);
     atcoder::internal::butterfly(f_fft);
@@ -685,7 +686,7 @@ FPS exp_ntt(FPS f) {
     std::vector<T> v(res.begin() + m, res.begin() + std::min(n, m2));
     v.resize(m);
     t.insert(t.begin(), m - 1, 0);
-    t = std::move(integral(FPS(std::move(t))).coeff_);
+    t = std::move(integral(FPS(std::move(t))).coeff);
     for (int i = 0; i < m; ++i) v[i] -= t[m + i];
 
     // Step 2.g'
@@ -715,14 +716,14 @@ FPS pow_logexp(FPS f, Int k) {
   while (l < n && f[l] == 0) ++l;
   if (l > (n - 1) / k) return FPS{};
   T c = f[l];
-  if (l != 0) f.coeff_.erase(f.coeff_.begin(), f.coeff_.begin() + l);
+  if (l != 0) f.coeff.erase(f.coeff.begin(), f.coeff.begin() + l);
   if (c != 1) f /= c;
   f = log(std::move(f));
   const Int ssz = FPS::dmax() + 1 - l * k;
-  if ((Int)f.size() > ssz) f.coeff_.resize(ssz);  // shrink
+  if ((Int)f.size() > ssz) f.coeff.resize(ssz);  // shrink
   f = exp(std::move(f) * k);
   if (c != 1) f *= c.pow(k);
-  if (l != 0) f.coeff_.insert(f.coeff_.begin(), size_t(l * k), T(0));
+  if (l != 0) f.coeff.insert(f.coeff.begin(), size_t(l * k), T(0));
   return f;
 }
 
@@ -751,7 +752,7 @@ FPS product_of_geometric_series(std::vector<int> a) {
     for (const auto &e : a) {
       Int t = k * e;
       if (t >= m) break;
-      nume.coeff_[t] -= kinv;
+      nume.coeff[t] -= kinv;
     }
   }
   auto deno = T(n) * log(FPS{1, -1});
@@ -761,11 +762,11 @@ FPS product_of_geometric_series(std::vector<int> a) {
 // (1 - x)^-n in O(D)
 template <typename Factorials, typename FPS, typename T = typename FPS::T>
 FPS negative_binom(int n, const Factorials &fs) {
-  std::vector<T> coeff(FPS::dmax() + 1);
-  for (int i = 0; i < (int)coeff.size(); ++i) {
-    coeff[i] = fs.C(n - 1 + i, i);
+  std::vector<T> c(FPS::dmax() + 1);
+  for (int i = 0; i < (int)c.size(); ++i) {
+    c[i] = fs.C(n - 1 + i, i);
   }
-  return FPS(std::move(coeff));
+  return FPS(std::move(c));
 }
 
 namespace fps_internal {
@@ -863,7 +864,7 @@ std::optional<FPS> sqrt(const FPS &f) {
   const auto oc0 = fps_internal::sqrt_mod(f0.val(), T::mod());
   if (not oc0.has_value()) return std::nullopt;
   const auto c0 = oc0.value();
-  auto g = FPS(std::vector<T>(f.coeff_.begin() + z, f.coeff_.end()));
+  auto g = FPS(std::vector<T>(f.coeff.begin() + z, f.coeff.end()));
   g = fps_internal::sqrt_fft(g / f0);
   const int zhalf = z / 2;
   const int sz = std::min<int>(g.size() + zhalf, FPS::dmax() + 1);
