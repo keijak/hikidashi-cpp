@@ -47,7 +47,7 @@ bool isecLP(P a1, P a2, P b) {
 
 // 直線と直線
 bool isecLL(P a1, P a2, P b1, P b2) {
-  return !isecLP(a2 - a1, b2 - b1, 0) || isecLP(a1, b1, b2);
+  return !isecLP(a2 - a1, b2 - b1, P(0, 0)) || isecLP(a1, b1, b2);
 }
 
 // 直線と線分

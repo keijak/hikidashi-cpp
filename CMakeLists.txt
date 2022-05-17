@@ -11,6 +11,9 @@ target_link_libraries(bisect_test PRIVATE GTest::gtest GTest::gmock GTest::gtest
 add_executable(compress_test tests/compress_test.cpp)
 target_link_libraries(compress_test PRIVATE GTest::gtest GTest::gmock GTest::gtest_main)
 
+add_executable(geometry_int_test tests/geometry_int_test.cpp)
+target_link_libraries(geometry_int_test PRIVATE GTest::gtest GTest::gmock GTest::gtest_main)
+
 add_executable(modint_test tests/modint_test.cpp)
 target_link_libraries(modint_test PRIVATE GTest::gtest GTest::gmock GTest::gtest_main)
 
