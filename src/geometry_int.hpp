@@ -4,7 +4,7 @@ using Int = long long;
 using Real = long double;
 
 // compatible with std::complex
-template<typename T>
+template <typename T>
 struct Point2d {
   T x;
   T y;
@@ -32,7 +32,7 @@ struct Point2d {
   friend T norm(const Point2d &a) { return dot(a, a); }
 
   // |a|
-  friend Real abs(const Point2d &a) { return std::sqrt((Real) norm(a)); }
+  friend Real abs(const Point2d &a) { return std::sqrt((Real)norm(a)); }
 
   bool operator==(const Point2d &other) const {
     return x == other.x and y == other.y;
@@ -71,10 +71,10 @@ struct Point2d {
     return (Point2d(p) *= scalar);
   }
 };
-using D = Real;
 using P = Point2d<Int>;
 using L = std::pair<P, P>;  // Line
 using VP = std::vector<P>;  // Points
+using D = Real;
 
 // Compare by argument angle.
 // https://ngtkana.hatenablog.com/entry/2021/11/13/202103
@@ -116,7 +116,7 @@ bool isecLS(P a1, P a2, P b1, P b2) {
 // intersection: segment and segment
 bool isecSS(P a1, P a2, P b1, P b2) {
   return ccw(a1, a2, b1) * ccw(a1, a2, b2) <= 0 &&
-      ccw(b1, b2, a1) * ccw(b1, b2, a2) <= 0;
+         ccw(b1, b2, a1) * ccw(b1, b2, a2) <= 0;
 }
 
 // intersection: segment and point
@@ -165,7 +165,7 @@ std::pair<std::vector<P>, std::vector<P>> scan_convex_hull(std::vector<P> ps) {
     return std::tie(a.real(), a.imag()) < std::tie(b.real(), b.imag());
   });
   std::vector<P> lower, upper;
-  for (int i = 0; i < (int) ps.size(); ++i) {
+  for (int i = 0; i < (int)ps.size(); ++i) {
     auto ax = ps[i].x, ay = ps[i].y;
     P now{ax, ay};
     while (lower.size() >= 2) {
@@ -177,7 +177,7 @@ std::pair<std::vector<P>, std::vector<P>> scan_convex_hull(std::vector<P> ps) {
     }
     lower.push_back(now);
   }
-  for (int i = (int) ps.size() - 1; i >= 0; --i) {
+  for (int i = (int)ps.size() - 1; i >= 0; --i) {
     auto ax = ps[i].x, ay = ps[i].y;
     P now{ax, ay};
     while (upper.size() >= 2) {
