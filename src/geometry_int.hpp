@@ -70,6 +70,9 @@ struct Point2d {
   friend Point2d operator*(T scalar, const Point2d &p) {
     return (Point2d(p) *= scalar);
   }
+  friend ostream &operator<<(ostream &os, const Point2d &p) {
+    return os << "(" << p.x << ", " << p.y << ")";
+  }
 };
 using P = Point2d<Int>;
 using L = std::pair<P, P>;  // Line
