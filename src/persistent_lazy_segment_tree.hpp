@@ -56,6 +56,7 @@ struct PersistentLazySegmentTree {
       : nil_(make_nil()), root_(nil_), size_(n), pool_(pool) {}
 
   PersistentLazySegmentTree set(Int k, const T &x) const {
+    assert(0 <= k and k < size_);
     NodePtr new_root = set_(k, x, root_, 0, size_);
     return {new_root, size_, pool_};
   }
