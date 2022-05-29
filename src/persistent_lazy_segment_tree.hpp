@@ -66,6 +66,7 @@ struct PersistentLazySegmentTree {
   }
   T fold_all() const { return root_->data; }
   T operator[](Int k) const {
+    assert(0 <= k and k < size_);
     return fold_(k, k + 1, Monoids::f_id(), root_, 0, size_);
   }
 

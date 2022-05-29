@@ -61,7 +61,10 @@ struct PersistentSegmentTree {
 
   T fold(Int kl, Int kr) const { return fold_(kl, kr, root_, 0, size_); }
   T fold_all() const { return root_->data; }
-  T operator[](Int k) const { return fold_(k, k + 1, root_, 0, size_); }
+  T operator[](Int k) const {
+    assert(0 <= k and k < size_);
+    return fold_(k, k + 1, root_, 0, size_);
+  }
 
   std::vector<T> to_vec(Int size = -1) const {
     if (size < 0) size = size_;
