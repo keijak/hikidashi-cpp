@@ -140,19 +140,6 @@ T catalan(const Factorials<T>& fs, int k) {
   return ret;
 }
 
-// Catalan Number up to C[n]: O(n^2)
-template <class T = unsigned long long>
-std::vector<T> catalan_table(int n) {
-  std::vector<T> C(n + 1, 0);
-  C[0] = 1;
-  for (int i = 1; i <= n; ++i) {
-    for (int j = 0; j < i; ++j) {
-      C[i] += C[j] * C[i - 1 - j];
-    }
-  }
-  return C;
-}
-
 // Montmort Number
 // Total number of complete permutations of size n.
 template <class T>
