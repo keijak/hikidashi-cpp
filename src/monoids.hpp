@@ -67,7 +67,7 @@ struct GCDOp {
     if (y == id()) return x;
     return std::gcd(x, y);
   }
-  static constexpr T id() { return -1; }
+  static constexpr T id() { return 0; }
 };
 
 // 2 smallest items in an interval.

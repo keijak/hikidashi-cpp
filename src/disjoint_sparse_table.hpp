@@ -6,7 +6,7 @@ struct DisjointSparseTable {
   using size_type = size_t;
   std::vector<std::vector<value_type>> table;
 
-  explicit DisjointSparseTable(const std::vector<value_type> &seq) {
+  explicit DisjointSparseTable(const std::vector<value_type>& seq) {
     const size_type size = seq.size();
     table.reserve(32);
     table.push_back(seq);  // table[0] = copy of the original sequence
@@ -43,16 +43,14 @@ struct DisjointSparseTable {
     }
   }
 
-  const value_type &operator[](int index) const {
+  const value_type& operator[](int index) const {
     assert(index < size());
     return table.front()[index];
   }
 
  private:
-  template <typename T>
-  static constexpr int num_bits = CHAR_BIT * sizeof(T);
-
-  static inline size_type msb_log(size_type x) {
-    return num_bits<size_type> - __builtin_clz(x) - 1;
+  static inline int msb_log(unsigned x) {
+    assert(x != 0);
+    return std::numeric_limits<unsigned>::digits - __builtin_clz(x) - 1;
   }
 };

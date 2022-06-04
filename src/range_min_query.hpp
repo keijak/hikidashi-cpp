@@ -6,7 +6,7 @@ constexpr int num_bits = CHAR_BIT * sizeof(T);
 // Log base 2 of the most significant bit that is set to 1.
 inline int msb_log(unsigned x) {
   assert(x != 0);
-  return num_bits<unsigned> - __builtin_clz(x) - 1;
+  return std::numeric_limits<unsigned>::digits - __builtin_clz(x) - 1;
 }
 
 // Range Min/Max Query based on Fischer-Heun Structure.
