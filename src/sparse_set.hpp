@@ -1,12 +1,12 @@
 #include <bits/stdc++.h>
 
 template <int kMaxSize, int kMaxValue>
-struct SparseSet {
+struct SparseIntSet {
   int size_;
   std::array<int, kMaxSize> dense_;
   std::array<int, kMaxValue> sparse_;
 
-  SparseSet() : size_(0) {}
+  SparseIntSet() : size_(0) {}
 
   // O(1)
   bool contains(int x) const {
@@ -50,3 +50,4 @@ struct SparseSet {
     sparse_.fill(0);
   }
 };
+using IntSet = SparseIntSet<200'005, 200'005>;
