@@ -1,5 +1,9 @@
 #include <bits/stdc++.h>
 
+// Reference:
+// https://research.swtch.com/sparse
+// https://www.geeksforgeeks.org/sparse-set/
+
 template <int kMaxSize, int kMaxValue>
 struct SparseIntSet {
   int size_;
