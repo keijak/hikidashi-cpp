@@ -1,12 +1,12 @@
 #include <bits/stdc++.h>
 
+template <int kMaxSize, int kMaxValue>
 struct SparseSet {
-  static constexpr int kMaxSize = int(1e5) + 10;
-  static constexpr int kMaxValue = int(1e5) + 10;
-
-  int size_ = 0;
+  int size_;
   std::array<int, kMaxSize> dense_;
   std::array<int, kMaxValue> sparse_;
+
+  SparseSet() : size_(0) {}
 
   // O(1)
   bool contains(int x) const {
