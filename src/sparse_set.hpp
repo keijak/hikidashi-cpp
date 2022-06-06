@@ -7,10 +7,10 @@
 template <int kMaxSize, int kMaxValue>
 struct SparseIntSet {
   int size_;
-  std::array<int, kMaxSize> dense_;
-  std::array<int, kMaxValue> sparse_;
+  int dense_[kMaxSize];
+  int sparse_[kMaxValue + 1];
 
-  SparseIntSet() : size_(0) {}
+  SparseIntSet() noexcept : size_(0) {}
 
   // O(1)
   bool contains(int x) const {
@@ -47,6 +47,13 @@ struct SparseIntSet {
       func(dense_[i]);
     }
   }
+
+  using iterator = int *;
+  using const_iterator = const int *;
+  iterator begin() { return dense_; }
+  const_iterator begin() const { return dense_; }
+  iterator end() { return dense_ + size_; }
+  const_iterator end() const { return dense_ + size_; }
 
   // For silencing warnings on accessing uninitialized memory.
   void safe_init() {
