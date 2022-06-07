@@ -88,15 +88,21 @@ struct GenericMatrix {
   }
 
   GenericMatrix operator+(const GenericMatrix &B) const {
-    return (GenericMatrix(*this) += B);
+    auto r = *this;
+    r += B;
+    return r;
   }
 
   GenericMatrix operator*(const GenericMatrix &B) const {
-    return (GenericMatrix(*this) *= B);
+    auto r = *this;
+    r *= B;
+    return r;
   }
 
   GenericMatrix operator^(const long long k) const {
-    return (GenericMatrix(*this) ^= k);
+    auto r = *this;
+    r ^= k;
+    return r;
   }
 
   GenericMatrix pow(const long long k) const { return (*this) ^ k; }

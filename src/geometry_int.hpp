@@ -47,7 +47,9 @@ struct Point2d {
     return *this;
   }
   friend Point2d operator+(const Point2d &p1, const Point2d &p2) {
-    return (Point2d(p1) += p2);
+    auto r = p1;
+    r += p2;
+    return r;
   }
 
   Point2d &operator-=(const Point2d &other) {
@@ -56,7 +58,9 @@ struct Point2d {
     return *this;
   }
   friend Point2d operator-(const Point2d &p1, const Point2d &p2) {
-    return (Point2d(p1) -= p2);
+    auto r = p1;
+    r -= p2;
+    return r;
   }
 
   Point2d &operator*=(T scalar) {
@@ -65,10 +69,14 @@ struct Point2d {
     return *this;
   }
   friend Point2d operator*(const Point2d &p, T scalar) {
-    return (Point2d(p) *= scalar);
+    auto r = p;
+    r *= scalar;
+    return r;
   }
   friend Point2d operator*(T scalar, const Point2d &p) {
-    return (Point2d(p) *= scalar);
+    auto r = p;
+    r *= scalar;
+    return r;
   }
   friend ostream &operator<<(ostream &os, const Point2d &p) {
     return os << "(" << p.x << ", " << p.y << ")";

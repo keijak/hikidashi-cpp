@@ -97,13 +97,29 @@ struct Matrix {
     return *this;
   }
 
-  Matrix operator+(const Matrix &B) const { return (Matrix(*this) += B); }
+  Matrix operator+(const Matrix &B) const {
+    Matrix r = *this;
+    r += B;
+    return r;
+  }
 
-  Matrix operator-(const Matrix &B) const { return (Matrix(*this) -= B); }
+  Matrix operator-(const Matrix &B) const {
+    Matrix r = *this;
+    r -= B;
+    return r;
+  }
 
-  Matrix operator*(const Matrix &B) const { return (Matrix(*this) *= B); }
+  Matrix operator*(const Matrix &B) const {
+    Matrix r = *this;
+    r *= B;
+    return r;
+  }
 
-  Matrix operator^(const long long k) const { return (Matrix(*this) ^= k); }
+  Matrix operator^(const long long k) const {
+    Matrix r = *this;
+    r ^= k;
+    return r;
+  }
 
   Matrix pow(const long long k) const { return (*this) ^ k; }
 
