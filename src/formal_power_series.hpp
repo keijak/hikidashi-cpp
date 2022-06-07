@@ -242,7 +242,9 @@ struct DenseFPS {
     return *this;
   }
   friend DenseFPS operator+(const DenseFPS &f, const T &scalar) {
-    return DenseFPS(f) += scalar;
+    DenseFPS r = f;
+    r += scalar;
+    return r;
   }
   DenseFPS &operator+=(const DenseFPS &other) {
     if (size() < other.size()) coeff.resize(other.size());
@@ -250,7 +252,9 @@ struct DenseFPS {
     return *this;
   }
   friend DenseFPS operator+(const DenseFPS &f, const DenseFPS &g) {
-    return DenseFPS(f) += g;
+    DenseFPS r = f;
+    r += g;
+    return r;
   }
 
   DenseFPS &operator-=(const DenseFPS &other) {
@@ -259,7 +263,9 @@ struct DenseFPS {
     return *this;
   }
   friend DenseFPS operator-(const DenseFPS &f, const DenseFPS &g) {
-    return DenseFPS(f) -= g;
+    DenseFPS r = f;
+    r -= g;
+    return r;
   }
 
   DenseFPS operator-() const { return *this * -1; }
@@ -269,10 +275,14 @@ struct DenseFPS {
     return *this;
   }
   friend DenseFPS operator*(const DenseFPS &f, const T &scalar) {
-    return DenseFPS(f) *= scalar;
+    DenseFPS r = f;
+    r *= scalar;
+    return r;
   }
   friend DenseFPS operator*(const T &scalar, const DenseFPS &g) {
-    return DenseFPS{scalar} *= g;
+    DenseFPS r{scalar};
+    r *= g;
+    return r;
   }
   DenseFPS &operator*=(const DenseFPS &other) {
     return *this =
@@ -302,9 +312,9 @@ struct DenseFPS {
   }
   // Multiplies by x^k.
   DenseFPS shift(int k) const {
-    DenseFPS res = *this;
-    res.shift_inplace(k);
-    return res;
+    DenseFPS r = *this;
+    r.shift_inplace(k);
+    return r;
   }
 
   DenseFPS inv(int sz = -1) const { return DenseFPS(Mult::invert(coeff, sz)); }
@@ -315,10 +325,14 @@ struct DenseFPS {
     return *this;
   }
   friend DenseFPS operator/(const DenseFPS &f, const T &scalar) {
-    return DenseFPS(f) /= scalar;
+    DenseFPS r = f;
+    r /= scalar;
+    return r;
   }
   friend DenseFPS operator/(const T &scalar, const DenseFPS &g) {
-    return DenseFPS{scalar} /= g;
+    DenseFPS r{scalar};
+    r /= g;
+    return r;
   }
   DenseFPS &operator/=(const DenseFPS &other) {
     int z = 0;
@@ -337,7 +351,9 @@ struct DenseFPS {
     }
   }
   friend DenseFPS operator/(const DenseFPS &f, const DenseFPS &g) {
-    return DenseFPS(f) /= g;
+    DenseFPS r = f;
+    r /= g;
+    return r;
   }
 };
 

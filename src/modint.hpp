@@ -89,16 +89,24 @@ struct ModInt {
   constexpr ModInt &operator/=(const ModInt &a) { return *this *= a.inv(); }
 
   friend constexpr ModInt operator+(const ModInt &a, const ModInt &b) {
-    return ModInt(a) += b;
+    ModInt r = a;
+    r += b;
+    return r;
   }
   friend constexpr ModInt operator-(const ModInt &a, const ModInt &b) {
-    return ModInt(a) -= b;
+    ModInt r = a;
+    r -= b;
+    return r;
   }
   friend constexpr ModInt operator*(const ModInt &a, const ModInt &b) {
-    return ModInt(a) *= b;
+    ModInt r = a;
+    r *= b;
+    return r;
   }
   friend constexpr ModInt operator/(const ModInt &a, const ModInt &b) {
-    return ModInt(a) /= b;
+    ModInt r = a;
+    r /= b;
+    return r;
   }
   friend constexpr bool operator==(const ModInt &a, const ModInt &b) {
     return a._v == b._v;
