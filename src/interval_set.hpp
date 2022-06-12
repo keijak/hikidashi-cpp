@@ -7,6 +7,7 @@ using Int = long long;
 class IntervalSet : public std::map<Int, Int> {
  private:
   // If true, automatically merges [l, c) and [c, r).
+  // Otherwise only merges intervals when they have non-empty overlap.
   bool merge_adjacent;
 
  public:
