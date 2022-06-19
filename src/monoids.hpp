@@ -265,9 +265,14 @@ struct ChmaxMaxOp {
   static constexpr F f_id() { return std::numeric_limits<T>::lowest(); }
 };
 
+// Arighmetic Progression: (Assign, Min+Max+Sum)
 // ref. https://null-mn.hatenablog.com/entry/2021/08/22/064325
-struct AssignArithmeticProgressionOp {
+struct ArithmeticProgressionAssignMinMaxSumOp {
   using Int = long long;
+  struct Line {  // a*x + b
+    Int a;
+    Int b;
+  };
   static constexpr Int kBig = std::numeric_limits<Int>::max() / 2;
 
   struct T {
@@ -277,10 +282,6 @@ struct AssignArithmeticProgressionOp {
     // closed interval [l, r]
     int l;
     int r;
-  };
-  struct Line {  // a*x + b
-    Int a;
-    Int b;
   };
   using F = std::optional<Line>;
 
@@ -307,7 +308,45 @@ struct AssignArithmeticProgressionOp {
   static F f_id() { return std::nullopt; }
 };
 std::ostream &operator<<(std::ostream &os,
-                         const AssignArithmeticProgressionOp::T &a) {
+                         const ArithmeticProgressionAssignMinMaxSumOp::T &a) {
   return os << "{min:" << a.min << ", max:" << a.max << ", sum:" << a.sum
             << ", l:" << a.l << ", r:" << a.r << "}";
+}
+
+// Arighmetic Progression: (Add, Sum)
+// ref. https://null-mn.hatenablog.com/entry/2021/08/22/064325
+struct ArithmeticProgressionAddSumOp {
+  using Int = long long;
+  struct Line {  // a*x + b
+    Int a;
+    Int b;
+  };
+
+  struct T {
+    Int sum;
+    // closed interval [l, r]
+    int l;
+    int r;
+  };
+  using F = Line;
+
+  // Fold: Sum
+  static T op(const T &x, const T &y) { return T{x.sum + y.sum, x.l, y.r}; }
+
+  static T id() { return {0LL, -1, -1}; }
+
+  // Update: Add a*x + b
+  static T f_apply(const F &f, const T &s) {
+    // static const Mint kHalf = Mint(1) / 2;
+    auto sum = s.sum + (f.a * (s.l + s.r) + f.b * 2) * (s.r - s.l + 1) / 2;
+    return {sum, s.l, s.r};
+  }
+  static F f_compose(const F &f, const F &g) {
+    return Line{f.a + g.a, f.b + g.b};
+  }
+  static F f_id() { return Line{0, 0}; }
+};
+std::ostream &operator<<(std::ostream &os,
+                         const ArithmeticProgressionAddSumOp::T &a) {
+  return os << "{sum:" << a.sum << ", l:" << a.l << ", r:" << a.r << "}";
 }
