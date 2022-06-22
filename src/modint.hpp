@@ -72,21 +72,19 @@ struct ModInt {
     return res;
   }
 
-  // https://qiita.com/Mitarushi/items/8d7fb52e8a80e8008463
-  constexpr ModInt inv() const {
-    long long b = 1, a = _v;
-    while (a > 1) {
-      long long q = M / a;
-      a = M - a * q;
-      b = -b * q % M;
-    }
-    assert(a == 1);  // if a = 0, _v and M are not coprime.
-    if (b < 0) b += M;
-    ModInt ret;
-    ret._v = (unsigned)b;
-    return ret;
+  ModInt inv() const {
+    static constexpr unsigned kPrecalcSize = 10000;
+    static const std::array<ModInt, kPrecalcSize> *kPrecalc = []() {
+      auto *a = new std::array<ModInt, kPrecalcSize>;
+      for (ModInt i = 1; i.val() < kPrecalcSize; i += 1) {
+        (*a)[i.val()] = i.inv_internal();
+      }
+      return a;
+    }();
+    if (_v < kPrecalcSize) return (*kPrecalc)[_v];
+    return inv_internal();
   }
-  constexpr ModInt &operator/=(const ModInt &a) { return *this *= a.inv(); }
+  ModInt &operator/=(const ModInt &a) { return *this *= a.inv(); }
 
   friend constexpr ModInt operator+(const ModInt &a, const ModInt &b) {
     ModInt r = a;
@@ -122,6 +120,20 @@ struct ModInt {
   }
 
  private:
+  ModInt inv_internal() const {
+    long long b = 1, a = _v;
+    while (a > 1) {
+      long long q = M / a;
+      a = M - a * q;
+      b = -b * q % M;
+    }
+    assert(a == 1);  // if a = 0, _v and M are not coprime.
+    if (b < 0) b += M;
+    ModInt ret;
+    ret._v = (unsigned)b;
+    return ret;
+  }
+
   unsigned _v;  // raw value
 };
 // const unsigned MOD = int(1e9) + 7;
