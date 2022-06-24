@@ -6,12 +6,12 @@ using Mint = atcoder::modint1000000007;
 
 // mod: prime
 template <class T = Mint>
-struct Factorials {
+struct BinomialCoeff {
   // factorials and inverse factorials.
   std::vector<T> fact, ifact;
 
   // n: max cached value.
-  explicit Factorials(int n) : fact(n + 1), ifact(n + 1) {
+  explicit BinomialCoeff(int n) : fact(n + 1), ifact(n + 1) {
     assert(n >= 0);
     assert(n < T::mod());
     fact[0] = 1;
@@ -25,7 +25,7 @@ struct Factorials {
   }
 
   // Combination (binomial coefficients)
-  T C(Int n, Int k) const {
+  T operator()(Int n, Int k) const {
     if (k < 0 || k > n) return 0;
     return fact[n] * ifact[k] * ifact[n - k];
   }
@@ -33,13 +33,13 @@ struct Factorials {
 
 // mod: prime
 template <class T = Mint>
-struct FactorialsSmallMod {
+struct BinomialCoeffSmallMod {
   // factorials and inverse factorials.
   std::vector<T> fact, ifact;
   std::vector<int> mcount;  // How many MOD factors the factorial includes.
 
   // n: max cached value. can be greater than the mod.
-  FactorialsSmallMod(int n) : fact(n + 1), ifact(n + 1), mcount(n + 1) {
+  BinomialCoeffSmallMod(int n) : fact(n + 1), ifact(n + 1), mcount(n + 1) {
     assert(n >= 0);
     fact[0] = 1;
     for (int i = 1; i <= n; ++i) {
@@ -63,7 +63,7 @@ struct FactorialsSmallMod {
   }
 
   // Combination (binomial coefficients)
-  T C(Int n, Int k) const {
+  T operator()(Int n, Int k) const {
     if (k < 0 || k > n) return 0;
     int p = mcount[n] - mcount[k] - mcount[n - k];
     if (p > 0) return 0;
