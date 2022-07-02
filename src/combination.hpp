@@ -127,32 +127,32 @@ Mint factorial(int x) {
 
 // Permutation (nPk)
 template <class T>
-T permutation(const Factorials<T>& fs, int n, int k) {
+T P(const BinomialCoeff<T>& binom, int n, int k) {
   if (k < 0 || k > n) return 0;
-  return fs.fact[n] * fs.ifact[n - k];
+  return binom.fact[n] * binom.ifact[n - k];
 }
 
 // Catalan Number
 template <typename T>
-T catalan(const Factorials<T>& fs, int k) {
-  auto ret = fs.C(2 * k, k);
-  if (k > 0) ret -= fs.C(2 * k, k - 1);
+T catalan(const BinomialCoeff<T>& binom, int k) {
+  auto ret = binom(2 * k, k);
+  if (k > 0) ret -= binom(2 * k, k - 1);
   return ret;
 }
 
 // Montmort Number
 // Total number of complete permutations of size n.
 template <class T>
-T montmort_number(const Factorials<T>& fs, int n) {
+T montmort_number(const BinomialCoeff<T>& binom, int n) {
   T res = 0;
   for (int k = 2; k <= n; ++k) {
     if (k % 2 == 0) {
-      res += fs.ifact[k];
+      res += binom.ifact[k];
     } else {
-      res -= fs.ifact[k];
+      res -= binom.ifact[k];
     }
   }
-  res *= fs.fact[n];
+  res *= binom.fact[n];
   return res;
 }
 
@@ -160,7 +160,7 @@ T montmort_number(const Factorials<T>& fs, int n) {
 // Number of ways of grouping n distinguishable balls into k or less
 // indistinguishable boxes.
 template <typename T>
-T bell_number(const Factorials<T>& fs, int n, int k) {
+T bell_number(const BinomialCoeff<T>& binom, int n, int k) {
   if (n == 0) return 1;
   k = std::min(k, n);
   T ret = 0;
@@ -168,13 +168,13 @@ T bell_number(const Factorials<T>& fs, int n, int k) {
   p[0] = 1;
   for (int i = 1; i <= k; i++) {
     if (i & 1) {
-      p[i] = p[i - 1] - fs.ifact(i);
+      p[i] = p[i - 1] - binom.ifact(i);
     } else {
-      p[i] = p[i - 1] + fs.ifact(i);
+      p[i] = p[i - 1] + binom.ifact(i);
     }
   }
   for (int i = 1; i <= k; i++) {
-    ret += T(i).pow(n) * fs.ifact(i) * p[k - i];
+    ret += T(i).pow(n) * binom.ifact(i) * p[k - i];
   }
   return ret;
 }
