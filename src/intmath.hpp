@@ -69,10 +69,9 @@ Int ceil_sqrt(Int x) {
 // Guarantees 0 <= r < y (even when x is negative).
 template <class T>
 T floor_mod(T x, T y) {
+  static_assert(std::is_signed<T>::value, "for unsigned, simply use `x%y`");
   assert(y > 0);
-  auto r = x % y;
-  if (r < 0) r += y;
-  return r;
+  return ((x % y) + y) % y;
 }
 
 // Returns ceil(x / y).

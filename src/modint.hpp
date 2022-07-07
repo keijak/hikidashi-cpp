@@ -6,15 +6,8 @@
 
 template <unsigned M>
 struct ModInt {
-  constexpr ModInt() : _v(0) {}
-  constexpr ModInt(long long val) {
-    if (val < 0) {
-      long long k = (std::abs(val) + M - 1) / M;
-      val += k * M;
-    }
-    assert(val >= 0);
-    _v = val % M;
-  }
+  constexpr ModInt() : _v{0} {}
+  constexpr ModInt(long long val) : _v{(unsigned)((val % M + M) % M)} {}
 
   static constexpr int mod() { return M; }
   static constexpr unsigned umod() { return M; }
@@ -136,6 +129,6 @@ struct ModInt {
 
   unsigned _v;  // raw value
 };
-// const unsigned MOD = int(1e9) + 7;
-// const unsigned MOD = 998244353;
+// constexpr unsigned MOD = int(1e9) + 7;
+// constexpr unsigned MOD = 998244353;
 // using Mint = ModInt<MOD>;
