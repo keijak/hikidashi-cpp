@@ -45,42 +45,6 @@ struct ProjectSelection {
   // Returns the maximum gain.
   T max_gain() { return -min_cost(); }
 
-  // === constraint API ===
-
-  void constraint(int x, int y, T cost) {
-    if (x >= 0 and y < 0) {
-      assert(cost >= 0);
-      if_X_and_notY_then_cost(x, ~y, cost);
-    } else if (x < 0 and y >= 0) {
-      assert(cost >= 0);
-      if_X_and_notY_then_cost(y, ~x, cost);
-    } else if (x >= 0 and y >= 0) {
-      assert(cost <= 0);
-      if_all_of_X_then_gain({x, y}, -cost);
-    } else if (x < 0 and y < 0) {
-      assert(cost <= 0);
-      if_none_of_X_then_gain({~x, ~y}, -cost);
-    } else {
-      assert(false);
-    }
-  }
-
-  void constraint(int x, T cost) {
-    if (x >= 0) {
-      if (cost >= 0) {
-        if_X_then_cost(x, cost);
-      } else {
-        if_X_then_gain(x, -cost);
-      }
-    } else {
-      if (cost >= 0) {
-        if_notX_then_cost(~x, cost);
-      } else {
-        if_notX_then_gain(~x, cost);
-      }
-    }
-  }
-
   // === if-then API ===
 
   // {X=1, Y=0} => cost
@@ -146,6 +110,34 @@ struct ProjectSelection {
     if_X_and_notY_then_cost(y, kSink, gain);
     for (const auto &x : xs) {
       if_X_and_notY_then_cost(x, y, kBigCost);
+    }
+  }
+
+  // === constraint API ===
+
+  void constraint(int x, int y, T cost) {
+    if (x >= 0 and y < 0) {
+      assert(cost >= 0);
+      if_X_and_notY_then_cost(x, ~y, cost);
+    } else if (x < 0 and y >= 0) {
+      assert(cost >= 0);
+      if_X_and_notY_then_cost(y, ~x, cost);
+    } else if (x >= 0 and y >= 0) {
+      assert(cost <= 0);
+      if_all_of_X_then_gain({x, y}, -cost);
+    } else if (x < 0 and y < 0) {
+      assert(cost <= 0);
+      if_none_of_X_then_gain({~x, ~y}, -cost);
+    } else {
+      assert(false);
+    }
+  }
+
+  void constraint(int x, T cost) {
+    if (x >= 0) {
+      if_X_then_cost(x, cost);
+    } else {
+      if_notX_then_cost(~x, cost);
     }
   }
 };
