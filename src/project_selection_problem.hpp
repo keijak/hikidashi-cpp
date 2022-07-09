@@ -47,53 +47,53 @@ struct ProjectSelection {
 
   // === if-then API ===
 
-  // {X=1, Y=0} => cost
+  // {X=1, Y=0} => cost (>= 0)
   void if_X_and_notY_then_cost(int x, int y, T cost) {
     if (cost == 0) return;
     assert(cost > 0);
     edges_.push_back(Edge{x, y, cost});
   }
 
-  // {X=1} => cost
+  // {X=1} => cost (negative ok)
   void if_X_then_cost(int x, T cost) {
     if (cost < 0) return if_X_then_gain(x, -cost);
     if_X_and_notY_then_cost(x, kSink, cost);
   }
 
-  // {X=0} => cost
+  // {X=0} => cost (negative ok)
   void if_notX_then_cost(int x, T cost) {
     if (cost < 0) return if_notX_then_gain(x, -cost);
     if_X_and_notY_then_cost(kSource, x, cost);
   }
 
-  // {X=1} => gain
+  // {X=1} => gain (negative ok)
   void if_X_then_gain(int x, T gain) {
     if (gain < 0) return if_X_then_cost(x, -gain);
     bonus_ += gain;
     if_notX_then_cost(x, gain);
   }
 
-  // {X=0} => gain
+  // {X=0} => gain (negative ok)
   void if_notX_then_gain(int x, T gain) {
     if (gain < 0) return if_notX_then_cost(x, -gain);
     bonus_ += gain;
     if_X_then_cost(x, gain);
   }
 
-  // {X=0,Y=1} or {X=1,Y=0} => cost
+  // {X=0,Y=1} or {X=1,Y=0} => cost (>= 0)
   void if_X_not_equal_Y_then_cost(int x, int y, T cost) {
     if_X_and_notY_then_cost(x, y, cost);
     if_X_and_notY_then_cost(y, x, cost);
   }
 
-  // {X=0,Y=0} or {X=1,Y=1} => gain
+  // {X=0,Y=0} or {X=1,Y=1} => gain (>= 0)
   void if_X_equal_Y_then_gain(int x, int y, T gain) {
     bonus_ += gain;
     if_X_and_notY_then_cost(x, y, gain);
     if_X_and_notY_then_cost(y, x, gain);
   }
 
-  // {X[i]=1 forall i} => gain
+  // {X[i]=1 forall i} => gain (>= 0)
   void if_all_of_X_then_gain(const std::vector<int> &xs, T gain) {
     const int y = n_ + 2 + m_++;
     bonus_ += gain;
@@ -103,7 +103,7 @@ struct ProjectSelection {
     }
   }
 
-  // {X[i]=0 forall i} => gain
+  // {X[i]=0 forall i} => gain (>= 0)
   void if_none_of_X_then_gain(const std::vector<int> &xs, T gain) {
     const int y = n_ + 2 + m_++;
     bonus_ += gain;
