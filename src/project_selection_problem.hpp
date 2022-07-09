@@ -85,27 +85,33 @@ struct ProjectSelection {
 
   // {X=1, Y=0} => cost
   void if_X_and_notY_then_cost(int x, int y, T cost) {
+    if (cost == 0) return;
+    assert(cost > 0);
     edges_.push_back(Edge{x, y, cost});
   }
 
   // {X=1} => cost
   void if_X_then_cost(int x, T cost) {
+    if (cost < 0) return if_X_then_gain(x, -cost);
     if_X_and_notY_then_cost(x, kSink, cost);
   }
 
   // {X=0} => cost
   void if_notX_then_cost(int x, T cost) {
+    if (cost < 0) return if_notX_then_gain(x, -cost);
     if_X_and_notY_then_cost(kSource, x, cost);
   }
 
   // {X=1} => gain
   void if_X_then_gain(int x, T gain) {
+    if (gain < 0) return if_X_then_cost(x, -gain);
     bonus_ += gain;
     if_notX_then_cost(x, gain);
   }
 
   // {X=0} => gain
   void if_notX_then_gain(int x, T gain) {
+    if (gain < 0) return if_notX_then_cost(x, -gain);
     bonus_ += gain;
     if_X_then_cost(x, gain);
   }
