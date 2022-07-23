@@ -23,7 +23,7 @@ struct LazyRational {
       d = 1;
       reduced_ = true;
     } else {
-      reduced_ = light_reduce_(n, d);
+      reduced_ = maybe_reduce_(n, d);
     }
     nume_ = static_cast<i64>(n);
     deno_ = static_cast<i64>(d);
@@ -66,7 +66,7 @@ struct LazyRational {
     }
     i128 zn = i128(this->nume_) * y.deno_ + i128(y.nume_) * this->deno_;
     i128 zd = i128(this->deno_) * y.deno_;
-    this->reduced_ = light_reduce_(zn, zd);
+    this->reduced_ = maybe_reduce_(zn, zd);
     this->nume_ = static_cast<i64>(zn);
     this->deno_ = static_cast<i64>(zd);
     return *this;
@@ -93,7 +93,7 @@ struct LazyRational {
     } else {
       i128 zn = i128(this->nume_) * y.nume_;
       i128 zd = i128(this->deno_) * y.deno_;
-      this->reduced_ = light_reduce_(zn, zd);
+      this->reduced_ = maybe_reduce_(zn, zd);
       this->nume_ = static_cast<i64>(zn);
       this->deno_ = static_cast<i64>(zd);
     }
@@ -168,7 +168,7 @@ struct LazyRational {
 
   // Returns whether the args are reduced.
   template <typename T>
-  static bool light_reduce_(T &n, T &d) {
+  static bool maybe_reduce_(T &n, T &d) {
     if (std::max<T>(abs_(n), d) <= kReduceThreshold) {
       return false;
     }
