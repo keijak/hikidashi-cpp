@@ -174,9 +174,7 @@ struct LazyRational {
     }
     reduce_(n, d);
     if constexpr (std::is_same_v<T, i128>) {
-      if (std::max<T>(abs_(n), d) > std::numeric_limits<i64>::max()) {
-        throw std::overflow_error("cannot fit in 64 bits");
-      }
+      assert(std::max<T>(abs_(n), d) <= std::numeric_limits<i64>::max());
     }
     return true;
   }
