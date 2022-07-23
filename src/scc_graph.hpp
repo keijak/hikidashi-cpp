@@ -16,7 +16,8 @@ struct StronglyConnectedComponents {
   Vec<Vec<int>> components;  // component id -> node list
   Vec<int> component_id;     // node id -> component id
 
-  explicit SCC(const Vec<Vec<int>> &g) : n(int(g.size())), graph(g) {
+  explicit StronglyConnectedComponents(const Vec<Vec<int>> &g)
+      : n(int(g.size())), graph(g) {
     // Compute SCCs.
     atcoder::scc_graph acl_graph(n);
     for (int v = 0; v < n; ++v) {
