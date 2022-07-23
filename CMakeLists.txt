@@ -17,6 +17,9 @@ target_link_libraries(geometry_int_test PRIVATE GTest::gtest GTest::gmock GTest:
 add_executable(modint_test tests/modint_test.cpp)
 target_link_libraries(modint_test PRIVATE GTest::gtest GTest::gmock GTest::gtest_main)
 
+add_executable(rational_test tests/rational_test.cpp)
+target_link_libraries(rational_test PRIVATE GTest::gtest GTest::gmock GTest::gtest_main)
+
 add_executable(rolling_hash_test tests/rolling_hash_test.cpp)
 target_link_libraries(rolling_hash_test PRIVATE GTest::gtest GTest::gmock GTest::gtest_main)
 
