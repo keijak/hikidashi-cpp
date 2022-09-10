@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <vector>
 
-// Distributive: Two monoids that satisfies the Distributivity.
+// Distributive: Two monoids that satisfies the Distributive property.
 template <typename Distributive>
 struct LazySegmentTree {
   using T = typename Distributive::T;

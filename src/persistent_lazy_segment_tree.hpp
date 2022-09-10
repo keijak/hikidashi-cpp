@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 
+// Distributive: Two monoids that satisfies the Distributive property.
 template <typename Distributive>
 struct PersistentLazySegmentTree {
   using Int = long long;
