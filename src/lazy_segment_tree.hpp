@@ -3,24 +3,25 @@
 #include <type_traits>
 #include <vector>
 
-template <typename Monoids>
+// Distributive: Two monoids that satisfies the Distributivity.
+template <typename Distributive>
 struct LazySegmentTree {
-  using T = typename Monoids::T;
-  using F = typename Monoids::F;
+  using T = typename Distributive::T;
+  using F = typename Distributive::F;
 
   inline int size() const { return n_; }
   inline int offset() const { return offset_; }
 
   explicit LazySegmentTree(int n)
-      : LazySegmentTree(std::vector<T>(n, Monoids::id())) {}
+      : LazySegmentTree(std::vector<T>(n, Distributive::id())) {}
 
   explicit LazySegmentTree(const std::vector<T> &v) : n_(int(v.size())) {
     offset_ = 1;
     for (bits_ = 0; offset_ < n_; ++bits_) {
       offset_ <<= 1;
     }
-    data_.assign(2 * offset_, Monoids::id());
-    lazy_ = std::vector<F>(offset_, Monoids::f_id());
+    data_.assign(2 * offset_, Distributive::id());
+    lazy_ = std::vector<F>(offset_, Distributive::f_id());
     for (int i = 0; i < n_; i++) data_[offset_ + i] = v[i];
     for (int i = offset_ - 1; i >= 1; i--) {
       pull_up(i);
@@ -46,7 +47,7 @@ struct LazySegmentTree {
 
   T fold(int l, int r) const {
     assert(0 <= l && l <= r && r <= n_);
-    if (l == r) return Monoids::id();
+    if (l == r) return Distributive::id();
 
     l += offset_;
     r += offset_;
@@ -56,15 +57,15 @@ struct LazySegmentTree {
       if (((r >> i) << i) != r) push_down(r >> i);
     }
 
-    T sml = Monoids::id(), smr = Monoids::id();
+    T sml = Distributive::id(), smr = Distributive::id();
     while (l < r) {
-      if (l & 1) sml = Monoids::op(sml, data_[l++]);
-      if (r & 1) smr = Monoids::op(data_[--r], smr);
+      if (l & 1) sml = Distributive::op(sml, data_[l++]);
+      if (r & 1) smr = Distributive::op(data_[--r], smr);
       l >>= 1;
       r >>= 1;
     }
 
-    return Monoids::op(sml, smr);
+    return Distributive::op(sml, smr);
   }
 
   T fold_all() const { return data_[1]; }
@@ -73,7 +74,7 @@ struct LazySegmentTree {
     assert(0 <= p && p < n_);
     p += offset_;
     for (int i = bits_; i >= 1; i--) push_down(p >> i);
-    data_[p] = Monoids::apply(f, data_[p]);
+    data_[p] = Distributive::apply(f, data_[p]);
     for (int i = 1; i <= bits_; i++) pull_up(p >> i);
   }
   void apply(int l, int r, F f) {
@@ -117,19 +118,19 @@ struct LazySegmentTree {
   mutable std::vector<F> lazy_;
 
   void pull_up(int k) const {
-    data_[k] = Monoids::op(data_[2 * k], data_[2 * k + 1]);
+    data_[k] = Distributive::op(data_[2 * k], data_[2 * k + 1]);
   }
 
   void push_down(int k) const {
     apply_all(2 * k, lazy_[k]);
     apply_all(2 * k + 1, lazy_[k]);
-    lazy_[k] = Monoids::f_id();
+    lazy_[k] = Distributive::f_id();
   }
 
   void apply_all(int k, F f) const {
-    data_[k] = Monoids::f_apply(f, data_[k]);
+    data_[k] = Distributive::f_apply(f, data_[k]);
     if (k < offset_) {
-      lazy_[k] = Monoids::f_compose(f, lazy_[k]);
+      lazy_[k] = Distributive::f_compose(f, lazy_[k]);
 #ifdef SEGMENT_TREE_BEATS
       if (data_[k].failed) push_down(k), pull_up(k);
 #endif
