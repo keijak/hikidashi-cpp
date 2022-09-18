@@ -1,7 +1,7 @@
 #include <stack>
 
 template <typename Monoid>
-struct SWAGQueue {
+struct SwagQueue {
   using T = typename Monoid::T;
 
   struct Node {
@@ -10,7 +10,7 @@ struct SWAGQueue {
   };
   std::stack<Node> front_stack, back_stack;
 
-  SWAGQueue() = default;
+  SwagQueue() = default;
 
   bool empty() const { return front_stack.empty() and back_stack.empty(); }
 
@@ -25,11 +25,11 @@ struct SWAGQueue {
   }
 
   void pop_front() {
-    assert(!empty());
+    assert(not empty());
     if (front_stack.empty()) {
       front_stack.emplace(back_stack.top().val, back_stack.top().val);
       back_stack.pop();
-      while (!back_stack.empty()) {
+      while (not back_stack.empty()) {
         T agg = Monoid::op(back_stack.top().val, front_stack.top().agg);
         front_stack.emplace(back_stack.top().val, std::move(agg));
         back_stack.pop();
