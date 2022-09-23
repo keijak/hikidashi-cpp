@@ -6,7 +6,7 @@ inline bool chmin(T &a, U b) {
   return a > b and ((a = std::move(b)), true);
 }
 template <typename T>
-constexpr T kBigVal = std::numeric_limits<T>::max() / 2;
+constexpr T kBig = std::numeric_limits<T>::max() / 2;
 
 ////
 
@@ -28,7 +28,7 @@ bool operator>(const State &x, const State &y) { return x.cost > y.cost; }
 // Returns min distance from the start node to each node (if exists).
 auto search_shortest_path(const Graph &g, int start, int goal) {
   const int n = g.size();
-  auto mincost = vector(n, kBigVal<Int>);
+  auto mincost = vector(n, kBig<Int>);
   MinHeap<State> que;
   auto push = [&](int node, Int cost) -> bool {
     if (chmin(mincost[node], cost)) {
@@ -71,7 +71,7 @@ auto search_shortest_path_on_grid(const vector<string> &g,
   auto inside = [&](int i, int j) -> bool {
     return 0 <= i and i < H and 0 <= j and j < W;
   };
-  auto mincost = vector(H, vector(W, kBigVal<Int>));
+  auto mincost = vector(H, vector(W, kBig<Int>));
   MinHeap<GridState> que;
   auto push = [&](int r, int c, Int cost) -> bool {
     if (not inside(r, c)) return false;
