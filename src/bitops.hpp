@@ -14,7 +14,20 @@ template <typename T>
 constexpr int num_bits = CHAR_BIT * sizeof(T);
 
 // Compatible with C++20 <bit>.
-inline int popcount(unsigned x) { return __builtin_popcount(x); }
+
+template <typename T>
+int popcount(T x) {
+  using U = std::make_unsigned_t<T>;
+  if constexpr (std::is_same_v<U, unsigned>) {
+    return __builtin_popcount(static_cast<U>(x));
+  } else if constexpr (std::is_same_v<U, unsigned long>) {
+    return __builtin_popcountl(static_cast<U>(x));
+  } else if constexpr (std::is_same_v<U, unsigned long long>) {
+    return __builtin_popcountll(static_cast<U>(x));
+  }
+  assert(false);  // unsupported type
+}
+
 inline bool has_single_bit(unsigned x) { return __builtin_popcount(x) == 1; }
 inline int countl_zero(unsigned x) {
   if (x == 0) return std::numeric_limits<unsigned>::digits;
@@ -35,7 +48,6 @@ inline int countr_one(unsigned x) {
   return __builtin_ctz(x);
 }
 
-inline int popcount(Uint x) { return __builtin_popcountll(x); }
 inline bool has_single_bit(Uint x) { return __builtin_popcountll(x) == 1; }
 inline int countl_zero(Uint x) {
   if (x == 0) return std::numeric_limits<Uint>::digits;
