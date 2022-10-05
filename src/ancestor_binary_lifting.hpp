@@ -49,7 +49,7 @@ struct AncestorBinaryLifting {
   // The root's parent is the root itself.
   int parent(int v) const { return upper[0][v]; }
 
-  // Returns i-th ancestor of v.
+  // Returns the i-th level ancestor of v.
   // - 0th ancestor is v itself.
   // - 1st ancestor is the parent.
   // - (2^k)-th ancestor is `upper[k][v]`.
