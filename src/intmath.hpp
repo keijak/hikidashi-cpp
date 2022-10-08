@@ -114,13 +114,13 @@ std::vector<T> pow_seq(int n, T base = 2) {
 }
 
 template <typename T>
-T arithmetic_progression_sum(T a1, T d, T n) {
+T arithmetic_sum(T a1, T d, T n) {
   T an = a1 + d * (n - 1);
   return n * (a1 + an) / 2;
 }
 
 template <typename T>
-T geometric_progression_sum(T a1, T r, T n) {
+T geometric_sum(T a1, T r, T n) {
   return a1 * (power(r, n) - 1) / (r - 1);
 }
 
