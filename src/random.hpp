@@ -10,7 +10,7 @@ std::mt19937_64& PRNG() {
   return engine;
 }
 
-// Generates values in [lo, hi].
+// Generates values in [lo, hi] inclusive.
 int rand_int(int lo, int hi) {
   std::uniform_int_distribution<int> rand(lo, hi);
   return rand(PRNG());
@@ -42,6 +42,14 @@ bool trial_loop() {
     //
   }
   return false;
+}
+
+#include <boost/multiprecision/cpp_int.hpp>
+#include <boost/multiprecision/miller_rabin.hpp>
+
+bool is_probably_prime(long long n) {
+  constexpr int kTrials = 3;
+  return boost::multiprecision::miller_rabin_test(n, kTrials, PRNG());
 }
 
 // Custom uint64 hash function for unordered_map, etc.
