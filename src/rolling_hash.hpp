@@ -1,8 +1,9 @@
 #include <bits/stdc++.h>
 
+using u64 = std::uint64_t;
+using u128 = __uint128_t;
+
 struct RollingHash {
-  using u64 = std::uint64_t;
-  using u128 = __uint128_t;
   static const u64 kMod = (1ULL << 61) - 1;
 
   static u64 base() {
