@@ -58,6 +58,7 @@ template <typename T, Int DMAX>
 struct NTTMult {
   static_assert(atcoder::internal::is_modint<T>::value, "Requires ACL modint.");
   static_assert(T::mod() == 998244353, "Requires an NTT-friendly mod.");
+  static_assert(DMAX <= (1 << 23), "Too big degrees.");
 
   using value_type = T;
   static constexpr Int dmax() { return DMAX; }
