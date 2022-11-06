@@ -7,7 +7,7 @@ using Mint = atcoder::modint1000000007;
 namespace mints {
 
 std::vector<Mint> vec(std::initializer_list<Mint> v) {
-  static constexpr size_t kInitReserve = 1 << 20;
+  static constexpr size_t kInitReserve = 1 << 22;
   std::vector<Mint> ret(v);
   ret.reserve(kInitReserve);
   return ret;
@@ -16,9 +16,8 @@ std::vector<Mint> vec(std::initializer_list<Mint> v) {
 Mint inv(int n) {
   static std::vector<Mint> vals = vec({0, 1});
   for (int i = (int)vals.size(); i <= n; ++i) {
-    const int q = Mint::mod() / i;
-    const int r = Mint::mod() % i;
-    vals.push_back(-vals[r] * q);
+    auto d = std::div(Mint::mod(), i);
+    vals.push_back(-vals[d.rem] * d.quot);
   }
   return vals[n];
 }
@@ -39,7 +38,6 @@ Mint invfact(int n) {
   return vals[n];
 }
 
-// nCk
 Mint binom(int n, int k) {
   if (k < 0 || k > n) return 0;
   return fact(n) * invfact(k) * invfact(n - k);
