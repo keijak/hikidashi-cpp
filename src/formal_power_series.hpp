@@ -58,7 +58,7 @@ template <typename T, Int DMAX>
 struct NTTMult {
   static_assert(atcoder::internal::is_modint<T>::value, "Requires ACL modint.");
   static_assert(T::mod() == 998244353, "Requires an NTT-friendly mod.");
-  static_assert(DMAX <= (1 << 23), "Too big degrees.");
+  static_assert(DMAX <= (1 << 23), "Too big degrees for NTT.");
 
   using value_type = T;
   static constexpr Int dmax() { return DMAX; }
@@ -100,6 +100,8 @@ struct NTTMult {
 template <Int DMAX>
 struct IntMult {
   using value_type = long long;
+  static_assert(DMAX <= (1 << 24), "Too big degrees for FFT.");
+
   static constexpr Int dmax() { return DMAX; }
 
   static std::vector<value_type> multiply(const std::vector<value_type> &x,
