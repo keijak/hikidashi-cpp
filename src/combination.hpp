@@ -4,32 +4,93 @@
 using Int = long long;
 using Mint = atcoder::modint1000000007;
 
-// mod: prime
-template <class T = Mint>
-struct BinomialCoeff {
-  // factorials and inverse factorials.
-  std::vector<T> fact, ifact;
+namespace mints {
 
-  // n: max cached value.
-  explicit BinomialCoeff(int n) : fact(n + 1), ifact(n + 1) {
-    assert(n >= 0);
-    assert(n < T::mod());
-    fact[0] = 1;
-    for (int i = 1; i <= n; ++i) {
-      fact[i] = fact[i - 1] * i;
-    }
-    ifact[n] = fact[n].inv();
-    for (int i = n; i >= 1; --i) {
-      ifact[i - 1] = ifact[i] * i;
+std::vector<Mint> vec(std::initializer_list<Mint> v) {
+  static constexpr size_t kInitReserve = 1 << 20;
+  std::vector<Mint> ret(v);
+  ret.reserve(kInitReserve);
+  return ret;
+}
+
+Mint inv(int n) {
+  static std::vector<Mint> vals = vec({0, 1});
+  for (int i = (int)vals.size(); i <= n; ++i) {
+    const int q = Mint::mod() / i;
+    const int r = Mint::mod() % i;
+    vals.push_back(-vals[r] * q);
+  }
+  return vals[n];
+}
+
+Mint fact(int n) {
+  static std::vector<Mint> vals = vec({1, 1});
+  for (int i = (int)vals.size(); i <= n; ++i) {
+    vals.push_back(vals.back() * i);
+  }
+  return vals[n];
+}
+
+Mint invfact(int n) {
+  static std::vector<Mint> vals = vec({1, 1});
+  for (int i = (int)vals.size(); i <= n; ++i) {
+    vals.push_back(vals.back() * inv(i));
+  }
+  return vals[n];
+}
+
+// nCk
+Mint binom(int n, int k) {
+  if (k < 0 || k > n) return 0;
+  return fact(n) * invfact(k) * invfact(n - k);
+}
+
+}  // namespace mints
+using mints::binom;
+
+// nPk
+Mint perm(int n, int k) {
+  if (k < 0 || k > n) return 0;
+  return mints::fact(n) * mints::invfact(n - k);
+}
+
+Mint catalan(int k) {
+  auto ret = binom(2 * k, k);
+  if (k > 0) ret -= binom(2 * k, k - 1);
+  return ret;
+}
+
+Mint montmort_number(int n) {
+  Mint ret = 0;
+  for (int k = 2; k <= n; ++k) {
+    if (k % 2 == 0) {
+      ret += mints::invfact(k);
+    } else {
+      ret -= mints::invfact(k);
     }
   }
+  ret *= mints::fact(n);
+  return ret;
+}
 
-  // Combination (binomial coefficients)
-  T operator()(Int n, Int k) const {
-    if (k < 0 || k > n) return 0;
-    return fact[n] * ifact[k] * ifact[n - k];
+Mint bell_number(int n, int k) {
+  if (n == 0) return 1;
+  k = std::min(k, n);
+  Mint ret = 0;
+  std::vector<Mint> p(k + 1);
+  p[0] = 1;
+  for (int i = 1; i <= k; i++) {
+    if (i & 1) {
+      p[i] = p[i - 1] - mints::invfact(i);
+    } else {
+      p[i] = p[i - 1] + mints::invfact(i);
+    }
   }
-};
+  for (int i = 1; i <= k; i++) {
+    ret += Mint(i).pow(n) * mints::invfact(i) * p[k - i];
+  }
+  return ret;
+}
 
 // mod: prime
 template <class T = Mint>
@@ -112,69 +173,6 @@ Mint comb_mod(Int n, Int k) {
     Int ni = n % P, ki = k % P;
     ret *= comb<Mint>(ni, ki);
     n /= P, k /= P;
-  }
-  return ret;
-}
-
-Mint factorial(int x) {
-  static std::vector<Mint> facts = {1, 1, 2};
-  facts.reserve(x + 1);
-  while ((int)facts.size() <= x) {
-    facts.push_back(facts.back() * facts.size());
-  }
-  return facts[x];
-}
-
-// Permutation (nPk)
-template <class T>
-T P(const BinomialCoeff<T>& binom, int n, int k) {
-  if (k < 0 || k > n) return 0;
-  return binom.fact[n] * binom.ifact[n - k];
-}
-
-// Catalan Number
-template <typename T>
-T catalan(const BinomialCoeff<T>& binom, int k) {
-  auto ret = binom(2 * k, k);
-  if (k > 0) ret -= binom(2 * k, k - 1);
-  return ret;
-}
-
-// Montmort Number
-// Total number of complete permutations of size n.
-template <class T>
-T montmort_number(const BinomialCoeff<T>& binom, int n) {
-  T res = 0;
-  for (int k = 2; k <= n; ++k) {
-    if (k % 2 == 0) {
-      res += binom.ifact[k];
-    } else {
-      res -= binom.ifact[k];
-    }
-  }
-  res *= binom.fact[n];
-  return res;
-}
-
-// Bell Number B(n, k)
-// Number of ways of grouping n distinguishable balls into k or less
-// indistinguishable boxes.
-template <typename T>
-T bell_number(const BinomialCoeff<T>& binom, int n, int k) {
-  if (n == 0) return 1;
-  k = std::min(k, n);
-  T ret = 0;
-  std::vector<T> p(k + 1);
-  p[0] = 1;
-  for (int i = 1; i <= k; i++) {
-    if (i & 1) {
-      p[i] = p[i - 1] - binom.ifact(i);
-    } else {
-      p[i] = p[i - 1] + binom.ifact(i);
-    }
-  }
-  for (int i = 1; i <= k; i++) {
-    ret += T(i).pow(n) * binom.ifact(i) * p[k - i];
   }
   return ret;
 }
