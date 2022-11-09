@@ -6,10 +6,10 @@ using Mint = atcoder::modint1000000007;
 
 namespace mints {
 
-std::vector<Mint> vec(std::initializer_list<Mint> v) {
-  static constexpr size_t kInitReserve = 1 << 22;
+std::vector<Mint> vec(std::initializer_list<Mint> v,
+                      size_t capacity = 1 << 22) {
   std::vector<Mint> ret(v);
-  ret.reserve(kInitReserve);
+  ret.reserve(capacity);
   return ret;
 }
 
