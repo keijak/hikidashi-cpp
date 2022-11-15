@@ -1,20 +1,21 @@
 // Returns [x^n] P(x)/Q(x).
 template <typename FPS>
 typename FPS::T bostan_mori(FPS P, FPS Q, long long n) {
+  assert(FPS::dmax() >= std::max(P.size(), Q.size()) * 2);
   typename FPS::T ret = 0;
-  P.coeff_.resize(Q.size() - 1);
+  P.coeff.resize(Q.size() - 1);
   while (n) {
     auto Q2 = Q;
     for (int i = 1; i < Q2.size(); i += 2) {
-      Q2.coeff_[i] = -Q2[i];
+      Q2.coeff[i] = -Q2[i];
     }
     const auto S = P * Q2;
     const auto T = Q * Q2;
     for (int i = int(n & 1); i < S.size(); i += 2) {
-      P.coeff_[i >> 1] = S[i];
+      P.coeff[i >> 1] = S[i];
     }
     for (int i = 0; i < T.size(); i += 2) {
-      Q.coeff_[i >> 1] = T[i];
+      Q.coeff[i >> 1] = T[i];
     }
     n >>= 1;
   }
@@ -41,6 +42,6 @@ Mint linear_recurrence(const vector<Mint> &a, const vector<Mint> &c,
   FPS Q(std::move(q));
   FPS P(a);
   P *= Q;
-  P.coeff_.resize(Q.size() - 1);
+  P.coeff.resize(Q.size() - 1);
   return bostan_mori(P, Q, n);
 }

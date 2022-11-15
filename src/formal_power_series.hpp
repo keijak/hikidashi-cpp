@@ -18,10 +18,10 @@ using Mint = atcoder::modint998244353;
 
 namespace multiplication {
 
-template <typename T, Int DMAX>
+template <typename T, int DMAX>
 struct NaiveMult {
   using value_type = T;
-  static constexpr Int dmax() { return DMAX; }
+  static constexpr int dmax() { return DMAX; }
 
   static std::vector<T> multiply(const std::vector<T> &x,
                                  const std::vector<T> &y) {
@@ -37,7 +37,7 @@ struct NaiveMult {
     return res;
   }
 
-  static std::vector<T> invert(const std::vector<T> &x, Int sz = -1) {
+  static std::vector<T> invert(const std::vector<T> &x, int sz = -1) {
     if (sz == -1) sz = dmax() + 1;
     std::vector<T> res(sz);
     res[0] = T(1) / x[0];
@@ -54,23 +54,23 @@ struct NaiveMult {
 };
 
 // T: modint
-template <typename T, Int DMAX>
+template <typename T, int DMAX>
 struct NTTMult {
   static_assert(atcoder::internal::is_modint<T>::value, "Requires ACL modint.");
   static_assert(T::mod() == 998244353, "Requires an NTT-friendly mod.");
   static_assert(DMAX <= (1 << 23), "Too big degrees for NTT.");
 
   using value_type = T;
-  static constexpr Int dmax() { return DMAX; }
+  static constexpr int dmax() { return DMAX; }
 
   static std::vector<T> multiply(const std::vector<T> &x,
                                  const std::vector<T> &y) {
     std::vector<T> res = atcoder::convolution(x, y);
-    if (Int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
+    if (int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
     return res;
   }
 
-  static std::vector<T> invert(const std::vector<T> &x, Int sz = -1) {
+  static std::vector<T> invert(const std::vector<T> &x, int sz = -1) {
     int n = x.size();
     assert(n != 0 && x[0].val() != 0);  // must be invertible
     if (sz == -1) sz = dmax() + 1;
@@ -97,17 +97,17 @@ struct NTTMult {
   }
 };
 
-template <Int DMAX>
+template <int DMAX>
 struct IntMult {
   using value_type = long long;
   static_assert(DMAX <= (1 << 24), "Too big degrees for FFT.");
 
-  static constexpr Int dmax() { return DMAX; }
+  static constexpr int dmax() { return DMAX; }
 
   static std::vector<value_type> multiply(const std::vector<value_type> &x,
                                           const std::vector<value_type> &y) {
     auto res = atcoder::convolution_ll(x, y);
-    if (Int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
+    if (int(res.size()) > DMAX + 1) res.resize(DMAX + 1);  // shrink
     return res;
   }
 
@@ -116,10 +116,10 @@ struct IntMult {
   }
 };
 
-template <Int DMAX>
+template <int DMAX>
 struct FloatMult {
   using value_type = double;
-  static constexpr Int dmax() { return DMAX; }
+  static constexpr int dmax() { return DMAX; }
 
   static std::vector<value_type> multiply(const std::vector<value_type> &x,
                                           const std::vector<value_type> &y) {
@@ -135,15 +135,15 @@ struct FloatMult {
 };
 
 // T: modint
-template <typename T, Int DMAX>
+template <typename T, int DMAX>
 struct ArbitraryModMult {
   using value_type = T;
   static_assert(atcoder::internal::is_modint<T>::value);
 
-  static constexpr Int dmax() { return DMAX; }
+  static constexpr int dmax() { return DMAX; }
 
   static std::vector<T> convolution(const std::vector<T> &x,
-                                    const std::vector<T> &y, Int size_limit) {
+                                    const std::vector<T> &y, int size_limit) {
     std::vector<int> xv(x.size());
     std::vector<int> yv(y.size());
     for (int i = 0; i < (int)x.size(); ++i) xv[i] = x[i].val();
@@ -157,7 +157,7 @@ struct ArbitraryModMult {
     const Int m1_inv_m2 = atcoder::inv_mod(M1, M2);
     const Int m12_inv_m3 = atcoder::inv_mod(Int(M1) * M2, M3);
     const Int m12 = Int(M1) * M2 % T::mod();
-    const Int n = std::min<Int>(x.size() + y.size() - 1, size_limit);
+    const int n = std::min<int>(x.size() + y.size() - 1, size_limit);
     std::vector<T> res(n);
     for (int i = 0; i < n; ++i) {
       atcoder::static_modint<M2> v1 = z2[i] - z1[i];
@@ -175,13 +175,13 @@ struct ArbitraryModMult {
     return convolution(x, y, dmax() + 1);
   }
 
-  static std::vector<T> invert(const std::vector<T> &x, Int sz = -1) {
+  static std::vector<T> invert(const std::vector<T> &x, int sz = -1) {
     const int n = int(x.size());
     assert(n != 0 && x[0] != 0);
     if (sz == -1) sz = dmax() + 1;
     assert(sz > 0);
     std::vector<T> res{x[0].inv()};
-    while (Int(res.size()) < sz) {
+    while (int(res.size()) < sz) {
       const int m = res.size();
       const int m2 = m << 1;
       std::vector<T> f(x.begin(), x.begin() + std::min<int>(n, m2));
@@ -205,7 +205,7 @@ struct ArbitraryModMult {
 template <typename Mult>
 struct DenseFPS {
   using T = typename Mult::value_type;
-  static constexpr Int dmax() { return Mult::dmax(); }
+  static constexpr int dmax() { return Mult::dmax(); }
 
   // Coefficients of terms from x^0 to x^DMAX.
   std::vector<T> coeff;
@@ -299,7 +299,7 @@ struct DenseFPS {
   void shift_inplace(int k) {
     if (k > 0) {
       if (size() <= dmax()) {
-        coeff.resize(std::min<Int>(size() + k, dmax() + 1), 0);
+        coeff.resize(std::min<int>(size() + k, dmax() + 1), 0);
       }
       for (int i = size() - 1; i >= k; --i) {
         coeff[i] = coeff[i - k];
@@ -339,7 +339,7 @@ struct DenseFPS {
   }
   DenseFPS &operator/=(const DenseFPS &other) {
     int z = 0;
-    const int msz = std::min(size(), other.size());
+    const int msz = std::min<int>(size(), other.size());
     while (z < msz and (*this)[z] == T(0) and other[z] == T(0)) ++z;
     if (z == size()) {
       return *this;  // (0/y) == 0 regardless of y.
@@ -348,7 +348,7 @@ struct DenseFPS {
       return *this *= DenseFPS(Mult::invert(other.coeff));
     } else {
       shift_inplace(-z);
-      std::vector<T> y(other.coeff.begin() + std::min(z, other.size()),
+      std::vector<T> y(other.coeff.begin() + std::min<int>(z, other.size()),
                        other.coeff.end());
       return *this *= DenseFPS(Mult::invert(std::move(y)));
     }
@@ -486,7 +486,7 @@ FPS operator+(const SparseFPS<T> &f, const FPS &g) {
   return g + f;  // commutative
 }
 
-// Polynomial multiplication (dense * sparse).
+// Polynomial multiplication (dense * sparse). O(NM).
 template <typename FPS, typename T = typename FPS::T>
 FPS &operator*=(FPS &f, const SparseFPS<T> &g) {
   if (g.size() == 0) {
@@ -494,7 +494,7 @@ FPS &operator*=(FPS &f, const SparseFPS<T> &g) {
   }
   const int gd_max = g.degree[g.size() - 1];
   const int fd_max = f.size() - 1;
-  const int n = std::min(fd_max + gd_max, FPS::dmax()) + 1;
+  const int n = std::min<int>(fd_max + gd_max, FPS::dmax()) + 1;
   if (f.size() < n) f.coeff.resize(n);
 
   T c0 = 0;
@@ -525,7 +525,7 @@ FPS operator*(const SparseFPS<T> &f, const FPS &g) {
   return g * f;  // commutative
 }
 
-// Polynomial division (dense / sparse).
+// Polynomial division (dense / sparse). O(NM).
 template <typename FPS, typename T = typename FPS::T>
 FPS &operator/=(FPS &f, const SparseFPS<T> &g) {
   assert(g.size() > 0 and g.degree[0] == 0 and g.coeff[0] != 0);
@@ -549,10 +549,10 @@ FPS operator/(const FPS &f, const SparseFPS<T> &g) {
 
 // Multiplies by (1 + c * x^k).
 template <typename FPS>
-void multiply2_inplace(FPS &f, int k, int c) {
+void multiply2_inplace(FPS &f, int c, int k) {
   assert(k > 0);
   if (f.size() <= FPS::dmax()) {
-    f.coeff.resize(std::min(f.size() + k, FPS::dmax() + 1), 0);
+    f.coeff.resize(std::min<size_t>(f.size() + k, FPS::dmax() + 1), 0);
   }
   for (int i = f.size() - 1; i >= k; --i) {
     f.coeff[i] += f.coeff[i - k] * c;
@@ -560,14 +560,14 @@ void multiply2_inplace(FPS &f, int k, int c) {
 }
 // Multiplies by (1 + c * x^k).
 template <typename FPS>
-FPS multiply2(FPS f, int k, int c) {
-  multiply2_inplace(f, k, c);
+FPS multiply2(FPS f, int c, int k) {
+  multiply2_inplace(f, c, k);
   return f;
 }
 
 // Divides by (1 + c * x^k).
 template <typename FPS>
-void divide2_inplace(FPS &f, int k, int c) {
+void divide2_inplace(FPS &f, int c, int k) {
   assert(k > 0);
   for (int i = k; i < f.size(); ++i) {
     f.coeff[i] -= f.coeff[i - k] * c;
@@ -575,8 +575,8 @@ void divide2_inplace(FPS &f, int k, int c) {
 }
 // Divides by (1 + c * x^k).
 template <typename FPS>
-FPS divide2(FPS f, int k, int c) {
-  divide2_inplace(f, k, c);
+FPS divide2(FPS f, int c, int k) {
+  divide2_inplace(f, c, k);
   return f;
 }
 
@@ -708,7 +708,7 @@ FPS exp_ntt(FPS f) {
     for (auto &x : t) x *= m2_inv;
 
     // Step 2.f'
-    std::vector<T> v(res.begin() + m, res.begin() + std::min(n, m2));
+    std::vector<T> v(res.begin() + m, res.begin() + std::min<int>(n, m2));
     v.resize(m);
     t.insert(t.begin(), m - 1, 0);
     t = std::move(integral(FPS(std::move(t))).coeff);
@@ -723,7 +723,7 @@ FPS exp_ntt(FPS f) {
     for (auto &x : v) x *= m2_inv;
 
     // Step 2.h'
-    for (int i = 0, q = std::min(n - m, m); i < q; ++i) {
+    for (int i = 0, q = std::min<int>(n - m, m); i < q; ++i) {
       res[m + i] = v[i];
     }
   }
@@ -772,7 +772,7 @@ FPS product_of_geometric_series(std::vector<int> a) {
   const int n = int(a.size());
   const int m = FPS::dmax() + 1;
   FPS nume(std::vector<Mint>(m, 0));
-  for (Int k = 1; k < m; ++k) {
+  for (int k = 1; k < m; ++k) {
     const Mint kinv = T(k).inv();
     for (const auto &e : a) {
       Int t = k * e;
